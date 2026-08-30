@@ -1,0 +1,577 @@
+#library "dtaddr"
+#include "zcommon.acs"
+
+#import "8BDT.acs"
+
+#include "8BDMDEFS.acs"
+#include "DTADD.acs"
+
+function int getAndResetDTADDVersion(void) {
+	int version = GetCvar("_8bdm_dtadd_version");
+	if (version > 0) {
+		setDTADDVersion(0);
+	}
+	return version;
+}
+
+script "core_init_client_data" (int callee) CLIENTSIDE
+{
+	if(!IsNetworkGame())
+		terminate;
+
+	ACS_NamedExecuteWithResult(callee);
+}
+
+Script "core_DefineWeapon_S" (void)
+{
+	if(MAX_WEAPONS_GLOBAL >= MAX_WEAPONS_GLOBAL_LIMIT) {
+		SetResultValue(-1);
+		terminate;
+	}
+
+	int version = getAndResetDTADDVersion();
+
+	if(version == 0) {
+		str wepName = GetCvarString("8bdm_wepTag");
+		str wepCode = GetCvarString("8bdm_wepActor");
+		str wepIcon = GetCvarString("8bdm_wepIcon");
+		str wepAmmo = GetCvarString("8bdm_wepAmmo");
+		int wepMult = GetCvar("8bdm_wepMult");
+		str wepAmmo2 = GetCvarString("8bdm_wepAmmo2");
+		int wepMult2 = GetCvar("8bdm_wepMult2");
+		int wepSlot = GetCvar("8bdm_wepSlot");
+		bool wepMap = GetCvar("8bdm_wepMap");
+		bool wepLMS = GetCvar("8bdm_wepLms");
+		bool wepEddie =	GetCvar("8bdm_wepEddie");
+	} else {
+		wepName = GetCvarString("_8bdm_wepTag");
+		wepCode = GetCvarString("_8bdm_wepActor");
+		wepIcon = GetCvarString("_8bdm_wepIcon");
+		wepAmmo = GetCvarString("_8bdm_wepAmmo");
+		wepMult = GetCvar("_8bdm_wepMult");
+		wepAmmo2 = GetCvarString("_8bdm_wepAmmo2");
+		wepMult2 = GetCvar("_8bdm_wepMult2");
+		wepSlot = GetCvar("_8bdm_wepSlot");
+		wepMap = GetCvar("_8bdm_wepMap");
+		wepLMS = GetCvar("_8bdm_wepLms");
+		wepEddie =	GetCvar("_8bdm_wepEddie");
+	}
+
+	bool banned = ACS_NamedExecuteWithResult("core_checkPickupServerBanned", wepCode);
+
+	setWeaponTag(MAX_WEAPONS_GLOBAL, wepName);
+	setWeaponActor(MAX_WEAPONS_GLOBAL, wepCode);
+	setWeaponIcon(MAX_WEAPONS_GLOBAL, wepIcon);
+	setWeaponAmmoType(MAX_WEAPONS_GLOBAL, wepAmmo);
+	setWeaponAmmoFactor(MAX_WEAPONS_GLOBAL, wepMult);
+	setWeaponAmmo2Type(MAX_WEAPONS_GLOBAL, wepAmmo2);
+	setWeaponAmmo2Factor(MAX_WEAPONS_GLOBAL, wepMult2);
+	setWeaponSlot(MAX_WEAPONS_GLOBAL, wepSlot);
+	setWeaponMapValid(MAX_WEAPONS_GLOBAL, wepMap && !banned);
+	setWeaponLMSValid(MAX_WEAPONS_GLOBAL, wepLms && !banned);
+	setWeaponEddieValid(MAX_WEAPONS_GLOBAL, wepEddie && !banned);
+
+	weapons_slot_count[wepSlot]++;
+
+	SetResultValue(MAX_WEAPONS_GLOBAL++);
+}
+
+script "core_CreatePlayerTranslation_S" (int id, int cyan, int blue)
+{
+	ACS_NamedExecuteWithResult("satanium_CreatePlayerTranslation", id, cyan, blue);
+	SetResultValue(DTADDR_defineTranslation(id));
+}
+
+script "core_CreatePlayerTranslationGlow_S" (int id, int cyan, int blue, int black)
+{
+	ACS_NamedExecuteWithResult("satanium_CreatePlayerTranslationGlow", id, cyan, blue, black);
+	SetResultValue(DTADDR_defineTranslation(id));
+}
+
+Script "core_DefineTranslation_S" (int id) CLIENTSIDE
+{
+	SetResultValue(DTADDR_defineTranslation(id));
+}
+
+function int DTADDR_defineTranslation(int id)
+{
+	int version = getAndResetDTADDVersion();
+
+	if(version == 0)
+		id = GetCvar("8bdmtranslation_id");
+
+	int ret = id;
+
+	if(MAX_TRANS >= MAX_TRANS_LIMIT) {
+		//team translations get added multiple times, but this is debug array anyway
+		//still can't printbold here tho
+		//printbold(s:"Limit too low, need more translation slots");
+		return ret;
+	}
+
+	if(MAX_TRANS == 0) {
+		TRANS_LOWEST = id;
+		TRANS_HIGHEST = id;
+	} else {
+		if(id < TRANS_LOWEST) {
+			TRANS_LOWEST = id;
+		} else if (id > TRANS_HIGHEST) {
+			TRANS_HIGHEST = id;
+		}
+	}
+
+	setTransId(MAX_TRANS, id);
+
+	MAX_TRANS++;
+
+	return ret;
+}
+
+Script "core_DefineBusterUpgrade_S" (void)
+{
+	if(MAX_BUSTERUPGRADES >= MAX_BUSTER_LIMIT) {
+		printbold(s:"Limit too low, need more buster upgrade slots");
+		SetResultValue(-1);
+		terminate;
+	}
+
+	int version = getAndResetDTADDVersion();
+
+	if(version == 0) {
+		str busterTag = GetCvarString("8bdm_busterTag");
+		str busterActor = GetCvarString("8bdm_busterActor");
+		str busterUpgradeTag = GetCvarString("8bdm_busterUpgradeTag");
+		str busterUpgrade = GetCvarString("8bdm_busterUpgrade");
+		str busterIcon = GetCvarString("8bdm_busterIcon");
+		bool busterMapValid = GetCvar("8bdm_busterMapValid");
+		bool busterLMSValid = GetCvar("8bdm_busterLMSValid");
+		bool busterEddieValid = GetCvar("8bdm_busterEddieValid");
+	} else {
+		busterTag = GetCvarString("_8bdm_busterTag");
+		busterActor = GetCvarString("_8bdm_busterActor");
+		busterUpgradeTag = GetCvarString("_8bdm_busterUpgradeTag");
+		busterUpgrade = GetCvarString("_8bdm_busterUpgrade");
+		busterIcon = GetCvarString("_8bdm_busterIcon");
+		busterMapValid = GetCvar("_8bdm_busterMapValid");
+		busterLMSValid = GetCvar("_8bdm_busterLMSValid");
+		busterEddieValid = GetCvar("_8bdm_busterEddieValid");
+	}
+
+	bool banned = ACS_NamedExecuteWithResult("core_checkPickupServerBanned", busterUpgrade);
+
+	setBusterTag(MAX_BUSTERUPGRADES, busterTag);
+	setBusterActor(MAX_BUSTERUPGRADES, busterActor);
+	setBusterUpgradeTag(MAX_BUSTERUPGRADES, busterUpgradeTag);
+	setBusterUpgrade(MAX_BUSTERUPGRADES, busterUpgrade);
+	setBusterIcon(MAX_BUSTERUPGRADES, busterIcon);
+	setBusterMapValid(MAX_BUSTERUPGRADES, busterMapValid && !banned);
+	setBusterLMSValid(MAX_BUSTERUPGRADES, busterLMSValid && !banned);
+	setBusterEddieValid(MAX_BUSTERUPGRADES, busterEddieValid && !banned);
+
+	SetResultValue(MAX_BUSTERUPGRADES++);
+}
+
+Script "core_DefineBusterTake_S" (int name)
+{
+	if(MAX_BUSTERTAKES >= MAX_BUSTER_LIMIT) {
+		printbold(s:"Limit too low, need more buster take slots");
+		SetResultValue(-1);
+		terminate;
+	}
+
+	int version = getAndResetDTADDVersion();
+
+	if(version == 0)
+		name = GetCvarString("8bdm_bustertake");
+
+	setBusterTake(MAX_BUSTERTAKES, name);
+
+	SetResultValue(MAX_BUSTERTAKES++);
+}
+
+script "core_DefinePowerAprop_S" (void)
+{
+	int version = getAndResetDTADDVersion();
+
+	if(version == 0) {
+		str giver = GetCvarString("8bdmpoweraprop_giver");
+		str powerUp = GetCvarString("8bdmpoweraprop_powerUp");
+		int property = GetCvar("8bdmpoweraprop_property");
+		int factor = GetCvar("8bdmpoweraprop_factor");
+		bool permanent = GetCvar("8bdmpoweraprop_permanent");
+	} else {
+		giver = GetCvarString("_8bdmpoweraprop_giver");
+		powerUp = GetCvarString("_8bdmpoweraprop_powerUp");
+		property = GetCvar("_8bdmpoweraprop_property");
+		factor = GetCvar("_8bdmpoweraprop_factor");
+		permanent = GetCvar("_8bdmpoweraprop_permanent");
+	}
+
+	int pid = getPropertyIndex(property);
+
+	if(pid == -1) {
+        printbold(s:"Error in defining property mapping for \"\cg", s:powerUp, s:"\c-\": Unsupported Actor Property.");
+        SetResultValue(-1);
+		terminate;
+	}
+
+	if(MAX_POWER_PROPERTY >= MAX_POWER_PROPERTY_LIMIT) {
+		printbold(s:"Error in defining property mapping for \"\cg", s:powerUp, s:"\c-\": Too many initializers.");
+		SetResultValue(-1);
+		terminate;
+	}
+
+	setPowerApropGiver(MAX_POWER_PROPERTY, giver);
+	setPowerApropPowerUp(MAX_POWER_PROPERTY, powerUp);
+	setPowerApropProperty(MAX_POWER_PROPERTY, property);
+	setPowerApropFactor(MAX_POWER_PROPERTY, factor);
+	setPowerApropPermanent(MAX_POWER_PROPERTY, permanent);
+
+	SetResultValue(MAX_POWER_PROPERTY++);
+}
+
+script "core_DefineHookFunction_S" (int type, int name, int priority)
+{
+	if(HookFunctions_Max[type] >= MAX_HOOKFUNCTION_LIMIT) {
+		PrintBold(s:"Limit too low, increase the limit on HookFunctions");
+		terminate;
+	}
+
+	int idx = HookFunctions_Max[type]++;
+
+	SetHookFunction(type, idx, name);
+	SetHookPriority(type, idx, priority);
+
+	// a mini insertion sort
+	while(idx > 0 && GetHookPriority(type, idx) > GetHookPriority(type, idx - 1)) {
+		int tempName = GetHookFunction(type, idx);
+		int tempPriority = GetHookPriority(type, idx);
+		SetHookFunction(type, idx, GetHookFunction(type, idx - 1));
+		SetHookPriority(type, idx, GetHookPriority(type, idx - 1));
+		SetHookFunction(type, idx - 1, tempName);
+		SetHookPriority(type, idx - 1, tempPriority);
+		idx--;
+	}
+}
+
+script "core_DefineCustomHookFunction_S" (int type, int name, int priority)
+{
+	if(MAX_CUSTOMHOOKFUNCTION >= MAX_HOOKFUNCTION_LIMIT) {
+		PrintBold(s:"Limit too low, increase the limit on CustomHookFunctions");
+		terminate;
+	}
+
+	int idx = MAX_CUSTOMHOOKFUNCTION++;
+
+	setCustomHookType(idx, type);
+	setCustomHookFunction(idx, name);
+	setCustomHookPriority(idx, priority);
+
+	// a mini insertion sort
+	while(idx > 0 && getCustomHookPriority(idx) > getCustomHookPriority(idx - 1)) {
+		int tempType = getCustomHookType(idx);
+		int tempName = getCustomHookFunction(idx);
+		int tempPriority = getCustomHookPriority(idx);
+		setCustomHookType(idx, getCustomHookType(idx - 1));
+		setCustomHookFunction(idx, getCustomHookFunction(idx - 1));
+		setCustomHookPriority(idx, getCustomHookPriority(idx - 1));
+		setCustomHookType(idx - 1, tempType);
+		setCustomHookFunction(idx - 1, tempName);
+		setCustomHookPriority(idx - 1, tempPriority);
+		idx--;
+	}
+}
+
+script "core_DefineReservedTID_S" (int tid, int tidMax)
+{
+	if(tidMax < tid) {
+		printbold(s:"Invalid tid range!!!");
+		terminate;
+	}
+
+	if(MAX_TID >= MAX_TID_LIMIT) {
+		printbold(s:"Limit too low, increase the limit on tids");
+		terminate;
+	}
+
+	if(MAX_TID == 0) {
+		TID_LOWEST = tid;
+		TID_HIGHEST = tidMax;
+	} else {
+		if(tid < TID_LOWEST) {
+			TID_LOWEST = tid;
+		} else if (tidMax > TID_HIGHEST) {
+			TID_HIGHEST = tidMax;
+		}
+	}
+
+	setTIDRange(MAX_TID, tid, tidMax);
+
+	MAX_TID++;
+}
+
+script "core_RegisterTrainingDef_S" (int callee) {
+	if(MAX_TRAIN_DEF >= MAX_TRAIN_DEF_LIMIT) {
+		printbold(s:"TRAINING def limit too low, increase the limit");
+		SetResultValue(-1);
+		terminate;
+	}
+
+	int version = getAndResetDTADDVersion();
+
+	if(version == 0) {
+		callee = GetCvarString("8bdm_training_def");
+	}
+
+	SetTrainingDef(MAX_TRAIN_DEF, callee);
+
+	SetResultValue(MAX_TRAIN_DEF++);
+}
+
+script "core_DefineTrainingEntry_S" (void) {
+	int version = getAndResetDTADDVersion();
+
+	if(version == 0) {
+		int type = GetCvar("8bdm_training_type");
+		str updateVersion = GetCvarString("8bdm_training_version");
+		str tag = GetCvarString("8bdm_training_tag");
+		str desc = GetCvarString("8bdm_training_desc");
+		str icon = GetCvarString("8bdm_training_icon");
+		str actor = GetCvarString("8bdm_training_actor");
+		int amount = GetCvar("8bdm_training_amount");
+	} else {
+		type = GetCvar("_8bdm_training_type");
+		updateVersion = GetCvarString("_8bdm_training_version");
+		tag = GetCvarString("_8bdm_training_tag");
+		desc = GetCvarString("_8bdm_training_desc");
+		icon = GetCvarString("_8bdm_training_icon");
+		actor = GetCvarString("_8bdm_training_actor");
+		amount = GetCvar("_8bdm_training_amount");
+	}
+
+	switch(type) {
+		case TRAINING_MEGABUSTER:
+			if(MAX_TRAIN_MB >= MAX_TRAIN_MB_LIMIT) {
+				printbold(s:"TRAINING MB limit too low, increase the limit");
+				SetResultValue(-1);
+				terminate;
+			}
+
+			setMBVersionUpdated(MAX_TRAIN_MB, updateVersion);
+			setMBName(MAX_TRAIN_MB, tag);
+			setMBDesc(MAX_TRAIN_MB, desc);
+			setMBIcon(MAX_TRAIN_MB, icon);
+			setMBActor(MAX_TRAIN_MB, actor);
+
+			SetResultValue(MAX_TRAIN_MB++);
+
+			break;
+		case TRAINING_WEP:
+			if(MAX_TRAIN_WEP >= MAX_TRAIN_WEP_LIMIT) {
+				printbold(s:"TRAINING wep limit too low, increase the limit");
+				SetResultValue(-1);
+				terminate;
+			}
+
+			setWepVersionUpdated(MAX_TRAIN_WEP, updateVersion);
+			setWepName(MAX_TRAIN_WEP, tag);
+			setWepDesc(MAX_TRAIN_WEP, desc);
+			setWepIcon(MAX_TRAIN_WEP, icon);
+			setWepActor(MAX_TRAIN_WEP, actor);
+
+			SetResultValue(MAX_TRAIN_WEP++);
+
+			break;
+		case TRAINING_BUSTER:
+			if(MAX_TRAIN_BUST >= MAX_TRAIN_BUST_LIMIT) {
+				printbold(s:"TRAINING buster limit too low, increase the limit");
+				SetResultValue(-1);
+				terminate;
+			}
+
+			setBustVersionUpdated(MAX_TRAIN_BUST, updateVersion);
+			setBustName(MAX_TRAIN_BUST, tag);
+			setBustDesc(MAX_TRAIN_BUST, desc);
+			setBustIcon(MAX_TRAIN_BUST, icon);
+			setBustActor(MAX_TRAIN_BUST, actor);
+
+			SetResultValue(MAX_TRAIN_BUST++);
+
+			break;
+		case TRAINING_ITEM:
+			if(MAX_TRAIN_ITEM >= MAX_TRAIN_ITEM_LIMIT) {
+				printbold(s:"TRAINING item limit too low, increase the limit");
+				SetResultValue(-1);
+				terminate;
+			}
+
+			setItemVersionUpdated(MAX_TRAIN_ITEM, updateVersion);
+			setItemName(MAX_TRAIN_ITEM, tag);
+			setItemDesc(MAX_TRAIN_ITEM, desc);
+			setItemIcon(MAX_TRAIN_ITEM, icon);
+			setItemActor(MAX_TRAIN_ITEM, actor);
+			setItemAmount(MAX_TRAIN_ITEM, amount);
+
+			SetResultValue(MAX_TRAIN_ITEM++);
+
+			break;
+		default:
+			printbold(s:"Invalid training add type???");
+			SetResultValue(-1);
+	}
+}
+
+Script "core_DefineAssistItem_S" (void)
+{
+	if(MAX_ITEMS_GLOBAL >= MAX_ITEMS_GLOBAL_LIMIT) {
+		printbold(s:"Limit too low, need more item slots");
+		SetResultValue(-1);
+		terminate;
+	}
+
+	int version = getAndResetDTADDVersion();
+
+	if(version == 0) {
+		str itemName = GetCvarString("8bdm_itemTag");
+		str itemCode = GetCvarString("8bdm_itemActor");
+		str itemIcon = GetCvarString("8bdm_itemIcon");
+		int itemAmount = GetCvar("8bdm_itemAmount");
+		int itemGroup = GetCvar("8bdm_itemGroup");
+		int itemMap = GetCvar("8bdm_itemMap");
+		int partyBallWeight = 0;
+	} else {
+		itemName = GetCvarString("_8bdm_itemTag");
+		itemCode = GetCvarString("_8bdm_itemActor");
+		itemIcon = GetCvarString("_8bdm_itemIcon");
+		itemAmount = GetCvar("_8bdm_itemAmount");
+		itemGroup = GetCvar("_8bdm_itemGroup");
+		itemMap = GetCvar("_8bdm_itemMap");
+		partyBallWeight = GetCvar("_8bdm_itemPartyBallWeight");
+	}
+
+	bool banned = ACS_NamedExecuteWithResult("core_checkPickupServerBanned", itemCode);
+
+	if(partyBallWeight > 0 && !banned)
+		DefinePartyBallItem(itemCode, partyBallWeight);
+
+	setAssistItemTag(MAX_ITEMS_GLOBAL, itemName);
+	setAssistItemActor(MAX_ITEMS_GLOBAL, itemCode);
+	setAssistItemIcon(MAX_ITEMS_GLOBAL, itemIcon);
+	setAssistItemAmount(MAX_ITEMS_GLOBAL, itemAmount);
+	setAssistItemGroup(MAX_ITEMS_GLOBAL, itemGroup);
+	setAssistItemMapValid(MAX_ITEMS_GLOBAL, itemMap && !banned);
+
+	items_group_count[itemGroup]++;
+
+	SetResultValue(MAX_ITEMS_GLOBAL++);
+}
+
+script "core_RegisterTeamColorDef_S" (int callee) {
+	if(MAX_TEAMCOLOR_DEF >= MAX_TEAMCOLOR_DEF_LIMIT) {
+		printbold(s:"Team color definition limit too low, increase the limit");
+		SetResultValue(-1);
+		terminate;
+	}
+
+	int version = getAndResetDTADDVersion();
+
+	if(version == 0)
+		callee = GetCvarString("8bdm_teamcolor_def");
+
+	SetTeamColorDef(MAX_TEAMCOLOR_DEF, callee);
+
+	SetResultValue(MAX_TEAMCOLOR_DEF++);
+}
+
+script "core_definePartyBallItemCore_S" (int actor, int weight) {
+	if(MAX_PARTYBALL_DEF >= MAX_PARTYBALL_DEF_LIMIT) {
+		printbold(s:"Party ball definition limit too low, increase the limit");
+		SetResultValue(-1);
+		terminate;
+	}
+
+	bool banned = ACS_NamedExecuteWithResult("core_checkPickupServerBanned", actor);
+
+	if(banned)
+		terminate;
+
+	setPartyBallActor(MAX_PARTYBALL_DEF, actor);
+	setPartyBallWeight(MAX_PARTYBALL_DEF, weight);
+
+	SetResultValue(MAX_PARTYBALL_DEF++);
+}
+
+script "core_defineModMenuCore_S" (int menuName) {
+	if (MAX_MOD_MENU >= MAX_MOD_MENU_LIMIT) {
+		PrintBold(s:"Mod menu definition limit too low, increase the limit");
+		SetResultValue(-1);
+		terminate;
+	}
+
+	SetModMenu(MAX_MOD_MENU, menuName);
+
+	SetResultValue(MAX_MOD_MENU++);
+}
+
+// Legacy
+script "core_DefineSpawnFunc_S" (int type, int name)
+{
+	int version = getAndResetDTADDVersion();
+
+	if(version == 0) {
+		type = GetCvar("8bdmspawnfunc_type");
+		name = GetCvarString("8bdmspawnfunc_name");
+	}
+
+	switch(type) {
+		case SFT_WEP: type = HF_WEP; break;
+		case SFT_ITEM: type = HF_ITEM; break;
+		case SFT_PARTYBALL: type = HF_GIFTBOX; break;
+		case SFT_FLAG: type = HF_FLAG; break;
+		case SFT_PILLAR: type = HF_PILLAR; break;
+		case SFT_PROJ: type = HF_PROJ; break;
+		case SFT_PROJCLIENT: type = HF_PROJCLIENT; break;
+	}
+
+	ACS_NamedExecuteWithResult("core_DefineHookFunction_S",
+		type,
+		name,
+		0.0
+	);
+}
+
+script "core_DefineArtifactPickupFunc_S" (int type, int name)
+{
+	int version = getAndResetDTADDVersion();
+
+	if(version == 0) {
+		type = GetCvar("8bdmpickupfunc_type");
+		name = GetCvarString("8bdmpickupfunc_name");
+	}
+
+	switch(type) {
+		case PFT_POSSESSION: type = HF_POSSESSION_PICKUP; break;
+		case PFT_TERMINATOR: type = HF_TERMINATOR_PICKUP; break;
+	}
+
+	ACS_NamedExecuteWithResult("core_DefineHookFunction_S",
+		type,
+		name,
+		0.0
+	);
+}
+
+Script "core_DefineAssistDisplay_S" (int name) CLIENTSIDE
+{
+	int version = getAndResetDTADDVersion();
+
+	if(version == 0) {
+		name = GetCvarString("8bdmassistdisplay_name");
+	}
+
+	ACS_NamedExecuteWithResult("core_DefineHookFunction_S",
+		HF_UI_TICK_PLAYER,
+		name,
+		0.0
+	);
+}

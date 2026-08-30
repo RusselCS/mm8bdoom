@@ -1,0 +1,4 @@
+actor ClassBaseSlot3 : ClassBaseSlot2
+{
+    player.face "0OC"
+}

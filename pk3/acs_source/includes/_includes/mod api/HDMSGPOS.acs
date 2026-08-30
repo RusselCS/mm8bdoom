@@ -1,0 +1,213 @@
+// A small library intended to calculate the X/Y HudMessage positions needed
+// to display a graphic on an X/Y/Z position based on a X/Y/Z/Angle/Pitch/FOV camera.
+
+// Borrows some of ACSUtil's homework, as they've already solved the engine's projection!
+
+#define HDMSGPOS_VALID 1
+#define HDMSGPOS_OUT_OF_VIEW 0
+#define HDMSGPOS_BAD_SIZE -1
+
+int HDMSGPOS_VARS[5];
+
+#define _HDMSGPOS_BASE_DISTANCE 128
+
+function int CalculateHudMessageOnPosition(
+	int x,
+	int y,
+	int z,
+	int currentCameraX,
+	int currentCameraY,
+	int currentCameraZ,
+	int currentCameraAngle,
+	int currentCameraPitch,
+	int oldCameraX,
+	int oldCameraY,
+	int oldCameraZ,
+	int oldCameraAngle,
+	int oldCameraPitch,
+	int cameraFOV,
+	int distanceScale,
+	int xHudSize,
+	int yHudSize,
+	int xScale,
+	int yScale
+) {
+	// camera FOV can't exceed 170 despite what settings say
+	cameraFOV = min(cameraFOV, 170);
+
+    int cameraX = currentCameraX == oldCameraX ? currentCameraX : (currentCameraX + (oldCameraX - currentCameraX) / 2);
+    int cameraY = currentCameraY == oldCameraY ? currentCameraY : (currentCameraY + (oldCameraY - currentCameraY) / 2);
+    int cameraZ = currentCameraZ == oldCameraZ ? currentCameraZ : (currentCameraZ + (oldCameraZ - currentCameraZ));
+
+	if(currentCameraAngle != oldCameraAngle) {
+		int angleDiff = oldCameraAngle - currentCameraAngle;
+		if (angleDiff < -0.5) angleDiff += 1.0;
+		else if (angleDiff >= 0.5) angleDiff -= 1.0;
+
+		int cameraAngle = currentCameraAngle - angleDiff / 2;
+		if (cameraAngle < 0.0) cameraAngle += 1.0;
+		else if (cameraAngle >= 1.0) cameraAngle -= 1.0;
+	} else {
+		cameraAngle = currentCameraAngle;
+	}
+
+	if(currentCameraPitch != oldCameraPitch) {
+		int pitchDiff = oldCameraPitch - currentCameraPitch;
+		int cameraPitch = -clamp(currentCameraPitch - pitchDiff / 2, -0.25, 0.25);
+	} else {
+		cameraPitch = -currentCameraPitch;
+	}
+
+	bool software = GetCvar("vid_renderer") == 0;
+
+	int tX = x - cameraX;
+	int tY = y - cameraY;
+	int tZ = z - cameraZ;
+
+	int s = sin(-cameraAngle);
+	int c = cos(-cameraAngle);
+	int rX = FixedMul(tX, c) - FixedMul(tY, s);
+	int rY = FixedMul(tX, s) + FixedMul(tY, c);
+	tX = rX;
+	tY = rY;
+
+	if(!software) {
+		s = sin(-cameraPitch);
+		c = cos(-cameraPitch);
+		rX = FixedMul(tX, c) - FixedMul(tZ, s);
+		int rZ = FixedMul(tX, s) + FixedMul(tZ, c);
+		tX = rX;
+		tZ = rZ;
+	}
+
+	if(tX <= 0) {
+		HDMSGPOS_VARS[0] = HDMSGPOS_OUT_OF_VIEW;
+		return HDMSGPOS_VARS[0];
+	}
+
+	int xSize = GetScreenWidth() << 16;
+	int ySize = GetScreenHeight() << 16;
+	int iScaleX = FixedDiv(1.0, FixedMul(FixedDiv(xScale, xHudSize << 16), xSize));
+	int iScaleY = FixedDiv(1.0, FixedMul(FixedDiv(yScale, yHudSize << 16), ySize));
+
+	int hW = xSize / 2;
+	int hH = ySize / 2;
+
+	int screenX = -FixedDiv(tY, tX);
+	int screenY = -FixedDiv(tZ, tX);
+
+	if(software)
+		screenY += FixedDiv(sin(cameraPitch), cos(cameraPitch));
+
+	int halfFOV = FixedMul(cameraFOV, 0xB60B60) / 2;
+	int defaultHalfFOV = FixedMul(90, 0xB60B60) / 2;
+	int fovScale = FixedDiv(FixedDiv(sin(defaultHalfFOV), cos(defaultHalfFOV)), FixedDiv(sin(halfFOV), cos(halfFOV)));
+	int inverseFovScale = FixedDiv(FixedDiv(sin(halfFOV), cos(halfFOV)), FixedDiv(sin(defaultHalfFOV), cos(defaultHalfFOV)));
+
+	screenX = FixedMul(screenX, fovScale);
+	screenY = FixedMul(screenY, fovScale);
+
+	if(_HDMSGPOS_IsUltraWide())
+		screenX = FixedMul(screenX, FixedDiv(24.0, 35.0));
+
+	screenX += hW + FixedMul(hW, screenX);
+	screenY += hH + FixedMul(FixedMul(hH, 1.6), screenY);
+
+	if (distanceScale > 0.0) {
+		distanceScale = FixedMul(distanceScale, inverseFovScale);
+
+		iScaleX = FixedMul(iScaleX, FixedMul(tX, distanceScale) / _HDMSGPOS_BASE_DISTANCE);
+		iScaleY = FixedMul(iScaleY, FixedMul(tX, distanceScale) / _HDMSGPOS_BASE_DISTANCE);
+	}
+
+	int w = FixedMul(xSize, iScaleX) >> 16;
+	int h = FixedMul(ySize, iScaleY) >> 16;
+
+	// If screen size is within these ranges, something
+	// is going to break and needs to be resolved.
+	if(w <= 0 || h <= 0 || w > 28000 || h > 28000) {
+		HDMSGPOS_VARS[0] = HDMSGPOS_BAD_SIZE;
+		return HDMSGPOS_VARS[0];
+	}
+
+	screenX = FixedMul(screenX, iScaleX) & 0xFFFF0000;
+	screenY = FixedMul(screenY, iScaleY) & 0xFFFF0000;
+
+	HDMSGPOS_VARS[0] = HDMSGPOS_VALID;
+	HDMSGPOS_VARS[1] = w;
+	HDMSGPOS_VARS[2] = h;
+	HDMSGPOS_VARS[3] = screenX;
+	HDMSGPOS_VARS[4] = screenY;
+	return HDMSGPOS_VARS[0];
+}
+
+#define HDMSGPOS_ONE_TIC 1873
+
+#define HDMSGPOS_ALIGN_CENTER 0.0
+#define HDMSGPOS_ALIGN_LEFT 0.1
+#define HDMSGPOS_ALIGN_RIGHT 0.2
+#define HDMSGPOS_ALIGN_CENTER_CENTERED 0.4
+#define HDMSGPOS_ALIGN_LEFT_CENTERED 0.5
+#define HDMSGPOS_ALIGN_RIGHT_CENTERED 0.6
+#define HDMSGPOS_ALIGN_TOP 0.1
+#define HDMSGPOS_ALIGN_BOTTOM 0.2
+
+function int GetHudMessageOnPositionXPos(int alignment, int offset)
+{
+	return _HudMessageOnPositionSafeOffset((_GetHudMessageOnPositionValue(3) + offset) & 0xFFFF0000, alignment);
+}
+
+function int GetHudMessageOnPositionYPos(int alignment, int offset)
+{
+	return _HudMessageOnPositionSafeOffset((_GetHudMessageOnPositionValue(4) + offset) & 0xFFFF0000, alignment);
+}
+
+function int GetHudMessageOnPositionXSize(void)
+{
+	return _GetHudMessageOnPositionValue(1);
+}
+
+function int GetHudMessageOnPositionYSize(void)
+{
+	return _GetHudMessageOnPositionValue(2);
+}
+
+function int _GetHudMessageOnPositionValue(int index)
+{
+	if(HDMSGPOS_VARS[0] != HDMSGPOS_VALID) {
+        Log(s:"[GetHudMessageOnPosition] \cgFunction called without valid CalculateHudMessageOnPosition call!");
+		return 0;
+	}
+
+	return HDMSGPOS_VARS[index];
+}
+
+function int _HudMessageOnPositionSafeOffset(int pos, int offset)
+{
+	if(pos < 0)
+		return pos - offset;
+	return pos + offset;
+}
+
+function int _HDMSGPOS_abs(int x)
+{
+	if(x < 0)
+		return -x;
+	return x;
+}
+
+#define _HDMSGPOS_ASPECT_21_9 (64.0 / 27)
+
+function int _HDMSGPOS_IsUltraWide(void)
+{
+	int forced = GetCVar("vid_aspect");
+	if(forced == 6)
+		return true;
+	else if(forced != 0)
+		return false;
+
+	int width = GetScreenWidth();
+	int height = GetScreenHeight();
+
+	return _HDMSGPOS_abs(((height * _HDMSGPOS_ASPECT_21_9) >> 16) - width) < 30;
+}

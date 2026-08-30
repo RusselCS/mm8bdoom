@@ -1,0 +1,24 @@
+graphic "0OCST00",32,32{XScale 4.0 YScale 4.0 Patch "TNT1A0",0,0}
+graphic "0OCST01",32,32{XScale 4.0 YScale 4.0 Patch "TNT1A0",0,0}
+graphic "0OCST02",32,32{XScale 4.0 YScale 4.0 Patch "TNT1A0",0,0}
+graphic "0OCGOD0",32,32{XScale 4.0 YScale 4.0 Patch "TNT1A0",0,0}
+graphic "0OCDEAD0",32,32{XScale 4.0 YScale 4.0 Patch "TNT1A0",0,0}
+graphic "0OCQUAD",32,32{XScale 4.0 YScale 4.0 Patch "TNT1A0",0,0}
+graphic "0OCPAINR",32,32{XScale 4.0 YScale 4.0 Patch "TNT1A0",0,0}
+graphic "0OCPAINC",32,32{XScale 4.0 YScale 4.0 Patch "TNT1A0",0,0}
+graphic "0OCPAINL",32,32{XScale 4.0 YScale 4.0 Patch "TNT1A0",0,0}
+graphic "0OCGOD1",32,32{XScale 4.0 YScale 4.0 Patch "TNT1A0",0,0}
+graphic "0OCGOD2",32,32{XScale 4.0 YScale 4.0 Patch "TNT1A0",0,0}
+graphic "0OCKILL",32,32{XScale 4.0 YScale 4.0 Patch "TNT1A0",0,0}
+graphic "0OCGRIN",32,32{XScale 4.0 YScale 4.0 Patch "TNT1A0",0,0}
+
+// Base Sprites
+// Sprite BUSTB0, 116, 96 {Offset -184, -94  Patch 0USTB0, 0, 0}
+// Sprite BUSTC0, 124, 96 {Offset -184, -98  Patch 0USTC0, 0, 0}
+// Sprite BUSTD0, 128, 92 {Offset -188, -102 Patch 0USTD0, 0, 0}
+
+// sprite THUNH0, 1000, 1000 { Patch THUNH0, 0, 0 }
+// sprite THUNI0, 1000, 1000 { Patch THUNI0, 0, 0 }
+// sprite THUNJ0, 1000, 1000 { Patch THUNJ0, 0, 0 }
+
+

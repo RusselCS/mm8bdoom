@@ -1,0 +1,122 @@
+actor SataniumWepReplacer : Inventory
+{
+    -SOLID
+    +NOINTERACTION
+    +NOCLIP
+    height 2
+    radius 2
+    renderstyle "none"
+    mass 999
+    states
+    {
+    Spawn:
+        TNT1 A 0 nodelay ACS_NamedExecuteWithResult("satanium_replacepickup", mass)
+        TNT1 A 4
+        stop
+    }
+}
+
+actor Satanium_TPFog : TeleportFog replaces TeleportFog {}
+actor Satanium_ItemFog : ItemFog replaces ItemFog {}
+
+actor Chainsawreplace : SataniumWepReplacer replaces Chainsaw { mass 1 }
+
+actor Chaingunreplace : SataniumWepReplacer replaces Chaingun { mass 3 }
+actor Pistolreplace : SataniumWepReplacer replaces Pistol { mass 2 }
+actor PlasmaRiflereplace : SataniumWepReplacer replaces PlasmaRifle { mass 3 }
+actor RocketLauncherreplace : SataniumWepReplacer replaces RocketLauncher { mass 5 }
+actor Shotgunreplace : SataniumWepReplacer replaces Shotgun { mass 4 }
+actor SuperShotgunreplace : SataniumWepReplacer replaces SuperShotgun { mass 7 }
+
+actor BFG9000replace : SataniumWepReplacer replaces BFG9000 { mass 6 }
+
+actor BackpackReplace : SataniumWepReplacer replaces Backpack {}                 // Backpack (Increase carrying capacity)
+actor CellReplace : SataniumWepReplacer replaces Cell {}                     // Cell
+actor CellPackReplace : SataniumWepReplacer replaces CellPack {}                 // Cell Pack
+actor ClipReplace : SataniumWepReplacer replaces Clip {}                     // Ammo Clip
+actor ClipBoxReplace : SataniumWepReplacer replaces ClipBox {}                  // Box of Bullets
+actor RocketAmmoReplace : SataniumWepReplacer replaces RocketAmmo {}               // Rocket
+actor RocketBoxReplace : SataniumWepReplacer replaces RocketBox {}                // Box of Rockets
+actor ShellReplace : SataniumWepReplacer replaces Shell {}                    // 4 Shells
+actor ShellBoxReplace : SataniumWepReplacer replaces ShellBox {}                 // Box of Shells
+//actor AllmapReplace : SataniumWepReplacer replaces Allmap {}                 // Computer Area Map
+//actor ArmorBonusReplace : SataniumWepReplacer replaces ArmorBonus {}             // Armor Helmet
+actor BerserkReplace : SataniumWepReplacer replaces Berserk { mass 1 }                // Berserk Pack (Full Health+Super Strength)
+//actor BlueArmorReplace : SataniumWepReplacer replaces BlueArmor {}              // Heavy Armor
+//actor BlurSphereReplace : SataniumWepReplacer replaces BlurSphere {}             // Partial Invisibility
+//actor GreenArmorReplace : SataniumWepReplacer replaces GreenArmor {}             // Light Armor
+//actor HealthBonusReplace : SataniumWepReplacer replaces HealthBonus {}            // Health Potion
+//actor InfraredReplace : SataniumWepReplacer replaces Infrared {}               // Light-Amp Goggles
+//actor InvulnerabilitySphereReplace : SataniumWepReplacer replaces InvulnerabilitySphere {}  // Invulnerability
+actor MedikitReplace : SataniumWepReplacer replaces Medikit {}                // Medikit(+25 Health)
+actor MegasphereReplace : SataniumWepReplacer replaces Megasphere {}             // Megasphere (+200 Health/Armor)
+//actor RadSuitReplace : SataniumWepReplacer replaces RadSuit {}                // Radiation Suit
+actor SoulsphereReplace : SataniumWepReplacer replaces Soulsphere {}             // Soul Sphere (+100 Health)
+actor StimpackReplace : SataniumWepReplacer replaces Stimpack {}               // Stimpack(+10 Health)
+
+
+actor Satanium_GetActorSpecial : CUstomInventory
+{
+    states
+    {
+        Pickup:
+            TNT1 A 0 ACS_NamedExecuteWithResult("satanium_getactorspecial", special)
+            stop
+    }
+}
+actor Satanium_GetActorArg0 : CUstomInventory
+{
+    states
+    {
+        Pickup:
+            TNT1 A 0 ACS_NamedExecuteWithResult("satanium_getactorspecial", args[0])
+            stop
+    }
+}
+actor Satanium_GetActorArg1 : CUstomInventory
+{
+    states
+    {
+        Pickup:
+            TNT1 A 0 ACS_NamedExecuteWithResult("satanium_getactorspecial", args[1])
+            stop
+    }
+}
+actor Satanium_GetActorArg2 : CUstomInventory
+{
+    states
+    {
+        Pickup:
+            TNT1 A 0 ACS_NamedExecuteWithResult("satanium_getactorspecial", args[2])
+            stop
+    }
+}
+actor Satanium_GetActorArg3 : CUstomInventory
+{
+    states
+    {
+        Pickup:
+            TNT1 A 0 ACS_NamedExecuteWithResult("satanium_getactorspecial", args[3])
+            stop
+    }
+}
+actor Satanium_GetActorArg4 : CUstomInventory
+{
+    states
+    {
+        Pickup:
+            TNT1 A 0 ACS_NamedExecuteWithResult("satanium_getactorspecial", args[4])
+            stop
+    }
+}
+actor Satanium_Undropped : CUstomInventory
+{
+    states
+    {
+        Pickup:
+            TNT1 A 0 A_ChangeFlag(DROPPED, false)
+            stop
+    }
+}
+
+

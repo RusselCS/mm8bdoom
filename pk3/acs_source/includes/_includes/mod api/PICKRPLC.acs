@@ -1,0 +1,48 @@
+// will need zcommon.acs above this
+
+function int SpawnNewWepFunc(str classname) {
+	int u = UniqueTID();
+	int r = SpawnSpotForcedCopyVelocity(classname, 0, u, GetActorAngle(0) >> 8);
+
+	SetActorProperty(u, APROP_Gravity, GetActorProperty(0, APROP_Gravity));
+	SetActorFlagDecorate(u, "DROPPED", CheckFlag(0, "DROPPED"));
+
+	// [Trill] A lot of juggling here below.
+	// Goal is to act like the existing actor is gone without it being gone yet.
+	// The SetActorState will immediately kick off any hook functions for the new item.
+	if(r) {
+		int tid = ActivatorTID();
+		int u2 = UniqueTID();
+		Thing_ChangeTID(0, u2);
+		SetActivator(u);
+
+		// [Trill] We don't want a TID of 999 to get transferred down.
+		// Typically this should never happen at this stage, but delayed
+		// hook functions allow it to.
+		if(tid != 999)
+			Thing_ChangeTID(0, tid);
+
+		SetActorState(0, "Spawn", true);
+		SetActivator(u2);
+		Thing_ChangeTID(0, tid);
+	}
+
+	SetActorFlagDecorate(0, "SPECIAL", false);
+	Thing_Remove(0);
+	return r;
+}
+
+function int SpawnSpotForcedCopyVelocity(str classname, int spottid, int tid, int angle) {
+	int r = SpawnSpotForced(classname, spottid, tid, angle);
+	SetActorVelocity(tid,GetActorVelX(0),GetActorVelY(0),GetActorVelZ(0),0,0);
+	return r;
+}
+
+function void SetActorFlagDecorate(int tid, str flagname, bool value) {
+	GiveActorInventoryZeroIsSelf(tid,StrParam(s:"8BDM_CF_",s:flagname, s:"_", i:value), 1);
+}
+
+function void GiveActorInventoryZeroIsSelf(int tid, str inventory_item, int amount) {
+	if(tid==0) GiveInventory(inventory_item,amount);
+	else GiveActorInventory(tid,inventory_item,amount);
+}

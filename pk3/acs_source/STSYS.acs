@@ -1,0 +1,591 @@
+#library "STSYS"
+
+#include "zcommon.acs"
+
+#import "8BDT.acs"
+
+script "satanium_aircontrol" OPEN
+{
+    // Vanilla MM8BDM
+    SetAirControl(0.5);
+
+    // Full speed air movement
+    // SetAirControl(0.272);
+
+    SetGameplaySetting("sv_nojump", false);
+    SetGameplaySetting("sv_allowjump", true);
+}
+
+script "satanium_fixbugsig_r" RESPAWN { ACS_NamedExecuteWithResult("satanium_fixbugsig"); }
+script "satanium_fixbugsig" ENTER
+{
+    SetPlayerProperty(0, 0, PROP_FLY);
+}
+
+#define replace_max_limit 1000
+int replace_max = 13;
+str replacePickups[replace_max_limit][2] = {
+    {"BackpackReplace", "WTank"},
+    {"CellReplace", "WeaponEnergy"},
+    {"CellPackReplace", "BigWeaponEnergy"},
+    {"ClipReplace", "WeaponEnergy"},
+    {"ClipBoxReplace", "BigWeaponEnergy"},
+    {"RocketAmmoReplace", "WeaponEnergy"},
+    {"RocketBoxReplace", "BigWeaponEnergy"},
+    {"ShellReplace", "WeaponEnergy"},
+    {"ShellBoxReplace", "BigWeaponEnergy"},
+    {"MedikitReplace", "BigHealth"},
+    {"MegasphereReplace", "MegaHealth"},
+    {"SoulsphereReplace", "MegaHealth"},
+    {"StimpackReplace", "SmallHealth"},
+
+    // {"AllmapReplace", ""},
+    // {"ArmorBonusReplace", ""},
+    // {"BerserkReplace", ""}, technically a weapon
+    // {"BlueArmorReplace", ""},
+    // {"BlurSphereReplace", ""},
+    // {"GreenArmorReplace", ""},
+    // {"HealthBonusReplace", ""},
+    // {"InfraredReplace", ""},
+    // {"InvulnerabilitySphereReplace", ""},
+    // {"RadSuitReplace", ""},
+};
+
+int showTable = false;
+
+script "satanium_replacepickup" (int mass)
+{
+    if(timer() < 2) delay(2);
+
+    str replacement = "None";
+    int i;
+    int findIndex = -1;
+    str cls = GetActorClass(0);
+
+    for(i = 0; i < replace_max; i++) {
+        if(StrLen(replacePickups[i][0]) == 0)
+            break;
+
+        if(StrICmp(cls, replacePickups[i][0]) == 0) {
+            replacement = replacePickups[i][1];
+            findIndex = i;
+            break;
+        }
+    }
+
+    // Pickup not found, registering.
+    if(findIndex == -1) {
+        int wepIdx = -1;
+        if(mass == 1) {
+            wepIdx = randomBusterUpgradeEx(true, -1, -1);
+            replacement = getBusterUpgrade(wepIdx);
+        } else {
+            wepIdx = randomWeaponEx(mass, true, -1, -1);
+            replacement = getWeaponActor(wepIdx);
+        }
+
+        if(wepIdx != -1) {
+            findIndex = replace_max++;
+            replacePickups[i][0] = cls;
+            replacePickups[i][1] = replacement;
+        }
+    }
+
+    if(findIndex == -1) {
+        Log(s:"Failed to find a replacement for ", s:cls);
+        terminate;
+    }
+
+    if(StrICmp(replacement, "None") == 0) {
+        Log(s:"Failed to find a replacement for ", s:cls);
+        terminate;
+    }
+
+    int spc = getActorArg(-1);
+    int arg0 = getActorArg(0);
+    int arg1 = getActorArg(1);
+    int arg2 = getActorArg(2);
+    int arg3 = getActorArg(3);
+    int arg4 = getActorArg(4);
+
+    int dropped = CheckFlag(0, "DROPPED");
+
+    // Log(s:GetActorClass(0), s:" ", s:replacement);
+
+    int u = UniqueTID();
+    SpawnSpotForced(replacement, 0, u, GetActorAngle(0) >> 8);
+    SetActivator(u);
+    Thing_ChangeTID(u, 0);
+    Thing_SetSpecial(0, spc, arg0, arg1, arg2);
+    if(!dropped)
+        GiveInventory("Satanium_Undropped", 1);
+}
+
+int ArgWhich = -2;
+int ArgResult;
+str GetArgItems[6] = { "Satanium_GetActorSpecial", "Satanium_GetActorArg0", "Satanium_GetActorArg1", "Satanium_GetActorArg2", "Satanium_GetActorArg3", "Satanium_GetActorArg4" };
+function int getActorArg(int arg)
+{
+    if(ArgWhich != -2)
+        return 0;
+    ArgWhich = arg;
+    GiveInventory(GetArgItems[arg+1], 1);
+    ArgWhich = -2;
+    return ArgResult;
+}
+
+script "satanium_getactorspecial" (int res)
+{
+    if(ArgWhich == -2)
+        terminate;
+    ArgResult = res;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// TESTING ===========================================================
+script "satanium_test_enter" ENTER
+{
+    ConsoleCommand("set mm8bdm_sv_banpickup_jetadaptorupgrade true");
+    ConsoleCommand("set mm8bdm_sv_banpickup_poweradaptorupgrade true");
+    ConsoleCommand("set mm8bdm_sv_banpickup_rockkickupgrade true");
+    ConsoleCommand("set mm8bdm_sv_banpickup_rollswingupgrade true");
+    ConsoleCommand("set mm8bdm_sv_banpickup_rushbikeupgrade true");
+
+    // while(true) {
+    //     if(CheckInventory("EddieSummon") == 0)
+    //         GiveInventory("EddieSummon", 1);
+    //     delay(1);
+    // }
+
+    terminate;
+
+    if(StrICmp(strparam(n:PRINTNAME_LEVEL), "Titlemap") == 0)
+        terminate;
+
+    Log(s:"Testing active! Make sure to disable this before release!!");
+    GiveInventory("AtomicFireWep", 1);
+    GiveInventory("ThunderBeamWep", 1);
+    GiveInventory("FlameShowerWep", 1);
+    GiveInventory("SonicSpinWep", 1);
+}
+
+// COLOR BULLSHIT ====================================================
+#include "MEGAPAL.acs"
+function bool IsRGB(int x) { return ((x>>0)  & 0x000000FF) == 0; }
+
+#define PAL_INIT 256*3
+#define PAL_CYAN PAL_INIT+1
+#define PAL_BLUE PAL_INIT+2
+#define PAL_BLACK PAL_INIT+3
+world int 21: activePalette[];
+
+script "satanium_findPalette" OPEN CLIENTSIDE
+{
+    if(activePalette[PAL_INIT]) {
+        terminate;
+    }
+
+    int lastIdx, curIdx;
+    curIdx = -1;
+
+    do
+    {
+        LumpClose(lastIdx);
+        lastIdx = curIdx;
+        curIdx = LumpOpen("PLAYPAL", curIdx+1);
+    }
+    until(curIdx == -1);
+
+    LumpReadArray(lastIdx, 0, activePalette, 0);
+    LumpClose(lastIdx);
+
+    activePalette[PAL_INIT] = true;
+    activePalette[PAL_CYAN] = closestColorFrom8BDM(192);
+    activePalette[PAL_BLUE] = closestColorFrom8BDM(198);
+    activePalette[PAL_BLACK] = closestColorFrom8BDM(0);
+}
+
+function int closestColorFrom8BDM(int idx)
+{
+    int bestcolor = 0;
+    int bestdist = 257*257+257*257+257*257;
+    int r = palette_data[idx][0];
+    int g = palette_data[idx][1];
+    int b = palette_data[idx][2];
+
+    for (int color = 0; color < 256; color++)
+    {
+        int x = r - activePaletteSlot(color, 0);
+        int y = g - activePaletteSlot(color, 1);
+        int z = b - activePaletteSlot(color, 2);
+        int dist = x*x + y*y + z*z;
+        if (dist < bestdist)
+        {
+            if (dist == 0)
+                return color;
+
+            bestdist = dist;
+            bestcolor = color;
+        }
+    }
+    return bestcolor;
+}
+
+function int activePaletteSlot(int idx, int slot)
+{
+    return activePalette[(idx*3)+slot];
+}
+
+// replacements for the core define script
+script "satanium_CreatePlayerTranslation" (int id, int cyan, int blue)
+{
+    if(IsRGB(cyan) && IsRGB(blue)) {
+		CreateTranslation(id,
+			activePalette[PAL_CYAN]:activePalette[PAL_CYAN]=[UnpackByte1(cyan), UnpackByte2(cyan), UnpackByte3(cyan)]:[UnpackByte1(cyan), UnpackByte2(cyan), UnpackByte3(cyan)],
+			activePalette[PAL_BLUE]:activePalette[PAL_BLUE]=[UnpackByte1(blue), UnpackByte2(blue), UnpackByte3(blue)]:[UnpackByte1(blue), UnpackByte2(blue), UnpackByte3(blue)]
+		);
+	} else if (IsRGB(cyan)) {
+		CreateTranslation(id,
+			activePalette[PAL_CYAN]:activePalette[PAL_CYAN]=[UnpackByte1(cyan), UnpackByte2(cyan), UnpackByte3(cyan)]:[UnpackByte1(cyan), UnpackByte2(cyan), UnpackByte3(cyan)],
+			activePalette[PAL_BLUE]:activePalette[PAL_BLUE]=[palette_data[blue][0],palette_data[blue][1],palette_data[blue][2]]:[palette_data[blue][0],palette_data[blue][1],palette_data[blue][2]]
+		);
+	} else if (IsRGB(blue)) {
+		CreateTranslation(id,
+			activePalette[PAL_CYAN]:activePalette[PAL_CYAN]=[palette_data[cyan][0],palette_data[cyan][1],palette_data[cyan][2]]:[palette_data[cyan][0],palette_data[cyan][1],palette_data[cyan][2]],
+			activePalette[PAL_BLUE]:activePalette[PAL_BLUE]=[UnpackByte1(blue), UnpackByte2(blue), UnpackByte3(blue)]:[UnpackByte1(blue), UnpackByte2(blue), UnpackByte3(blue)]
+		);
+	} else {
+		CreateTranslation(id,
+			activePalette[PAL_CYAN]:activePalette[PAL_CYAN]=[palette_data[cyan][0],palette_data[cyan][1],palette_data[cyan][2]]:[palette_data[cyan][0],palette_data[cyan][1],palette_data[cyan][2]],
+			activePalette[PAL_BLUE]:activePalette[PAL_BLUE]=[palette_data[blue][0],palette_data[blue][1],palette_data[blue][2]]:[palette_data[blue][0],palette_data[blue][1],palette_data[blue][2]]
+		);
+	}
+}
+
+script "satanium_CreatePlayerTranslationGlow" (int id, int cyan, int blue, int black)
+{
+    int blackThreshold = 27*27 + 27*27 + 27*27;
+    int glowStack[256][3];
+
+    for(int i = 0; i < 256; i++) {
+        if(i == activePalette[PAL_CYAN]) {
+            glowStack[i][0] = IsRGB(cyan) ? UnpackByte1(cyan) : palette_data[cyan][0];
+            glowStack[i][1] = IsRGB(cyan) ? UnpackByte2(cyan) : palette_data[cyan][1];
+            glowStack[i][2] = IsRGB(cyan) ? UnpackByte3(cyan) : palette_data[cyan][2];
+            continue;
+        }
+
+        if(i == activePalette[PAL_BLUE]) {
+            glowStack[i][0] = IsRGB(blue) ? UnpackByte1(blue) : palette_data[blue][0];
+            glowStack[i][1] = IsRGB(blue) ? UnpackByte2(blue) : palette_data[blue][1];
+            glowStack[i][2] = IsRGB(blue) ? UnpackByte3(blue) : palette_data[blue][2];
+            continue;
+        }
+
+        int r = activePaletteSlot(i, 0);
+        int g = activePaletteSlot(i, 1);
+        int b = activePaletteSlot(i, 2);
+        int d = r*r + g*g + b*b;
+
+        if(d <= blackThreshold) {
+            glowStack[i][0] = IsRGB(black) ? UnpackByte1(black) : palette_data[black][0];
+            glowStack[i][1] = IsRGB(black) ? UnpackByte2(black) : palette_data[black][1];
+            glowStack[i][2] = IsRGB(black) ? UnpackByte3(black) : palette_data[black][2];
+        } else {
+            glowStack[i][0] = r;
+            glowStack[i][1] = g;
+            glowStack[i][2] = b;
+        }
+    }
+
+    CreateTranslation(id,
+        0:0=[glowstack[0][0],glowstack[0][1],glowstack[0][2]]:[glowstack[0][0],glowstack[0][1],glowstack[0][2]],
+        1:1=[glowstack[1][0],glowstack[1][1],glowstack[1][2]]:[glowstack[1][0],glowstack[1][1],glowstack[1][2]],
+        2:2=[glowstack[2][0],glowstack[2][1],glowstack[2][2]]:[glowstack[2][0],glowstack[2][1],glowstack[2][2]],
+        3:3=[glowstack[3][0],glowstack[3][1],glowstack[3][2]]:[glowstack[3][0],glowstack[3][1],glowstack[3][2]],
+        4:4=[glowstack[4][0],glowstack[4][1],glowstack[4][2]]:[glowstack[4][0],glowstack[4][1],glowstack[4][2]],
+        5:5=[glowstack[5][0],glowstack[5][1],glowstack[5][2]]:[glowstack[5][0],glowstack[5][1],glowstack[5][2]],
+        6:6=[glowstack[6][0],glowstack[6][1],glowstack[6][2]]:[glowstack[6][0],glowstack[6][1],glowstack[6][2]],
+        7:7=[glowstack[7][0],glowstack[7][1],glowstack[7][2]]:[glowstack[7][0],glowstack[7][1],glowstack[7][2]],
+        8:8=[glowstack[8][0],glowstack[8][1],glowstack[8][2]]:[glowstack[8][0],glowstack[8][1],glowstack[8][2]],
+        9:9=[glowstack[9][0],glowstack[9][1],glowstack[9][2]]:[glowstack[9][0],glowstack[9][1],glowstack[9][2]],
+        10:10=[glowstack[10][0],glowstack[10][1],glowstack[10][2]]:[glowstack[10][0],glowstack[10][1],glowstack[10][2]],
+        11:11=[glowstack[11][0],glowstack[11][1],glowstack[11][2]]:[glowstack[11][0],glowstack[11][1],glowstack[11][2]],
+        12:12=[glowstack[12][0],glowstack[12][1],glowstack[12][2]]:[glowstack[12][0],glowstack[12][1],glowstack[12][2]],
+        13:13=[glowstack[13][0],glowstack[13][1],glowstack[13][2]]:[glowstack[13][0],glowstack[13][1],glowstack[13][2]],
+        14:14=[glowstack[14][0],glowstack[14][1],glowstack[14][2]]:[glowstack[14][0],glowstack[14][1],glowstack[14][2]],
+        15:15=[glowstack[15][0],glowstack[15][1],glowstack[15][2]]:[glowstack[15][0],glowstack[15][1],glowstack[15][2]],
+        16:16=[glowstack[16][0],glowstack[16][1],glowstack[16][2]]:[glowstack[16][0],glowstack[16][1],glowstack[16][2]],
+        17:17=[glowstack[17][0],glowstack[17][1],glowstack[17][2]]:[glowstack[17][0],glowstack[17][1],glowstack[17][2]],
+        18:18=[glowstack[18][0],glowstack[18][1],glowstack[18][2]]:[glowstack[18][0],glowstack[18][1],glowstack[18][2]],
+        19:19=[glowstack[19][0],glowstack[19][1],glowstack[19][2]]:[glowstack[19][0],glowstack[19][1],glowstack[19][2]],
+        20:20=[glowstack[20][0],glowstack[20][1],glowstack[20][2]]:[glowstack[20][0],glowstack[20][1],glowstack[20][2]],
+        21:21=[glowstack[21][0],glowstack[21][1],glowstack[21][2]]:[glowstack[21][0],glowstack[21][1],glowstack[21][2]],
+        22:22=[glowstack[22][0],glowstack[22][1],glowstack[22][2]]:[glowstack[22][0],glowstack[22][1],glowstack[22][2]],
+        23:23=[glowstack[23][0],glowstack[23][1],glowstack[23][2]]:[glowstack[23][0],glowstack[23][1],glowstack[23][2]],
+        24:24=[glowstack[24][0],glowstack[24][1],glowstack[24][2]]:[glowstack[24][0],glowstack[24][1],glowstack[24][2]],
+        25:25=[glowstack[25][0],glowstack[25][1],glowstack[25][2]]:[glowstack[25][0],glowstack[25][1],glowstack[25][2]],
+        26:26=[glowstack[26][0],glowstack[26][1],glowstack[26][2]]:[glowstack[26][0],glowstack[26][1],glowstack[26][2]],
+        27:27=[glowstack[27][0],glowstack[27][1],glowstack[27][2]]:[glowstack[27][0],glowstack[27][1],glowstack[27][2]],
+        28:28=[glowstack[28][0],glowstack[28][1],glowstack[28][2]]:[glowstack[28][0],glowstack[28][1],glowstack[28][2]],
+        29:29=[glowstack[29][0],glowstack[29][1],glowstack[29][2]]:[glowstack[29][0],glowstack[29][1],glowstack[29][2]],
+        30:30=[glowstack[30][0],glowstack[30][1],glowstack[30][2]]:[glowstack[30][0],glowstack[30][1],glowstack[30][2]],
+        31:31=[glowstack[31][0],glowstack[31][1],glowstack[31][2]]:[glowstack[31][0],glowstack[31][1],glowstack[31][2]],
+        32:32=[glowstack[32][0],glowstack[32][1],glowstack[32][2]]:[glowstack[32][0],glowstack[32][1],glowstack[32][2]],
+        33:33=[glowstack[33][0],glowstack[33][1],glowstack[33][2]]:[glowstack[33][0],glowstack[33][1],glowstack[33][2]],
+        34:34=[glowstack[34][0],glowstack[34][1],glowstack[34][2]]:[glowstack[34][0],glowstack[34][1],glowstack[34][2]],
+        35:35=[glowstack[35][0],glowstack[35][1],glowstack[35][2]]:[glowstack[35][0],glowstack[35][1],glowstack[35][2]],
+        36:36=[glowstack[36][0],glowstack[36][1],glowstack[36][2]]:[glowstack[36][0],glowstack[36][1],glowstack[36][2]],
+        37:37=[glowstack[37][0],glowstack[37][1],glowstack[37][2]]:[glowstack[37][0],glowstack[37][1],glowstack[37][2]],
+        38:38=[glowstack[38][0],glowstack[38][1],glowstack[38][2]]:[glowstack[38][0],glowstack[38][1],glowstack[38][2]],
+        39:39=[glowstack[39][0],glowstack[39][1],glowstack[39][2]]:[glowstack[39][0],glowstack[39][1],glowstack[39][2]],
+        40:40=[glowstack[40][0],glowstack[40][1],glowstack[40][2]]:[glowstack[40][0],glowstack[40][1],glowstack[40][2]],
+        41:41=[glowstack[41][0],glowstack[41][1],glowstack[41][2]]:[glowstack[41][0],glowstack[41][1],glowstack[41][2]],
+        42:42=[glowstack[42][0],glowstack[42][1],glowstack[42][2]]:[glowstack[42][0],glowstack[42][1],glowstack[42][2]],
+        43:43=[glowstack[43][0],glowstack[43][1],glowstack[43][2]]:[glowstack[43][0],glowstack[43][1],glowstack[43][2]],
+        44:44=[glowstack[44][0],glowstack[44][1],glowstack[44][2]]:[glowstack[44][0],glowstack[44][1],glowstack[44][2]],
+        45:45=[glowstack[45][0],glowstack[45][1],glowstack[45][2]]:[glowstack[45][0],glowstack[45][1],glowstack[45][2]],
+        46:46=[glowstack[46][0],glowstack[46][1],glowstack[46][2]]:[glowstack[46][0],glowstack[46][1],glowstack[46][2]],
+        47:47=[glowstack[47][0],glowstack[47][1],glowstack[47][2]]:[glowstack[47][0],glowstack[47][1],glowstack[47][2]],
+        48:48=[glowstack[48][0],glowstack[48][1],glowstack[48][2]]:[glowstack[48][0],glowstack[48][1],glowstack[48][2]],
+        49:49=[glowstack[49][0],glowstack[49][1],glowstack[49][2]]:[glowstack[49][0],glowstack[49][1],glowstack[49][2]],
+        50:50=[glowstack[50][0],glowstack[50][1],glowstack[50][2]]:[glowstack[50][0],glowstack[50][1],glowstack[50][2]],
+        51:51=[glowstack[51][0],glowstack[51][1],glowstack[51][2]]:[glowstack[51][0],glowstack[51][1],glowstack[51][2]],
+        52:52=[glowstack[52][0],glowstack[52][1],glowstack[52][2]]:[glowstack[52][0],glowstack[52][1],glowstack[52][2]],
+        53:53=[glowstack[53][0],glowstack[53][1],glowstack[53][2]]:[glowstack[53][0],glowstack[53][1],glowstack[53][2]],
+        54:54=[glowstack[54][0],glowstack[54][1],glowstack[54][2]]:[glowstack[54][0],glowstack[54][1],glowstack[54][2]],
+        55:55=[glowstack[55][0],glowstack[55][1],glowstack[55][2]]:[glowstack[55][0],glowstack[55][1],glowstack[55][2]],
+        56:56=[glowstack[56][0],glowstack[56][1],glowstack[56][2]]:[glowstack[56][0],glowstack[56][1],glowstack[56][2]],
+        57:57=[glowstack[57][0],glowstack[57][1],glowstack[57][2]]:[glowstack[57][0],glowstack[57][1],glowstack[57][2]],
+        58:58=[glowstack[58][0],glowstack[58][1],glowstack[58][2]]:[glowstack[58][0],glowstack[58][1],glowstack[58][2]],
+        59:59=[glowstack[59][0],glowstack[59][1],glowstack[59][2]]:[glowstack[59][0],glowstack[59][1],glowstack[59][2]],
+        60:60=[glowstack[60][0],glowstack[60][1],glowstack[60][2]]:[glowstack[60][0],glowstack[60][1],glowstack[60][2]],
+        61:61=[glowstack[61][0],glowstack[61][1],glowstack[61][2]]:[glowstack[61][0],glowstack[61][1],glowstack[61][2]],
+        62:62=[glowstack[62][0],glowstack[62][1],glowstack[62][2]]:[glowstack[62][0],glowstack[62][1],glowstack[62][2]],
+        63:63=[glowstack[63][0],glowstack[63][1],glowstack[63][2]]:[glowstack[63][0],glowstack[63][1],glowstack[63][2]],
+        64:64=[glowstack[64][0],glowstack[64][1],glowstack[64][2]]:[glowstack[64][0],glowstack[64][1],glowstack[64][2]],
+        65:65=[glowstack[65][0],glowstack[65][1],glowstack[65][2]]:[glowstack[65][0],glowstack[65][1],glowstack[65][2]],
+        66:66=[glowstack[66][0],glowstack[66][1],glowstack[66][2]]:[glowstack[66][0],glowstack[66][1],glowstack[66][2]],
+        67:67=[glowstack[67][0],glowstack[67][1],glowstack[67][2]]:[glowstack[67][0],glowstack[67][1],glowstack[67][2]],
+        68:68=[glowstack[68][0],glowstack[68][1],glowstack[68][2]]:[glowstack[68][0],glowstack[68][1],glowstack[68][2]],
+        69:69=[glowstack[69][0],glowstack[69][1],glowstack[69][2]]:[glowstack[69][0],glowstack[69][1],glowstack[69][2]],
+        70:70=[glowstack[70][0],glowstack[70][1],glowstack[70][2]]:[glowstack[70][0],glowstack[70][1],glowstack[70][2]],
+        71:71=[glowstack[71][0],glowstack[71][1],glowstack[71][2]]:[glowstack[71][0],glowstack[71][1],glowstack[71][2]],
+        72:72=[glowstack[72][0],glowstack[72][1],glowstack[72][2]]:[glowstack[72][0],glowstack[72][1],glowstack[72][2]],
+        73:73=[glowstack[73][0],glowstack[73][1],glowstack[73][2]]:[glowstack[73][0],glowstack[73][1],glowstack[73][2]],
+        74:74=[glowstack[74][0],glowstack[74][1],glowstack[74][2]]:[glowstack[74][0],glowstack[74][1],glowstack[74][2]],
+        75:75=[glowstack[75][0],glowstack[75][1],glowstack[75][2]]:[glowstack[75][0],glowstack[75][1],glowstack[75][2]],
+        76:76=[glowstack[76][0],glowstack[76][1],glowstack[76][2]]:[glowstack[76][0],glowstack[76][1],glowstack[76][2]],
+        77:77=[glowstack[77][0],glowstack[77][1],glowstack[77][2]]:[glowstack[77][0],glowstack[77][1],glowstack[77][2]],
+        78:78=[glowstack[78][0],glowstack[78][1],glowstack[78][2]]:[glowstack[78][0],glowstack[78][1],glowstack[78][2]],
+        79:79=[glowstack[79][0],glowstack[79][1],glowstack[79][2]]:[glowstack[79][0],glowstack[79][1],glowstack[79][2]],
+        80:80=[glowstack[80][0],glowstack[80][1],glowstack[80][2]]:[glowstack[80][0],glowstack[80][1],glowstack[80][2]],
+        81:81=[glowstack[81][0],glowstack[81][1],glowstack[81][2]]:[glowstack[81][0],glowstack[81][1],glowstack[81][2]],
+        82:82=[glowstack[82][0],glowstack[82][1],glowstack[82][2]]:[glowstack[82][0],glowstack[82][1],glowstack[82][2]],
+        83:83=[glowstack[83][0],glowstack[83][1],glowstack[83][2]]:[glowstack[83][0],glowstack[83][1],glowstack[83][2]],
+        84:84=[glowstack[84][0],glowstack[84][1],glowstack[84][2]]:[glowstack[84][0],glowstack[84][1],glowstack[84][2]],
+        85:85=[glowstack[85][0],glowstack[85][1],glowstack[85][2]]:[glowstack[85][0],glowstack[85][1],glowstack[85][2]],
+        86:86=[glowstack[86][0],glowstack[86][1],glowstack[86][2]]:[glowstack[86][0],glowstack[86][1],glowstack[86][2]],
+        87:87=[glowstack[87][0],glowstack[87][1],glowstack[87][2]]:[glowstack[87][0],glowstack[87][1],glowstack[87][2]],
+        88:88=[glowstack[88][0],glowstack[88][1],glowstack[88][2]]:[glowstack[88][0],glowstack[88][1],glowstack[88][2]],
+        89:89=[glowstack[89][0],glowstack[89][1],glowstack[89][2]]:[glowstack[89][0],glowstack[89][1],glowstack[89][2]],
+        90:90=[glowstack[90][0],glowstack[90][1],glowstack[90][2]]:[glowstack[90][0],glowstack[90][1],glowstack[90][2]],
+        91:91=[glowstack[91][0],glowstack[91][1],glowstack[91][2]]:[glowstack[91][0],glowstack[91][1],glowstack[91][2]],
+        92:92=[glowstack[92][0],glowstack[92][1],glowstack[92][2]]:[glowstack[92][0],glowstack[92][1],glowstack[92][2]],
+        93:93=[glowstack[93][0],glowstack[93][1],glowstack[93][2]]:[glowstack[93][0],glowstack[93][1],glowstack[93][2]],
+        94:94=[glowstack[94][0],glowstack[94][1],glowstack[94][2]]:[glowstack[94][0],glowstack[94][1],glowstack[94][2]],
+        95:95=[glowstack[95][0],glowstack[95][1],glowstack[95][2]]:[glowstack[95][0],glowstack[95][1],glowstack[95][2]],
+        96:96=[glowstack[96][0],glowstack[96][1],glowstack[96][2]]:[glowstack[96][0],glowstack[96][1],glowstack[96][2]],
+        97:97=[glowstack[97][0],glowstack[97][1],glowstack[97][2]]:[glowstack[97][0],glowstack[97][1],glowstack[97][2]],
+        98:98=[glowstack[98][0],glowstack[98][1],glowstack[98][2]]:[glowstack[98][0],glowstack[98][1],glowstack[98][2]],
+        99:99=[glowstack[99][0],glowstack[99][1],glowstack[99][2]]:[glowstack[99][0],glowstack[99][1],glowstack[99][2]],
+        100:100=[glowstack[100][0],glowstack[100][1],glowstack[100][2]]:[glowstack[100][0],glowstack[100][1],glowstack[100][2]],
+        101:101=[glowstack[101][0],glowstack[101][1],glowstack[101][2]]:[glowstack[101][0],glowstack[101][1],glowstack[101][2]],
+        102:102=[glowstack[102][0],glowstack[102][1],glowstack[102][2]]:[glowstack[102][0],glowstack[102][1],glowstack[102][2]],
+        103:103=[glowstack[103][0],glowstack[103][1],glowstack[103][2]]:[glowstack[103][0],glowstack[103][1],glowstack[103][2]],
+        104:104=[glowstack[104][0],glowstack[104][1],glowstack[104][2]]:[glowstack[104][0],glowstack[104][1],glowstack[104][2]],
+        105:105=[glowstack[105][0],glowstack[105][1],glowstack[105][2]]:[glowstack[105][0],glowstack[105][1],glowstack[105][2]],
+        106:106=[glowstack[106][0],glowstack[106][1],glowstack[106][2]]:[glowstack[106][0],glowstack[106][1],glowstack[106][2]],
+        107:107=[glowstack[107][0],glowstack[107][1],glowstack[107][2]]:[glowstack[107][0],glowstack[107][1],glowstack[107][2]],
+        108:108=[glowstack[108][0],glowstack[108][1],glowstack[108][2]]:[glowstack[108][0],glowstack[108][1],glowstack[108][2]],
+        109:109=[glowstack[109][0],glowstack[109][1],glowstack[109][2]]:[glowstack[109][0],glowstack[109][1],glowstack[109][2]],
+        110:110=[glowstack[110][0],glowstack[110][1],glowstack[110][2]]:[glowstack[110][0],glowstack[110][1],glowstack[110][2]],
+        111:111=[glowstack[111][0],glowstack[111][1],glowstack[111][2]]:[glowstack[111][0],glowstack[111][1],glowstack[111][2]],
+        112:112=[glowstack[112][0],glowstack[112][1],glowstack[112][2]]:[glowstack[112][0],glowstack[112][1],glowstack[112][2]],
+        113:113=[glowstack[113][0],glowstack[113][1],glowstack[113][2]]:[glowstack[113][0],glowstack[113][1],glowstack[113][2]],
+        114:114=[glowstack[114][0],glowstack[114][1],glowstack[114][2]]:[glowstack[114][0],glowstack[114][1],glowstack[114][2]],
+        115:115=[glowstack[115][0],glowstack[115][1],glowstack[115][2]]:[glowstack[115][0],glowstack[115][1],glowstack[115][2]],
+        116:116=[glowstack[116][0],glowstack[116][1],glowstack[116][2]]:[glowstack[116][0],glowstack[116][1],glowstack[116][2]],
+        117:117=[glowstack[117][0],glowstack[117][1],glowstack[117][2]]:[glowstack[117][0],glowstack[117][1],glowstack[117][2]],
+        118:118=[glowstack[118][0],glowstack[118][1],glowstack[118][2]]:[glowstack[118][0],glowstack[118][1],glowstack[118][2]],
+        119:119=[glowstack[119][0],glowstack[119][1],glowstack[119][2]]:[glowstack[119][0],glowstack[119][1],glowstack[119][2]],
+        120:120=[glowstack[120][0],glowstack[120][1],glowstack[120][2]]:[glowstack[120][0],glowstack[120][1],glowstack[120][2]],
+        121:121=[glowstack[121][0],glowstack[121][1],glowstack[121][2]]:[glowstack[121][0],glowstack[121][1],glowstack[121][2]],
+        122:122=[glowstack[122][0],glowstack[122][1],glowstack[122][2]]:[glowstack[122][0],glowstack[122][1],glowstack[122][2]],
+        123:123=[glowstack[123][0],glowstack[123][1],glowstack[123][2]]:[glowstack[123][0],glowstack[123][1],glowstack[123][2]],
+        124:124=[glowstack[124][0],glowstack[124][1],glowstack[124][2]]:[glowstack[124][0],glowstack[124][1],glowstack[124][2]],
+        125:125=[glowstack[125][0],glowstack[125][1],glowstack[125][2]]:[glowstack[125][0],glowstack[125][1],glowstack[125][2]],
+        126:126=[glowstack[126][0],glowstack[126][1],glowstack[126][2]]:[glowstack[126][0],glowstack[126][1],glowstack[126][2]],
+        127:127=[glowstack[127][0],glowstack[127][1],glowstack[127][2]]:[glowstack[127][0],glowstack[127][1],glowstack[127][2]],
+        128:128=[glowstack[128][0],glowstack[128][1],glowstack[128][2]]:[glowstack[128][0],glowstack[128][1],glowstack[128][2]],
+        129:129=[glowstack[129][0],glowstack[129][1],glowstack[129][2]]:[glowstack[129][0],glowstack[129][1],glowstack[129][2]],
+        130:130=[glowstack[130][0],glowstack[130][1],glowstack[130][2]]:[glowstack[130][0],glowstack[130][1],glowstack[130][2]],
+        131:131=[glowstack[131][0],glowstack[131][1],glowstack[131][2]]:[glowstack[131][0],glowstack[131][1],glowstack[131][2]],
+        132:132=[glowstack[132][0],glowstack[132][1],glowstack[132][2]]:[glowstack[132][0],glowstack[132][1],glowstack[132][2]],
+        133:133=[glowstack[133][0],glowstack[133][1],glowstack[133][2]]:[glowstack[133][0],glowstack[133][1],glowstack[133][2]],
+        134:134=[glowstack[134][0],glowstack[134][1],glowstack[134][2]]:[glowstack[134][0],glowstack[134][1],glowstack[134][2]],
+        135:135=[glowstack[135][0],glowstack[135][1],glowstack[135][2]]:[glowstack[135][0],glowstack[135][1],glowstack[135][2]],
+        136:136=[glowstack[136][0],glowstack[136][1],glowstack[136][2]]:[glowstack[136][0],glowstack[136][1],glowstack[136][2]],
+        137:137=[glowstack[137][0],glowstack[137][1],glowstack[137][2]]:[glowstack[137][0],glowstack[137][1],glowstack[137][2]],
+        138:138=[glowstack[138][0],glowstack[138][1],glowstack[138][2]]:[glowstack[138][0],glowstack[138][1],glowstack[138][2]],
+        139:139=[glowstack[139][0],glowstack[139][1],glowstack[139][2]]:[glowstack[139][0],glowstack[139][1],glowstack[139][2]],
+        140:140=[glowstack[140][0],glowstack[140][1],glowstack[140][2]]:[glowstack[140][0],glowstack[140][1],glowstack[140][2]],
+        141:141=[glowstack[141][0],glowstack[141][1],glowstack[141][2]]:[glowstack[141][0],glowstack[141][1],glowstack[141][2]],
+        142:142=[glowstack[142][0],glowstack[142][1],glowstack[142][2]]:[glowstack[142][0],glowstack[142][1],glowstack[142][2]],
+        143:143=[glowstack[143][0],glowstack[143][1],glowstack[143][2]]:[glowstack[143][0],glowstack[143][1],glowstack[143][2]],
+        144:144=[glowstack[144][0],glowstack[144][1],glowstack[144][2]]:[glowstack[144][0],glowstack[144][1],glowstack[144][2]],
+        145:145=[glowstack[145][0],glowstack[145][1],glowstack[145][2]]:[glowstack[145][0],glowstack[145][1],glowstack[145][2]],
+        146:146=[glowstack[146][0],glowstack[146][1],glowstack[146][2]]:[glowstack[146][0],glowstack[146][1],glowstack[146][2]],
+        147:147=[glowstack[147][0],glowstack[147][1],glowstack[147][2]]:[glowstack[147][0],glowstack[147][1],glowstack[147][2]],
+        148:148=[glowstack[148][0],glowstack[148][1],glowstack[148][2]]:[glowstack[148][0],glowstack[148][1],glowstack[148][2]],
+        149:149=[glowstack[149][0],glowstack[149][1],glowstack[149][2]]:[glowstack[149][0],glowstack[149][1],glowstack[149][2]],
+        150:150=[glowstack[150][0],glowstack[150][1],glowstack[150][2]]:[glowstack[150][0],glowstack[150][1],glowstack[150][2]],
+        151:151=[glowstack[151][0],glowstack[151][1],glowstack[151][2]]:[glowstack[151][0],glowstack[151][1],glowstack[151][2]],
+        152:152=[glowstack[152][0],glowstack[152][1],glowstack[152][2]]:[glowstack[152][0],glowstack[152][1],glowstack[152][2]],
+        153:153=[glowstack[153][0],glowstack[153][1],glowstack[153][2]]:[glowstack[153][0],glowstack[153][1],glowstack[153][2]],
+        154:154=[glowstack[154][0],glowstack[154][1],glowstack[154][2]]:[glowstack[154][0],glowstack[154][1],glowstack[154][2]],
+        155:155=[glowstack[155][0],glowstack[155][1],glowstack[155][2]]:[glowstack[155][0],glowstack[155][1],glowstack[155][2]],
+        156:156=[glowstack[156][0],glowstack[156][1],glowstack[156][2]]:[glowstack[156][0],glowstack[156][1],glowstack[156][2]],
+        157:157=[glowstack[157][0],glowstack[157][1],glowstack[157][2]]:[glowstack[157][0],glowstack[157][1],glowstack[157][2]],
+        158:158=[glowstack[158][0],glowstack[158][1],glowstack[158][2]]:[glowstack[158][0],glowstack[158][1],glowstack[158][2]],
+        159:159=[glowstack[159][0],glowstack[159][1],glowstack[159][2]]:[glowstack[159][0],glowstack[159][1],glowstack[159][2]],
+        160:160=[glowstack[160][0],glowstack[160][1],glowstack[160][2]]:[glowstack[160][0],glowstack[160][1],glowstack[160][2]],
+        161:161=[glowstack[161][0],glowstack[161][1],glowstack[161][2]]:[glowstack[161][0],glowstack[161][1],glowstack[161][2]],
+        162:162=[glowstack[162][0],glowstack[162][1],glowstack[162][2]]:[glowstack[162][0],glowstack[162][1],glowstack[162][2]],
+        163:163=[glowstack[163][0],glowstack[163][1],glowstack[163][2]]:[glowstack[163][0],glowstack[163][1],glowstack[163][2]],
+        164:164=[glowstack[164][0],glowstack[164][1],glowstack[164][2]]:[glowstack[164][0],glowstack[164][1],glowstack[164][2]],
+        165:165=[glowstack[165][0],glowstack[165][1],glowstack[165][2]]:[glowstack[165][0],glowstack[165][1],glowstack[165][2]],
+        166:166=[glowstack[166][0],glowstack[166][1],glowstack[166][2]]:[glowstack[166][0],glowstack[166][1],glowstack[166][2]],
+        167:167=[glowstack[167][0],glowstack[167][1],glowstack[167][2]]:[glowstack[167][0],glowstack[167][1],glowstack[167][2]],
+        168:168=[glowstack[168][0],glowstack[168][1],glowstack[168][2]]:[glowstack[168][0],glowstack[168][1],glowstack[168][2]],
+        169:169=[glowstack[169][0],glowstack[169][1],glowstack[169][2]]:[glowstack[169][0],glowstack[169][1],glowstack[169][2]],
+        170:170=[glowstack[170][0],glowstack[170][1],glowstack[170][2]]:[glowstack[170][0],glowstack[170][1],glowstack[170][2]],
+        171:171=[glowstack[171][0],glowstack[171][1],glowstack[171][2]]:[glowstack[171][0],glowstack[171][1],glowstack[171][2]],
+        172:172=[glowstack[172][0],glowstack[172][1],glowstack[172][2]]:[glowstack[172][0],glowstack[172][1],glowstack[172][2]],
+        173:173=[glowstack[173][0],glowstack[173][1],glowstack[173][2]]:[glowstack[173][0],glowstack[173][1],glowstack[173][2]],
+        174:174=[glowstack[174][0],glowstack[174][1],glowstack[174][2]]:[glowstack[174][0],glowstack[174][1],glowstack[174][2]],
+        175:175=[glowstack[175][0],glowstack[175][1],glowstack[175][2]]:[glowstack[175][0],glowstack[175][1],glowstack[175][2]],
+        176:176=[glowstack[176][0],glowstack[176][1],glowstack[176][2]]:[glowstack[176][0],glowstack[176][1],glowstack[176][2]],
+        177:177=[glowstack[177][0],glowstack[177][1],glowstack[177][2]]:[glowstack[177][0],glowstack[177][1],glowstack[177][2]],
+        178:178=[glowstack[178][0],glowstack[178][1],glowstack[178][2]]:[glowstack[178][0],glowstack[178][1],glowstack[178][2]],
+        179:179=[glowstack[179][0],glowstack[179][1],glowstack[179][2]]:[glowstack[179][0],glowstack[179][1],glowstack[179][2]],
+        180:180=[glowstack[180][0],glowstack[180][1],glowstack[180][2]]:[glowstack[180][0],glowstack[180][1],glowstack[180][2]],
+        181:181=[glowstack[181][0],glowstack[181][1],glowstack[181][2]]:[glowstack[181][0],glowstack[181][1],glowstack[181][2]],
+        182:182=[glowstack[182][0],glowstack[182][1],glowstack[182][2]]:[glowstack[182][0],glowstack[182][1],glowstack[182][2]],
+        183:183=[glowstack[183][0],glowstack[183][1],glowstack[183][2]]:[glowstack[183][0],glowstack[183][1],glowstack[183][2]],
+        184:184=[glowstack[184][0],glowstack[184][1],glowstack[184][2]]:[glowstack[184][0],glowstack[184][1],glowstack[184][2]],
+        185:185=[glowstack[185][0],glowstack[185][1],glowstack[185][2]]:[glowstack[185][0],glowstack[185][1],glowstack[185][2]],
+        186:186=[glowstack[186][0],glowstack[186][1],glowstack[186][2]]:[glowstack[186][0],glowstack[186][1],glowstack[186][2]],
+        187:187=[glowstack[187][0],glowstack[187][1],glowstack[187][2]]:[glowstack[187][0],glowstack[187][1],glowstack[187][2]],
+        188:188=[glowstack[188][0],glowstack[188][1],glowstack[188][2]]:[glowstack[188][0],glowstack[188][1],glowstack[188][2]],
+        189:189=[glowstack[189][0],glowstack[189][1],glowstack[189][2]]:[glowstack[189][0],glowstack[189][1],glowstack[189][2]],
+        190:190=[glowstack[190][0],glowstack[190][1],glowstack[190][2]]:[glowstack[190][0],glowstack[190][1],glowstack[190][2]],
+        191:191=[glowstack[191][0],glowstack[191][1],glowstack[191][2]]:[glowstack[191][0],glowstack[191][1],glowstack[191][2]],
+        192:192=[glowstack[192][0],glowstack[192][1],glowstack[192][2]]:[glowstack[192][0],glowstack[192][1],glowstack[192][2]],
+        193:193=[glowstack[193][0],glowstack[193][1],glowstack[193][2]]:[glowstack[193][0],glowstack[193][1],glowstack[193][2]],
+        194:194=[glowstack[194][0],glowstack[194][1],glowstack[194][2]]:[glowstack[194][0],glowstack[194][1],glowstack[194][2]],
+        195:195=[glowstack[195][0],glowstack[195][1],glowstack[195][2]]:[glowstack[195][0],glowstack[195][1],glowstack[195][2]],
+        196:196=[glowstack[196][0],glowstack[196][1],glowstack[196][2]]:[glowstack[196][0],glowstack[196][1],glowstack[196][2]],
+        197:197=[glowstack[197][0],glowstack[197][1],glowstack[197][2]]:[glowstack[197][0],glowstack[197][1],glowstack[197][2]],
+        198:198=[glowstack[198][0],glowstack[198][1],glowstack[198][2]]:[glowstack[198][0],glowstack[198][1],glowstack[198][2]],
+        199:199=[glowstack[199][0],glowstack[199][1],glowstack[199][2]]:[glowstack[199][0],glowstack[199][1],glowstack[199][2]],
+        200:200=[glowstack[200][0],glowstack[200][1],glowstack[200][2]]:[glowstack[200][0],glowstack[200][1],glowstack[200][2]],
+        201:201=[glowstack[201][0],glowstack[201][1],glowstack[201][2]]:[glowstack[201][0],glowstack[201][1],glowstack[201][2]],
+        202:202=[glowstack[202][0],glowstack[202][1],glowstack[202][2]]:[glowstack[202][0],glowstack[202][1],glowstack[202][2]],
+        203:203=[glowstack[203][0],glowstack[203][1],glowstack[203][2]]:[glowstack[203][0],glowstack[203][1],glowstack[203][2]],
+        204:204=[glowstack[204][0],glowstack[204][1],glowstack[204][2]]:[glowstack[204][0],glowstack[204][1],glowstack[204][2]],
+        205:205=[glowstack[205][0],glowstack[205][1],glowstack[205][2]]:[glowstack[205][0],glowstack[205][1],glowstack[205][2]],
+        206:206=[glowstack[206][0],glowstack[206][1],glowstack[206][2]]:[glowstack[206][0],glowstack[206][1],glowstack[206][2]],
+        207:207=[glowstack[207][0],glowstack[207][1],glowstack[207][2]]:[glowstack[207][0],glowstack[207][1],glowstack[207][2]],
+        208:208=[glowstack[208][0],glowstack[208][1],glowstack[208][2]]:[glowstack[208][0],glowstack[208][1],glowstack[208][2]],
+        209:209=[glowstack[209][0],glowstack[209][1],glowstack[209][2]]:[glowstack[209][0],glowstack[209][1],glowstack[209][2]],
+        210:210=[glowstack[210][0],glowstack[210][1],glowstack[210][2]]:[glowstack[210][0],glowstack[210][1],glowstack[210][2]],
+        211:211=[glowstack[211][0],glowstack[211][1],glowstack[211][2]]:[glowstack[211][0],glowstack[211][1],glowstack[211][2]],
+        212:212=[glowstack[212][0],glowstack[212][1],glowstack[212][2]]:[glowstack[212][0],glowstack[212][1],glowstack[212][2]],
+        213:213=[glowstack[213][0],glowstack[213][1],glowstack[213][2]]:[glowstack[213][0],glowstack[213][1],glowstack[213][2]],
+        214:214=[glowstack[214][0],glowstack[214][1],glowstack[214][2]]:[glowstack[214][0],glowstack[214][1],glowstack[214][2]],
+        215:215=[glowstack[215][0],glowstack[215][1],glowstack[215][2]]:[glowstack[215][0],glowstack[215][1],glowstack[215][2]],
+        216:216=[glowstack[216][0],glowstack[216][1],glowstack[216][2]]:[glowstack[216][0],glowstack[216][1],glowstack[216][2]],
+        217:217=[glowstack[217][0],glowstack[217][1],glowstack[217][2]]:[glowstack[217][0],glowstack[217][1],glowstack[217][2]],
+        218:218=[glowstack[218][0],glowstack[218][1],glowstack[218][2]]:[glowstack[218][0],glowstack[218][1],glowstack[218][2]],
+        219:219=[glowstack[219][0],glowstack[219][1],glowstack[219][2]]:[glowstack[219][0],glowstack[219][1],glowstack[219][2]],
+        220:220=[glowstack[220][0],glowstack[220][1],glowstack[220][2]]:[glowstack[220][0],glowstack[220][1],glowstack[220][2]],
+        221:221=[glowstack[221][0],glowstack[221][1],glowstack[221][2]]:[glowstack[221][0],glowstack[221][1],glowstack[221][2]],
+        222:222=[glowstack[222][0],glowstack[222][1],glowstack[222][2]]:[glowstack[222][0],glowstack[222][1],glowstack[222][2]],
+        223:223=[glowstack[223][0],glowstack[223][1],glowstack[223][2]]:[glowstack[223][0],glowstack[223][1],glowstack[223][2]],
+        224:224=[glowstack[224][0],glowstack[224][1],glowstack[224][2]]:[glowstack[224][0],glowstack[224][1],glowstack[224][2]],
+        225:225=[glowstack[225][0],glowstack[225][1],glowstack[225][2]]:[glowstack[225][0],glowstack[225][1],glowstack[225][2]],
+        226:226=[glowstack[226][0],glowstack[226][1],glowstack[226][2]]:[glowstack[226][0],glowstack[226][1],glowstack[226][2]],
+        227:227=[glowstack[227][0],glowstack[227][1],glowstack[227][2]]:[glowstack[227][0],glowstack[227][1],glowstack[227][2]],
+        228:228=[glowstack[228][0],glowstack[228][1],glowstack[228][2]]:[glowstack[228][0],glowstack[228][1],glowstack[228][2]],
+        229:229=[glowstack[229][0],glowstack[229][1],glowstack[229][2]]:[glowstack[229][0],glowstack[229][1],glowstack[229][2]],
+        230:230=[glowstack[230][0],glowstack[230][1],glowstack[230][2]]:[glowstack[230][0],glowstack[230][1],glowstack[230][2]],
+        231:231=[glowstack[231][0],glowstack[231][1],glowstack[231][2]]:[glowstack[231][0],glowstack[231][1],glowstack[231][2]],
+        232:232=[glowstack[232][0],glowstack[232][1],glowstack[232][2]]:[glowstack[232][0],glowstack[232][1],glowstack[232][2]],
+        233:233=[glowstack[233][0],glowstack[233][1],glowstack[233][2]]:[glowstack[233][0],glowstack[233][1],glowstack[233][2]],
+        234:234=[glowstack[234][0],glowstack[234][1],glowstack[234][2]]:[glowstack[234][0],glowstack[234][1],glowstack[234][2]],
+        235:235=[glowstack[235][0],glowstack[235][1],glowstack[235][2]]:[glowstack[235][0],glowstack[235][1],glowstack[235][2]],
+        236:236=[glowstack[236][0],glowstack[236][1],glowstack[236][2]]:[glowstack[236][0],glowstack[236][1],glowstack[236][2]],
+        237:237=[glowstack[237][0],glowstack[237][1],glowstack[237][2]]:[glowstack[237][0],glowstack[237][1],glowstack[237][2]],
+        238:238=[glowstack[238][0],glowstack[238][1],glowstack[238][2]]:[glowstack[238][0],glowstack[238][1],glowstack[238][2]],
+        239:239=[glowstack[239][0],glowstack[239][1],glowstack[239][2]]:[glowstack[239][0],glowstack[239][1],glowstack[239][2]],
+        240:240=[glowstack[240][0],glowstack[240][1],glowstack[240][2]]:[glowstack[240][0],glowstack[240][1],glowstack[240][2]],
+        241:241=[glowstack[241][0],glowstack[241][1],glowstack[241][2]]:[glowstack[241][0],glowstack[241][1],glowstack[241][2]],
+        242:242=[glowstack[242][0],glowstack[242][1],glowstack[242][2]]:[glowstack[242][0],glowstack[242][1],glowstack[242][2]],
+        243:243=[glowstack[243][0],glowstack[243][1],glowstack[243][2]]:[glowstack[243][0],glowstack[243][1],glowstack[243][2]],
+        244:244=[glowstack[244][0],glowstack[244][1],glowstack[244][2]]:[glowstack[244][0],glowstack[244][1],glowstack[244][2]],
+        245:245=[glowstack[245][0],glowstack[245][1],glowstack[245][2]]:[glowstack[245][0],glowstack[245][1],glowstack[245][2]],
+        246:246=[glowstack[246][0],glowstack[246][1],glowstack[246][2]]:[glowstack[246][0],glowstack[246][1],glowstack[246][2]],
+        247:247=[glowstack[247][0],glowstack[247][1],glowstack[247][2]]:[glowstack[247][0],glowstack[247][1],glowstack[247][2]],
+        248:248=[glowstack[248][0],glowstack[248][1],glowstack[248][2]]:[glowstack[248][0],glowstack[248][1],glowstack[248][2]],
+        249:249=[glowstack[249][0],glowstack[249][1],glowstack[249][2]]:[glowstack[249][0],glowstack[249][1],glowstack[249][2]],
+        250:250=[glowstack[250][0],glowstack[250][1],glowstack[250][2]]:[glowstack[250][0],glowstack[250][1],glowstack[250][2]],
+        251:251=[glowstack[251][0],glowstack[251][1],glowstack[251][2]]:[glowstack[251][0],glowstack[251][1],glowstack[251][2]],
+        252:252=[glowstack[252][0],glowstack[252][1],glowstack[252][2]]:[glowstack[252][0],glowstack[252][1],glowstack[252][2]],
+        253:253=[glowstack[253][0],glowstack[253][1],glowstack[253][2]]:[glowstack[253][0],glowstack[253][1],glowstack[253][2]],
+        254:254=[glowstack[254][0],glowstack[254][1],glowstack[254][2]]:[glowstack[254][0],glowstack[254][1],glowstack[254][2]],
+        255:255=[glowstack[255][0],glowstack[255][1],glowstack[255][2]]:[glowstack[255][0],glowstack[255][1],glowstack[255][2]]
+    );
+}

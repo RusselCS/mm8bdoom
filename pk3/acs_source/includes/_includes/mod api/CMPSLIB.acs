@@ -1,0 +1,49 @@
+function int GetCompassMarkerID(void)
+{
+    return ACS_NamedExecuteWithResult("core_getcompassmarkerid");
+}
+
+function void SetCompassMarkerGraphic(int idx, str graphic)
+{
+    ACS_NamedExecuteWithResult("core_setcompassgraphic", idx, graphic);
+}
+
+function void SetCompassMarkerOffset(int idx, int x, int y)
+{
+    ACS_NamedExecuteWithResult("core_setcompassoffset", idx, x, y);
+}
+
+function void SetCompassMarkerPosByXYZ(int idx, int x, int y, int z)
+{
+    ACS_NamedExecuteWithResult("core_setcompassxyz", idx, x, y, z);
+}
+
+function void SetCompassMarkerPosByTID(int idx, int tid)
+{
+    ACS_NamedExecuteWithResult("core_setcompassxyz", idx, GetActorX(tid), GetActorY(tid), GetActorZ(tid));
+}
+
+function void SetCompassMarkerMessage(int idx, str msg)
+{
+    ACS_NamedExecuteWithResult("core_setcompassmessage", idx, msg);
+}
+
+function void SetCompassMarkerColor(int idx, str color)
+{
+    ACS_NamedExecuteWithResult("core_setcompasscolor", idx, color);
+}
+
+function void SetCompassMarkerScale(int idx, int scale)
+{
+    ACS_NamedExecuteWithResult("core_setcompassscale", idx, scale);
+}
+
+function void SetCompassMarkerAlpha(int idx, int alpha)
+{
+    ACS_NamedExecuteWithResult("core_setcompassalpha", idx, alpha);
+}
+
+function void SetCompassMarkerDistanceScaled(int idx, bool distanceScaled)
+{
+    ACS_NamedExecuteWithResult("core_setcompassdistancescaled", idx, distanceScaled);
+}

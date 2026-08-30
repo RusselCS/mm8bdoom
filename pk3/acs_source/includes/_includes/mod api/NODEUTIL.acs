@@ -1,0 +1,87 @@
+function void AddToNodeList(int nodeList)
+{
+    AddActorToNodeList(nodeList, 0);
+}
+
+function void AddActorToNodeList(int nodeList, int tid)
+{
+    ACS_NamedExecuteWithResult("core_add_to_node_list", nodeList, tid);
+}
+
+function void RemoveFromNodeList(int nodeList)
+{
+    RemoveActorFromNodeList(nodeList, 0);
+}
+
+function void RemoveActorFromNodeList(int nodeList, int tid)
+{
+    ACS_NamedExecuteWithResult("core_remove_from_node_list", nodeList, tid);
+}
+
+function void MapOverNodeList(int nodeList, str scriptName, int arg1, int arg2, int arg3, int arg4)
+{
+	ACS_NamedExecuteWithResult("core_stage_node_parameters", arg1, arg2, arg3, arg4);
+    ACS_NamedExecuteWithResult("core_map_script_on_list", nodeList, scriptName);
+}
+
+function int NodeExistsInNodeList(int nodeList, int index)
+{
+    return ACS_NamedExecuteWithResult("core_node_exists", nodeList, index);
+}
+
+function int ExecuteOnNodeList(int nodeList, int index, str scriptName, int arg1, int arg2, int arg3, int arg4)
+{
+	ACS_NamedExecuteWithResult("core_stage_node_parameters", arg1, arg2, arg3, arg4);
+    return ACS_NamedExecuteWithResult("core_execute_script_on_node", nodeList, index, scriptName);
+}
+
+// Shortcuts
+function void MapOverNodeList0(int nodeList, str scriptName)
+{
+	MapOverNodeList(nodeList, scriptName, 0, 0, 0, 0);
+}
+
+function void MapOverNodeList1(int nodeList, str scriptName, int arg1)
+{
+	MapOverNodeList(nodeList, scriptName, arg1, 0, 0, 0);
+}
+
+function void MapOverNodeList2(int nodeList, str scriptName, int arg1, int arg2)
+{
+	MapOverNodeList(nodeList, scriptName, arg1, arg2, 0, 0);
+}
+
+function void MapOverNodeList3(int nodeList, str scriptName, int arg1, int arg2, int arg3)
+{
+	MapOverNodeList(nodeList, scriptName, arg1, arg2, arg3, 0);
+}
+
+function void MapOverNodeList4(int nodeList, str scriptName, int arg1, int arg2, int arg3, int arg4)
+{
+	MapOverNodeList(nodeList, scriptName, arg1, arg2, arg3, arg4);
+}
+
+function void ExecuteOnNodeList0(int nodeList, int index, str scriptName)
+{
+	ExecuteOnNodeList(nodeList, index, scriptName, 0, 0, 0, 0);
+}
+
+function void ExecuteOnNodeList1(int nodeList, int index, str scriptName, int arg1)
+{
+	ExecuteOnNodeList(nodeList, index, scriptName, arg1, 0, 0, 0);
+}
+
+function void ExecuteOnNodeList2(int nodeList, int index, str scriptName, int arg1, int arg2)
+{
+	ExecuteOnNodeList(nodeList, index, scriptName, arg1, arg2, 0, 0);
+}
+
+function void ExecuteOnNodeList3(int nodeList, int index, str scriptName, int arg1, int arg2, int arg3)
+{
+	ExecuteOnNodeList(nodeList, index, scriptName, arg1, arg2, arg3, 0);
+}
+
+function void ExecuteOnNodeList4(int nodeList, int index, str scriptName, int arg1, int arg2, int arg3, int arg4)
+{
+	ExecuteOnNodeList(nodeList, index, scriptName, arg1, arg2, arg3, arg4);
+}
