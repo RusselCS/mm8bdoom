@@ -1,0 +1,240 @@
+#library "ST_ITEMS"
+
+#include "zcommon.acs"
+
+#include "DTADD.acs"
+#include "NODEUTIL.acs"
+
+#include "8BDMDEFS.acs"
+#include "8BDMVARS.acs"
+
+#include "ST_CONST.acs"
+
+#import "8BDT.acs"
+
+script "satanium_pickups_open" OPEN
+{
+    DefineReservedTID(NODE_PICKUPS);
+}
+
+#define replace_max_limit 1000
+int replace_max = 40;
+str replacePickups[replace_max_limit][2] = {
+    {"DoomSmallerArmorReplace", "SataniumSmallerArmor"},
+    {"DoomSmallArmorReplace", "SataniumBigArmor"},
+    {"DoomSmallerHealthReplace", "SataniumSmallerArmor"},
+    {"DoomSmallHealthReplace", "SmallHealth"},
+    {"DoomBigHealthReplace", "BigHealth"},
+    {"DoomBiggerHealthReplace", "MegaHealth"},
+    {"DoomBiggestHealthReplace", "ETank"},
+    {"CellReplace", "WeaponEnergy"},
+    {"ClipReplace", "WeaponEnergy"},
+    {"RocketAmmoReplace", "WeaponEnergy"},
+    {"ShellReplace", "WeaponEnergy"},
+    {"CellPackReplace", "BigWeaponEnergy"},
+    {"ClipBoxReplace", "BigWeaponEnergy"},
+    {"RocketBoxReplace", "BigWeaponEnergy"},
+    {"ShellBoxReplace", "BigWeaponEnergy"},
+    {"DoomRedKeyReplacer", "SataniumRedCode"},
+    {"DoomBlueKeyReplacer", "SataniumBlueCode"},
+    {"DoomYellowKeyReplacer", "SataniumYellowCode"},
+    {"DoomRedSkullReplacer", "SataniumRedJewel"},
+    {"DoomBlueSkullReplacer", "SataniumBlueJewel"},
+    {"DoomYellowSkullReplacer", "SataniumYellowJewel"},
+
+    {"ChexSmallerArmorReplace", "SataniumSmallerArmor"},
+    {"ChexSmallArmorReplace", "SataniumBigArmor"},
+    {"ChexSmallerHealthReplace", "SataniumSmallerArmor"},
+    {"ChexSmallHealthReplace", "SmallHealth"},
+    {"ChexBigHealthReplace", "BigHealth"},
+    {"ChexBiggerHealthReplace", "ETank"},
+    {"MiniZorchRechargeReplace", "WeaponEnergy"},
+    {"LargeZorchRechargeReplace", "WeaponEnergy"},
+    {"PropulsorZorchReplace", "WeaponEnergy"},
+    {"PhasingZorchReplace", "WeaponEnergy"},
+    {"MiniZorchPackReplace", "BigWeaponEnergy"},
+    {"LargeZorchPackReplace", "BigWeaponEnergy"},
+    {"PropulsorZorchPackReplace", "BigWeaponEnergy"},
+    {"PhasingZorchPackReplace", "BigWeaponEnergy"},
+    {"ChexBackpackReplace", "WTank"},
+    {"ChexRedKeyReplacer", "ChexSataniumRedCode"},
+    {"ChexBlueKeyReplacer", "ChexSataniumBlueCode"},
+    {"ChexYellowKeyReplacer", "ChexSataniumYellowCode"},
+
+    // {"AllmapReplace", ""},
+    // {"ArmorBonusReplace", ""},
+    // {"BerserkReplace", ""}, technically a weapon
+    // {"BlueArmorReplace", ""},
+    // {"BlurSphereReplace", ""},
+    // {"GreenArmorReplace", ""},
+    // {"HealthBonusReplace", ""},
+    // {"InfraredReplace", ""},
+    // {"InvulnerabilitySphereReplace", ""},
+    // {"RadSuitReplace", ""},
+};
+
+#define DROPCHECK_DIST 512
+
+int dropReplacement = -1;
+script "satanium_replacepickup" (int mass)
+{
+    if(timer() < 2) delay(2);
+
+    str replacement = "None";
+    int i, u, a;
+    int findIndex = -1;
+    str cls = GetActorClass(0);
+
+    int x = GetActorX(0);
+    int y = GetActorY(0);
+    int z = GetActorZ(0);
+    int dropped = CheckFlag(0, "DROPPED");
+
+    if(dropped) {
+        x += random(-32, 32) << 16;
+        y += random(-32, 32) << 16;
+    }
+
+    for(i = 0; i < replace_max; i++) {
+        if(StrLen(replacePickups[i][0]) == 0)
+            break;
+
+        if(StrICmp(cls, replacePickups[i][0]) == 0) {
+            replacement = replacePickups[i][1];
+            if(dropped) {
+                dropReplacement = 0;
+
+                for(int p = PLN_TID; p < PLN_TID + ServerMAX; p++) {
+                    if(CheckActorInventory(p, cls) == 0)
+                        continue;
+                    if(!CheckSight(0, p, 0))
+                        continue;
+                    dropReplacement = 1;
+                }
+
+                if(dropReplacement == 0) {
+                    a = ActivatorTID();
+                    u = UniqueTID();
+                    Thing_ChangeTID(0, u);
+                    MapOverNodeList(NODE_PICKUPS, "satanium_checkifcandrop", u, replacement, 0, 0);
+                    Thing_ChangeTID(u, a);
+                }
+
+                if(dropReplacement > 0) {
+                    replacement = "WeaponEnergy";
+                }
+
+                dropReplacement = -1;
+            }
+            findIndex = i;
+            break;
+        }
+    }
+
+    // Pickup not found, registering.
+    if(findIndex == -1) {
+        int wepIdx = -1;
+        if(mass == 1) {
+            wepIdx = randomBusterUpgradeEx(true, -1, -1);
+            replacement = getBusterUpgrade(wepIdx);
+        } else {
+            wepIdx = randomWeaponEx(mass, true, -1, -1);
+            replacement = getWeaponActor(wepIdx);
+        }
+
+        if(wepIdx != -1) {
+            findIndex = replace_max++;
+            replacePickups[i][0] = cls;
+            replacePickups[i][1] = replacement;
+        }
+    }
+
+    if(findIndex == -1) {
+        Log(s:"Failed to find a replacement for ", s:cls);
+        terminate;
+    }
+
+    if(StrICmp(replacement, "None") == 0) {
+        Log(s:"Failed to find a replacement for ", s:cls);
+        terminate;
+    }
+
+    int spc = ACS_NamedExecuteWithResult("core_getSpecial");
+    int arg0 = ACS_NamedExecuteWithResult("core_getArg", 0);
+    int arg1 = ACS_NamedExecuteWithResult("core_getArg", 1);
+    int arg2 = ACS_NamedExecuteWithResult("core_getArg", 2);
+    int arg3 = ACS_NamedExecuteWithResult("core_getArg", 3);
+    int arg4 = ACS_NamedExecuteWithResult("core_getArg", 4);
+
+    // Log(s:GetActorClass(0), s:" ", s:replacement);
+
+    a = ActivatorTID();
+    Thing_ChangeTID(0, 0);
+    u = UniqueTID();
+    SpawnForced(replacement, x, y, z, u, GetActorAngle(0) >> 8);
+    SetActivator(u);
+    AddToNodeList(NODE_PICKUPS);
+    Thing_ChangeTID(u, a);
+    Thing_SetSpecial(0, spc, arg0, arg1, arg2);
+    ACS_NamedExecuteWithResult("core_setArg", 3, arg3);
+    ACS_NamedExecuteWithResult("core_setArg", 4, arg4);
+    if(!dropped)
+        GiveInventory("Satanium_Undropped", 1);
+}
+
+script "satanium_checkifcandrop" (int otherTid, int replacement)
+{
+    if(dropReplacement != 0)
+        terminate;
+    if(dist3d(otherTid, 0) > DROPCHECK_DIST)
+        terminate;
+    if(StrICmp(replacement, GetActorClass(0)) != 0)
+        terminate;
+
+    dropReplacement = 1;
+}
+
+function int dist3d(int a, int b)
+{
+    return VectorLength(VectorLength(GetActorX(a)-GetActorX(b), GetActorY(a)-GetActorY(b)), GetActorZ(a)-GetActorZ(b)) >> 16;
+}
+
+#define KEYS_LIMIT 6
+#define KEYS_GAMES 2
+// 0 - doom
+// 1 - chex
+//
+str keys[KEYS_LIMIT][KEYS_GAMES] = {
+    {"RedCard", "ChexRedCard"},
+    {"BlueCard", "ChexBlueCard"},
+    {"YellowCard", "ChexYellowCard"},
+    {"RedSkull", ""},
+    {"BlueSkull", ""},
+    {"YellowSkull", ""},
+};
+
+script "satanium_checkkey" (int keyid) { SetResultValue(checkKey(keyId)); }
+function int checkKey(int keyId)
+{
+    if(keyId >= KEYS_LIMIT) return false;
+    if(keyId < 0) return false;
+
+    for(int i = 0; i < KEYS_GAMES; i++) {
+        if(StrLen(keys[keyid][i]) == 0)
+            continue;
+        if(CheckInventory(keys[keyid][i]) > 0)
+            return true;
+    }
+    return false;
+}
+
+script "satanium_givekey" (int keyid, int gameId) { SetResultValue(giveKey(keyId, gameId)); }
+function int giveKey(int keyId, int gameId)
+{
+    if(keyId >= KEYS_LIMIT) return false;
+    if(keyId < 0) return false;
+    if(StrLen(keys[keyid][gameId])==0) return false;
+
+    GiveInventory(keys[keyid][gameId], 1);
+    return true;
+}

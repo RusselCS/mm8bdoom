@@ -1,5 +1,8 @@
 // MM8BDM REPLACEMENTS
-
+// DTADDR // Force define all "glow" palettes to use a full-palette remap.
 
 // SATANIUM SYSTEMS
-STSYS
+ST_SYS
+ST_COLOR
+ST_EFFECT
+ST_ITEMS

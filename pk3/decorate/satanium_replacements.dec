@@ -1,0 +1,97 @@
+// ------------------------------------------------------------------------------------------------
+// -------------------------------------- Weapons -------------------------------------------------
+// ------------------------------------------------------------------------------------------------
+// These are here first because they're mapped into a randomizer and thus don't have another
+// separate lookup table
+
+// Doom -------------------------------------------------------------------------------------------
+actor Chainsawreplace : SataniumWepReplacer replaces Chainsaw { mass 1 }
+actor Pistolreplace : SataniumWepReplacer replaces Pistol { mass 2 }
+actor Shotgunreplace : SataniumWepReplacer replaces Shotgun { mass 2 }
+actor Chaingunreplace : SataniumWepReplacer replaces Chaingun { mass 3 }
+actor PlasmaRiflereplace : SataniumWepReplacer replaces PlasmaRifle { mass 3 }
+actor RocketLauncherreplace : SataniumWepReplacer replaces RocketLauncher { mass 5 }
+actor SuperShotgunreplace : SataniumWepReplacer replaces SuperShotgun { mass 4 }
+actor BFG9000replace : SataniumWepReplacer replaces BFG9000 { mass 6 }
+actor DoomBigArmorReplace : SataniumWepReplacer replaces BlueArmor { mass 7 }
+
+// accuracy 5 -- DTADD_GRP_ATTACK
+actor BerserkReplace : SataniumWepReplacer replaces Berserk { mass 1 }
+
+// Chex -------------------------------------------------------------------------------------------
+actor SuperBootsporkReplace : SataniumWepReplacer replaces SuperBootspork { mass 1 }
+actor MiniZorcherReplace : SataniumWepReplacer replaces MiniZorcher { mass 2 }
+actor LargeZorcherReplace : SataniumWepReplacer replaces LargeZorcher { mass 4 }
+actor RapidZorcherReplace : SataniumWepReplacer replaces RapidZorcher { mass 2 }
+actor PhasingZorcherReplace : SataniumWepReplacer replaces PhasingZorcher { mass 3 }
+actor ZorchPropulsorReplace : SataniumWepReplacer replaces ZorchPropulsor { mass 5 }
+actor SuperLargeZorcherReplace : SataniumWepReplacer replaces SuperLargeZorcher { mass 4 }
+actor LAZDeviceReplace : SataniumWepReplacer replaces LAZDevice { mass 6 }
+actor ChexBigArmorReplace : SataniumWepReplacer replaces SuperChexArmor { mass 7 }
+
+// ------------------------------------------------------------------------------------------------
+// --------------------------------------- Items --------------------------------------------------
+// ------------------------------------------------------------------------------------------------
+
+// Doom -------------------------------------------------------------------------------------------
+actor DoomSmallerArmorReplace : SataniumWepReplacer replaces ArmorBonus {}
+actor DoomSmallArmorReplace : SataniumWepReplacer replaces GreenArmor {}
+
+actor DoomSmallerHealthReplace : SataniumWepReplacer replaces HealthBonus {}
+actor DoomSmallHealthReplace : SataniumWepReplacer replaces Stimpack {}
+actor DoomBigHealthReplace : SataniumWepReplacer replaces Medikit {}
+actor DoomBiggerHealthReplace : SataniumWepReplacer replaces Soulsphere {}
+actor DoomBiggestHealthReplace : SataniumWepReplacer replaces Megasphere {}
+
+actor CellReplace : RandomSpawner replaces Cell {}
+actor ClipReplace : RandomSpawner replaces Clip {}
+actor RocketAmmoReplace : RandomSpawner replaces RocketAmmo {}
+actor ShellReplace : RandomSpawner replaces Shell {}
+
+actor CellPackReplace : SataniumWepReplacer replaces CellPack {}
+actor ClipBoxReplace : SataniumWepReplacer replaces ClipBox {}
+actor RocketBoxReplace : SataniumWepReplacer replaces RocketBox {}
+actor ShellBoxReplace : SataniumWepReplacer replaces ShellBox {}
+
+actor DoomBackpackReplace : SataniumWepReplacer replaces Backpack {}
+
+actor DoomRedKeyReplacer : SataniumWepReplacer replaces RedCard {}
+actor DoomBlueKeyReplacer : SataniumWepReplacer replaces BlueCard {}
+actor DoomYellowKeyReplacer : SataniumWepReplacer replaces YellowCard {}
+actor DoomRedSkullReplacer : SataniumWepReplacer replaces RedSkull {}
+actor DoomBlueSkullReplacer : SataniumWepReplacer replaces BlueSkull {}
+actor DoomYellowSkullReplacer : SataniumWepReplacer replaces YellowSkull {}
+
+//actor AllmapReplace : SataniumWepReplacer replaces Allmap {}                 // Computer Area Map
+//actor BlurSphereReplace : SataniumWepReplacer replaces BlurSphere {}             // Partial Invisibility
+//actor InfraredReplace : SataniumWepReplacer replaces Infrared {}               // Light-Amp Goggles
+//actor InvulnerabilitySphereReplace : SataniumWepReplacer replaces InvulnerabilitySphere {}  // Invulnerability
+//actor RadSuitReplace : SataniumWepReplacer replaces RadSuit {}                // Radiation Suit
+
+// Chex -------------------------------------------------------------------------------------------
+actor ChexSmallerArmorReplace : SataniumWepReplacer replaces SlimeRepellent {}
+actor ChexSmallArmorReplace : SataniumWepReplacer replaces ChexArmor {}
+
+actor ChexSmallerHealthReplace : SataniumWepReplacer replaces GlassOfWater {}
+actor ChexSmallHealthReplace : SataniumWepReplacer replaces BowlOfFruit {}
+actor ChexBigHealthReplace : SataniumWepReplacer replaces BowlOfVegetables {}
+actor ChexBiggerHealthReplace : SataniumWepReplacer replaces SuperchargeBreakfast {}
+
+actor MiniZorchRechargeReplace : SataniumWepReplacer replaces MiniZorchRecharge {}
+actor LargeZorchRechargeReplace : SataniumWepReplacer replaces LargeZorchRecharge {}
+actor PropulsorZorchReplace : SataniumWepReplacer replaces PropulsorZorch {}
+actor PhasingZorchReplace : SataniumWepReplacer replaces PhasingZorch {}
+
+actor MiniZorchPackReplace : SataniumWepReplacer replaces MiniZorchPack {}
+actor LargeZorchPackReplace : SataniumWepReplacer replaces LargeZorchPack {}
+actor PropulsorZorchPackReplace : SataniumWepReplacer replaces PropulsorZorchPack {}
+actor PhasingZorchPackReplace : SataniumWepReplacer replaces PhasingZorchPack {}
+
+actor ChexBackpackReplace : SataniumWepReplacer replaces Zorchpack {}
+
+actor ChexRedKeyReplacer : SataniumWepReplacer replaces ChexRedCard {}
+actor ChexBlueKeyReplacer : SataniumWepReplacer replaces ChexBlueCard {}
+actor ChexYellowKeyReplacer : SataniumWepReplacer replaces ChexYellowCard {}
+
+// actor ComputerAreaMapReplace : SataniumWepReplacer replaces ComputerAreaMap {}			// Fills automap
+// actor SlimeProofSuitReplace : SataniumWepReplacer replaces SlimeProofSuit {}			// Radsuit equivalent (protects against slimy floors)

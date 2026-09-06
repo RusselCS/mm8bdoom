@@ -1,0 +1,93 @@
+#library "ST_SYS"
+
+#include "zcommon.acs"
+
+#include "DTADD.acs"
+#include "HOOKUTIL.acs"
+#include "NODEUTIL.acs"
+
+#include "ASSTLIB.acs"
+#include "UIXLIB.acs"
+
+#include "8BDMVARS.acs"
+#include "8BDMDEFS.acs"
+
+#include "ST_CONST.acs"
+
+#import "8BDT.acs"
+
+script "satanium_aircontrol" OPEN
+{
+    // TESTING
+    ConsoleCommand("set mm8bdm_sv_banpickup_jetadaptorupgrade true");
+    ConsoleCommand("set mm8bdm_sv_banpickup_poweradaptorupgrade true");
+    ConsoleCommand("set mm8bdm_sv_banpickup_rockkickupgrade true");
+    ConsoleCommand("set mm8bdm_sv_banpickup_rollswingupgrade true");
+    ConsoleCommand("set mm8bdm_sv_banpickup_rushbikeupgrade true");
+
+    // Vanilla MM8BDM
+    SetAirControl(0.5);
+
+    // Full speed air movement
+    // SetAirControl(0.272);
+
+    SetGameplaySetting("sv_nojump", false);
+    SetGameplaySetting("sv_allowjump", true);
+}
+
+script "satanium_modlib" OPEN
+{
+    DefineAssistItem("TAG_EXITUNIT", "Satanium_ExitUnit", "EXITA0", 1, DTADD_GRP_ESCAPE, false, false);
+}
+
+script "satanium_modlib_c" OPEN CLIENTSIDE
+{
+    InitializeDataForClients("satanium_modlib");
+
+    DefineAssistDisplay("satanium_assist");
+}
+
+script "satanium_assist" (int tid, int pln) CLIENTSIDE
+{
+    SetAssistBarCallbackScript(GetAssistBarID(), "satanium_drawkeys");
+}
+
+script "satanium_drawkeys" (int x, int y, int scale, int alpha)
+{
+    if(ACS_NamedExecuteWithResult("satanium_checkkey", 0)) displayIcon(0, "STKEYRC", x, y, scale, scale, alpha, 0, 0);
+    if(ACS_NamedExecuteWithResult("satanium_checkkey", 1)) displayIcon(0, "STKEYBC", x, y, scale, scale, alpha, 0, 0);
+    if(ACS_NamedExecuteWithResult("satanium_checkkey", 2)) displayIcon(0, "STKEYYC", x, y, scale, scale, alpha, 0, 0);
+    if(ACS_NamedExecuteWithResult("satanium_checkkey", 3)) displayIcon(0, "STKEYRS", x, y, scale, scale, alpha, 0, 0);
+    if(ACS_NamedExecuteWithResult("satanium_checkkey", 4)) displayIcon(0, "STKEYBS", x, y, scale, scale, alpha, 0, 0);
+    if(ACS_NamedExecuteWithResult("satanium_checkkey", 5)) displayIcon(0, "STKEYYS", x, y, scale, scale, alpha, 0, 0);
+
+    displayIcon(0, "STKEYBG", x, y, scale, scale, alpha, 0, 0);
+}
+
+script "satanium_fixbugsig_r" RESPAWN { ACS_NamedExecuteWithResult("satanium_fixbugsig"); }
+script "satanium_fixbugsig" ENTER
+{
+    // GiveInventory("PlayerPropertyNoGravity", 1);
+    // ACS_NamedExecuteWithResult("core_nogravityplayer", 0, false);
+    GiveInventory("Satanium_ExitUnit", 1);
+}
+
+int ArgWhich = -2;
+int ArgResult;
+str GetArgItems[6] = { "Satanium_GetActorSpecial", "Satanium_GetActorArg0", "Satanium_GetActorArg1", "Satanium_GetActorArg2", "Satanium_GetActorArg3", "Satanium_GetActorArg4" };
+function int satanium_getActorArg(int arg)
+{
+    if(ArgWhich != -2)
+        return 0;
+    ArgWhich = arg;
+    GiveInventory(GetArgItems[arg+1], 1);
+    ArgWhich = -2;
+    return ArgResult;
+}
+
+script "satanium_getactorspecial" (int res)
+{
+    if(ArgWhich == -2)
+        terminate;
+    ArgResult = res;
+}

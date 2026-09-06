@@ -1,0 +1,6 @@
+#include "decorate/satanium_basics.dec"
+
+#include "decorate/satanium_effects.dec"
+#include "decorate/satanium_keys.dec"
+#include "decorate/satanium_replacements.dec"
+#include "decorate/satanium_other.dec"

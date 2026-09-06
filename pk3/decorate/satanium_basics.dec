@@ -1,0 +1,86 @@
+actor SataniumWepReplacer : Inventory
+{
+    -SOLID
+    +NOINTERACTION
+    +NOCLIP
+    height 2
+    radius 2
+    renderstyle "none"
+    mass 999
+    accuracy 999
+    meleerange 999
+    states
+    {
+    Spawn:
+        TNT1 A 0 nodelay ACS_NamedExecuteWithResult("satanium_replacepickup", mass, accuracy, meleerange)
+        TNT1 A 4
+        stop
+    }
+}
+
+actor Satanium_TPFog : TeleportFog replaces TeleportFog {}
+actor Satanium_ItemFog : ItemFog replaces ItemFog {}
+
+actor Satanium_GetActorSpecial : CUstomInventory
+{
+    states
+    {
+        Pickup:
+            TNT1 A 0 ACS_NamedExecuteWithResult("satanium_getactorspecial", special)
+            stop
+    }
+}
+actor Satanium_GetActorArg0 : CUstomInventory
+{
+    states
+    {
+        Pickup:
+            TNT1 A 0 ACS_NamedExecuteWithResult("satanium_getactorspecial", args[0])
+            stop
+    }
+}
+actor Satanium_GetActorArg1 : CUstomInventory
+{
+    states
+    {
+        Pickup:
+            TNT1 A 0 ACS_NamedExecuteWithResult("satanium_getactorspecial", args[1])
+            stop
+    }
+}
+actor Satanium_GetActorArg2 : CUstomInventory
+{
+    states
+    {
+        Pickup:
+            TNT1 A 0 ACS_NamedExecuteWithResult("satanium_getactorspecial", args[2])
+            stop
+    }
+}
+actor Satanium_GetActorArg3 : CUstomInventory
+{
+    states
+    {
+        Pickup:
+            TNT1 A 0 ACS_NamedExecuteWithResult("satanium_getactorspecial", args[3])
+            stop
+    }
+}
+actor Satanium_GetActorArg4 : CUstomInventory
+{
+    states
+    {
+        Pickup:
+            TNT1 A 0 ACS_NamedExecuteWithResult("satanium_getactorspecial", args[4])
+            stop
+    }
+}
+actor Satanium_Undropped : CUstomInventory
+{
+    states
+    {
+        Pickup:
+            TNT1 A 0 A_ChangeFlag(DROPPED, false)
+            stop
+    }
+}

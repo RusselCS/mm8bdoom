@@ -1,0 +1,430 @@
+#library "ST_COLOR"
+
+#include "zcommon.acs"
+
+#include "MEGAPAL.acs"
+
+#include "ST_CONST.acs"
+
+function bool IsRGB(int x) { return ((x>>0)  & 0x000000FF) == 0; }
+
+#define PAL_INIT 256*3
+#define PAL_CYAN PAL_INIT+1
+#define PAL_BLUE PAL_INIT+2
+#define PAL_BLACK PAL_INIT+3
+world int 21: activePalette[];
+int translationPalette[256][3];
+
+script "satanium_findPalette" OPEN CLIENTSIDE BUSY
+{
+    if(activePalette[PAL_INIT]) {
+        terminate;
+    }
+
+    int lastIdx, curIdx;
+    curIdx = -1;
+
+    do
+    {
+        LumpClose(lastIdx);
+        lastIdx = curIdx;
+        curIdx = LumpOpen("PLAYPAL", curIdx+1);
+    }
+    until(curIdx == -1);
+
+    LumpReadArray(lastIdx, 0, activePalette, 0);
+    LumpClose(lastIdx);
+
+    activePalette[PAL_INIT] = true;
+    activePalette[PAL_CYAN] = closestColorFrom8BDM(192);
+    activePalette[PAL_BLUE] = closestColorFrom8BDM(198);
+    activePalette[PAL_BLACK] = closestColorFrom8BDM(0);
+
+    CreateTranslation(CLR_SATANIUM_RES1, 0:255=[0,0,0]:[0,0,0]);
+    CreateTranslation(CLR_SATANIUM_BLANK, 0:255=0:255);
+
+    int blackThreshold = 27*27 + 27*27 + 27*27;
+
+    for(int i = 1; i < 3; i++) {
+        for(int color = 0; color < 256; color++) {
+            int r = i*activePaletteSlot(color, 0)/3;
+            int g = i*activePaletteSlot(color, 1)/3;
+            int b = i*activePaletteSlot(color, 2)/3;
+
+            int d = r*r + g*g + b*b;
+
+            if(d <= blackThreshold) {
+                r = 0;
+                g = 0;
+                b = 0;
+            }
+
+            translationPalette[color][0] = r;
+            translationPalette[color][1] = g;
+            translationPalette[color][2] = b;
+        }
+        createFullTranslation(CLR_SATANIUM_RES1+i);
+    }
+}
+
+function int closestColorFrom8BDM(int idx)
+{
+    int bestcolor = 0;
+    int bestdist = 257*257+257*257+257*257;
+    int r = palette_data[idx][0];
+    int g = palette_data[idx][1];
+    int b = palette_data[idx][2];
+
+    for (int color = 0; color < 256; color++)
+    {
+        int x = r - activePaletteSlot(color, 0);
+        int y = g - activePaletteSlot(color, 1);
+        int z = b - activePaletteSlot(color, 2);
+        int dist = x*x + y*y + z*z;
+        if (dist < bestdist)
+        {
+            if (dist == 0)
+                return color;
+
+            bestdist = dist;
+            bestcolor = color;
+        }
+    }
+    return bestcolor;
+}
+
+function int activePaletteSlot(int idx, int slot)
+{
+    return activePalette[(idx*3)+slot];
+}
+
+// replacements for the core define script
+script "satanium_CreatePlayerTranslation" (int id, int cyan, int blue)
+{
+    if(IsRGB(cyan) && IsRGB(blue)) {
+		CreateTranslation(id,
+			activePalette[PAL_CYAN]:activePalette[PAL_CYAN]=[UnpackByte1(cyan), UnpackByte2(cyan), UnpackByte3(cyan)]:[UnpackByte1(cyan), UnpackByte2(cyan), UnpackByte3(cyan)],
+			activePalette[PAL_BLUE]:activePalette[PAL_BLUE]=[UnpackByte1(blue), UnpackByte2(blue), UnpackByte3(blue)]:[UnpackByte1(blue), UnpackByte2(blue), UnpackByte3(blue)]
+		);
+	} else if (IsRGB(cyan)) {
+		CreateTranslation(id,
+			activePalette[PAL_CYAN]:activePalette[PAL_CYAN]=[UnpackByte1(cyan), UnpackByte2(cyan), UnpackByte3(cyan)]:[UnpackByte1(cyan), UnpackByte2(cyan), UnpackByte3(cyan)],
+			activePalette[PAL_BLUE]:activePalette[PAL_BLUE]=[palette_data[blue][0],palette_data[blue][1],palette_data[blue][2]]:[palette_data[blue][0],palette_data[blue][1],palette_data[blue][2]]
+		);
+	} else if (IsRGB(blue)) {
+		CreateTranslation(id,
+			activePalette[PAL_CYAN]:activePalette[PAL_CYAN]=[palette_data[cyan][0],palette_data[cyan][1],palette_data[cyan][2]]:[palette_data[cyan][0],palette_data[cyan][1],palette_data[cyan][2]],
+			activePalette[PAL_BLUE]:activePalette[PAL_BLUE]=[UnpackByte1(blue), UnpackByte2(blue), UnpackByte3(blue)]:[UnpackByte1(blue), UnpackByte2(blue), UnpackByte3(blue)]
+		);
+	} else {
+		CreateTranslation(id,
+			activePalette[PAL_CYAN]:activePalette[PAL_CYAN]=[palette_data[cyan][0],palette_data[cyan][1],palette_data[cyan][2]]:[palette_data[cyan][0],palette_data[cyan][1],palette_data[cyan][2]],
+			activePalette[PAL_BLUE]:activePalette[PAL_BLUE]=[palette_data[blue][0],palette_data[blue][1],palette_data[blue][2]]:[palette_data[blue][0],palette_data[blue][1],palette_data[blue][2]]
+		);
+	}
+}
+
+script "satanium_CreatePlayerTranslationGlow" (int id, int cyan, int blue, int black)
+{
+    int blackThreshold = 27*27 + 27*27 + 27*27;
+
+    for(int i = 0; i < 256; i++) {
+        if(i == activePalette[PAL_CYAN]) {
+            translationPalette[i][0] = IsRGB(cyan) ? UnpackByte1(cyan) : palette_data[cyan][0];
+            translationPalette[i][1] = IsRGB(cyan) ? UnpackByte2(cyan) : palette_data[cyan][1];
+            translationPalette[i][2] = IsRGB(cyan) ? UnpackByte3(cyan) : palette_data[cyan][2];
+            continue;
+        }
+
+        if(i == activePalette[PAL_BLUE]) {
+            translationPalette[i][0] = IsRGB(blue) ? UnpackByte1(blue) : palette_data[blue][0];
+            translationPalette[i][1] = IsRGB(blue) ? UnpackByte2(blue) : palette_data[blue][1];
+            translationPalette[i][2] = IsRGB(blue) ? UnpackByte3(blue) : palette_data[blue][2];
+            continue;
+        }
+
+        int r = activePaletteSlot(i, 0);
+        int g = activePaletteSlot(i, 1);
+        int b = activePaletteSlot(i, 2);
+        int d = r*r + g*g + b*b;
+
+        if(d <= blackThreshold) {
+            translationPalette[i][0] = IsRGB(black) ? UnpackByte1(black) : palette_data[black][0];
+            translationPalette[i][1] = IsRGB(black) ? UnpackByte2(black) : palette_data[black][1];
+            translationPalette[i][2] = IsRGB(black) ? UnpackByte3(black) : palette_data[black][2];
+        } else {
+            translationPalette[i][0] = r;
+            translationPalette[i][1] = g;
+            translationPalette[i][2] = b;
+        }
+    }
+
+    createFullTranslation(id);
+}
+
+function void createFullTranslation(int id) {
+    CreateTranslation(id,
+        0:0=[translationPalette[0][0],translationPalette[0][1],translationPalette[0][2]]:[translationPalette[0][0],translationPalette[0][1],translationPalette[0][2]],
+        1:1=[translationPalette[1][0],translationPalette[1][1],translationPalette[1][2]]:[translationPalette[1][0],translationPalette[1][1],translationPalette[1][2]],
+        2:2=[translationPalette[2][0],translationPalette[2][1],translationPalette[2][2]]:[translationPalette[2][0],translationPalette[2][1],translationPalette[2][2]],
+        3:3=[translationPalette[3][0],translationPalette[3][1],translationPalette[3][2]]:[translationPalette[3][0],translationPalette[3][1],translationPalette[3][2]],
+        4:4=[translationPalette[4][0],translationPalette[4][1],translationPalette[4][2]]:[translationPalette[4][0],translationPalette[4][1],translationPalette[4][2]],
+        5:5=[translationPalette[5][0],translationPalette[5][1],translationPalette[5][2]]:[translationPalette[5][0],translationPalette[5][1],translationPalette[5][2]],
+        6:6=[translationPalette[6][0],translationPalette[6][1],translationPalette[6][2]]:[translationPalette[6][0],translationPalette[6][1],translationPalette[6][2]],
+        7:7=[translationPalette[7][0],translationPalette[7][1],translationPalette[7][2]]:[translationPalette[7][0],translationPalette[7][1],translationPalette[7][2]],
+        8:8=[translationPalette[8][0],translationPalette[8][1],translationPalette[8][2]]:[translationPalette[8][0],translationPalette[8][1],translationPalette[8][2]],
+        9:9=[translationPalette[9][0],translationPalette[9][1],translationPalette[9][2]]:[translationPalette[9][0],translationPalette[9][1],translationPalette[9][2]],
+        10:10=[translationPalette[10][0],translationPalette[10][1],translationPalette[10][2]]:[translationPalette[10][0],translationPalette[10][1],translationPalette[10][2]],
+        11:11=[translationPalette[11][0],translationPalette[11][1],translationPalette[11][2]]:[translationPalette[11][0],translationPalette[11][1],translationPalette[11][2]],
+        12:12=[translationPalette[12][0],translationPalette[12][1],translationPalette[12][2]]:[translationPalette[12][0],translationPalette[12][1],translationPalette[12][2]],
+        13:13=[translationPalette[13][0],translationPalette[13][1],translationPalette[13][2]]:[translationPalette[13][0],translationPalette[13][1],translationPalette[13][2]],
+        14:14=[translationPalette[14][0],translationPalette[14][1],translationPalette[14][2]]:[translationPalette[14][0],translationPalette[14][1],translationPalette[14][2]],
+        15:15=[translationPalette[15][0],translationPalette[15][1],translationPalette[15][2]]:[translationPalette[15][0],translationPalette[15][1],translationPalette[15][2]],
+        16:16=[translationPalette[16][0],translationPalette[16][1],translationPalette[16][2]]:[translationPalette[16][0],translationPalette[16][1],translationPalette[16][2]],
+        17:17=[translationPalette[17][0],translationPalette[17][1],translationPalette[17][2]]:[translationPalette[17][0],translationPalette[17][1],translationPalette[17][2]],
+        18:18=[translationPalette[18][0],translationPalette[18][1],translationPalette[18][2]]:[translationPalette[18][0],translationPalette[18][1],translationPalette[18][2]],
+        19:19=[translationPalette[19][0],translationPalette[19][1],translationPalette[19][2]]:[translationPalette[19][0],translationPalette[19][1],translationPalette[19][2]],
+        20:20=[translationPalette[20][0],translationPalette[20][1],translationPalette[20][2]]:[translationPalette[20][0],translationPalette[20][1],translationPalette[20][2]],
+        21:21=[translationPalette[21][0],translationPalette[21][1],translationPalette[21][2]]:[translationPalette[21][0],translationPalette[21][1],translationPalette[21][2]],
+        22:22=[translationPalette[22][0],translationPalette[22][1],translationPalette[22][2]]:[translationPalette[22][0],translationPalette[22][1],translationPalette[22][2]],
+        23:23=[translationPalette[23][0],translationPalette[23][1],translationPalette[23][2]]:[translationPalette[23][0],translationPalette[23][1],translationPalette[23][2]],
+        24:24=[translationPalette[24][0],translationPalette[24][1],translationPalette[24][2]]:[translationPalette[24][0],translationPalette[24][1],translationPalette[24][2]],
+        25:25=[translationPalette[25][0],translationPalette[25][1],translationPalette[25][2]]:[translationPalette[25][0],translationPalette[25][1],translationPalette[25][2]],
+        26:26=[translationPalette[26][0],translationPalette[26][1],translationPalette[26][2]]:[translationPalette[26][0],translationPalette[26][1],translationPalette[26][2]],
+        27:27=[translationPalette[27][0],translationPalette[27][1],translationPalette[27][2]]:[translationPalette[27][0],translationPalette[27][1],translationPalette[27][2]],
+        28:28=[translationPalette[28][0],translationPalette[28][1],translationPalette[28][2]]:[translationPalette[28][0],translationPalette[28][1],translationPalette[28][2]],
+        29:29=[translationPalette[29][0],translationPalette[29][1],translationPalette[29][2]]:[translationPalette[29][0],translationPalette[29][1],translationPalette[29][2]],
+        30:30=[translationPalette[30][0],translationPalette[30][1],translationPalette[30][2]]:[translationPalette[30][0],translationPalette[30][1],translationPalette[30][2]],
+        31:31=[translationPalette[31][0],translationPalette[31][1],translationPalette[31][2]]:[translationPalette[31][0],translationPalette[31][1],translationPalette[31][2]],
+        32:32=[translationPalette[32][0],translationPalette[32][1],translationPalette[32][2]]:[translationPalette[32][0],translationPalette[32][1],translationPalette[32][2]],
+        33:33=[translationPalette[33][0],translationPalette[33][1],translationPalette[33][2]]:[translationPalette[33][0],translationPalette[33][1],translationPalette[33][2]],
+        34:34=[translationPalette[34][0],translationPalette[34][1],translationPalette[34][2]]:[translationPalette[34][0],translationPalette[34][1],translationPalette[34][2]],
+        35:35=[translationPalette[35][0],translationPalette[35][1],translationPalette[35][2]]:[translationPalette[35][0],translationPalette[35][1],translationPalette[35][2]],
+        36:36=[translationPalette[36][0],translationPalette[36][1],translationPalette[36][2]]:[translationPalette[36][0],translationPalette[36][1],translationPalette[36][2]],
+        37:37=[translationPalette[37][0],translationPalette[37][1],translationPalette[37][2]]:[translationPalette[37][0],translationPalette[37][1],translationPalette[37][2]],
+        38:38=[translationPalette[38][0],translationPalette[38][1],translationPalette[38][2]]:[translationPalette[38][0],translationPalette[38][1],translationPalette[38][2]],
+        39:39=[translationPalette[39][0],translationPalette[39][1],translationPalette[39][2]]:[translationPalette[39][0],translationPalette[39][1],translationPalette[39][2]],
+        40:40=[translationPalette[40][0],translationPalette[40][1],translationPalette[40][2]]:[translationPalette[40][0],translationPalette[40][1],translationPalette[40][2]],
+        41:41=[translationPalette[41][0],translationPalette[41][1],translationPalette[41][2]]:[translationPalette[41][0],translationPalette[41][1],translationPalette[41][2]],
+        42:42=[translationPalette[42][0],translationPalette[42][1],translationPalette[42][2]]:[translationPalette[42][0],translationPalette[42][1],translationPalette[42][2]],
+        43:43=[translationPalette[43][0],translationPalette[43][1],translationPalette[43][2]]:[translationPalette[43][0],translationPalette[43][1],translationPalette[43][2]],
+        44:44=[translationPalette[44][0],translationPalette[44][1],translationPalette[44][2]]:[translationPalette[44][0],translationPalette[44][1],translationPalette[44][2]],
+        45:45=[translationPalette[45][0],translationPalette[45][1],translationPalette[45][2]]:[translationPalette[45][0],translationPalette[45][1],translationPalette[45][2]],
+        46:46=[translationPalette[46][0],translationPalette[46][1],translationPalette[46][2]]:[translationPalette[46][0],translationPalette[46][1],translationPalette[46][2]],
+        47:47=[translationPalette[47][0],translationPalette[47][1],translationPalette[47][2]]:[translationPalette[47][0],translationPalette[47][1],translationPalette[47][2]],
+        48:48=[translationPalette[48][0],translationPalette[48][1],translationPalette[48][2]]:[translationPalette[48][0],translationPalette[48][1],translationPalette[48][2]],
+        49:49=[translationPalette[49][0],translationPalette[49][1],translationPalette[49][2]]:[translationPalette[49][0],translationPalette[49][1],translationPalette[49][2]],
+        50:50=[translationPalette[50][0],translationPalette[50][1],translationPalette[50][2]]:[translationPalette[50][0],translationPalette[50][1],translationPalette[50][2]],
+        51:51=[translationPalette[51][0],translationPalette[51][1],translationPalette[51][2]]:[translationPalette[51][0],translationPalette[51][1],translationPalette[51][2]],
+        52:52=[translationPalette[52][0],translationPalette[52][1],translationPalette[52][2]]:[translationPalette[52][0],translationPalette[52][1],translationPalette[52][2]],
+        53:53=[translationPalette[53][0],translationPalette[53][1],translationPalette[53][2]]:[translationPalette[53][0],translationPalette[53][1],translationPalette[53][2]],
+        54:54=[translationPalette[54][0],translationPalette[54][1],translationPalette[54][2]]:[translationPalette[54][0],translationPalette[54][1],translationPalette[54][2]],
+        55:55=[translationPalette[55][0],translationPalette[55][1],translationPalette[55][2]]:[translationPalette[55][0],translationPalette[55][1],translationPalette[55][2]],
+        56:56=[translationPalette[56][0],translationPalette[56][1],translationPalette[56][2]]:[translationPalette[56][0],translationPalette[56][1],translationPalette[56][2]],
+        57:57=[translationPalette[57][0],translationPalette[57][1],translationPalette[57][2]]:[translationPalette[57][0],translationPalette[57][1],translationPalette[57][2]],
+        58:58=[translationPalette[58][0],translationPalette[58][1],translationPalette[58][2]]:[translationPalette[58][0],translationPalette[58][1],translationPalette[58][2]],
+        59:59=[translationPalette[59][0],translationPalette[59][1],translationPalette[59][2]]:[translationPalette[59][0],translationPalette[59][1],translationPalette[59][2]],
+        60:60=[translationPalette[60][0],translationPalette[60][1],translationPalette[60][2]]:[translationPalette[60][0],translationPalette[60][1],translationPalette[60][2]],
+        61:61=[translationPalette[61][0],translationPalette[61][1],translationPalette[61][2]]:[translationPalette[61][0],translationPalette[61][1],translationPalette[61][2]],
+        62:62=[translationPalette[62][0],translationPalette[62][1],translationPalette[62][2]]:[translationPalette[62][0],translationPalette[62][1],translationPalette[62][2]],
+        63:63=[translationPalette[63][0],translationPalette[63][1],translationPalette[63][2]]:[translationPalette[63][0],translationPalette[63][1],translationPalette[63][2]],
+        64:64=[translationPalette[64][0],translationPalette[64][1],translationPalette[64][2]]:[translationPalette[64][0],translationPalette[64][1],translationPalette[64][2]],
+        65:65=[translationPalette[65][0],translationPalette[65][1],translationPalette[65][2]]:[translationPalette[65][0],translationPalette[65][1],translationPalette[65][2]],
+        66:66=[translationPalette[66][0],translationPalette[66][1],translationPalette[66][2]]:[translationPalette[66][0],translationPalette[66][1],translationPalette[66][2]],
+        67:67=[translationPalette[67][0],translationPalette[67][1],translationPalette[67][2]]:[translationPalette[67][0],translationPalette[67][1],translationPalette[67][2]],
+        68:68=[translationPalette[68][0],translationPalette[68][1],translationPalette[68][2]]:[translationPalette[68][0],translationPalette[68][1],translationPalette[68][2]],
+        69:69=[translationPalette[69][0],translationPalette[69][1],translationPalette[69][2]]:[translationPalette[69][0],translationPalette[69][1],translationPalette[69][2]],
+        70:70=[translationPalette[70][0],translationPalette[70][1],translationPalette[70][2]]:[translationPalette[70][0],translationPalette[70][1],translationPalette[70][2]],
+        71:71=[translationPalette[71][0],translationPalette[71][1],translationPalette[71][2]]:[translationPalette[71][0],translationPalette[71][1],translationPalette[71][2]],
+        72:72=[translationPalette[72][0],translationPalette[72][1],translationPalette[72][2]]:[translationPalette[72][0],translationPalette[72][1],translationPalette[72][2]],
+        73:73=[translationPalette[73][0],translationPalette[73][1],translationPalette[73][2]]:[translationPalette[73][0],translationPalette[73][1],translationPalette[73][2]],
+        74:74=[translationPalette[74][0],translationPalette[74][1],translationPalette[74][2]]:[translationPalette[74][0],translationPalette[74][1],translationPalette[74][2]],
+        75:75=[translationPalette[75][0],translationPalette[75][1],translationPalette[75][2]]:[translationPalette[75][0],translationPalette[75][1],translationPalette[75][2]],
+        76:76=[translationPalette[76][0],translationPalette[76][1],translationPalette[76][2]]:[translationPalette[76][0],translationPalette[76][1],translationPalette[76][2]],
+        77:77=[translationPalette[77][0],translationPalette[77][1],translationPalette[77][2]]:[translationPalette[77][0],translationPalette[77][1],translationPalette[77][2]],
+        78:78=[translationPalette[78][0],translationPalette[78][1],translationPalette[78][2]]:[translationPalette[78][0],translationPalette[78][1],translationPalette[78][2]],
+        79:79=[translationPalette[79][0],translationPalette[79][1],translationPalette[79][2]]:[translationPalette[79][0],translationPalette[79][1],translationPalette[79][2]],
+        80:80=[translationPalette[80][0],translationPalette[80][1],translationPalette[80][2]]:[translationPalette[80][0],translationPalette[80][1],translationPalette[80][2]],
+        81:81=[translationPalette[81][0],translationPalette[81][1],translationPalette[81][2]]:[translationPalette[81][0],translationPalette[81][1],translationPalette[81][2]],
+        82:82=[translationPalette[82][0],translationPalette[82][1],translationPalette[82][2]]:[translationPalette[82][0],translationPalette[82][1],translationPalette[82][2]],
+        83:83=[translationPalette[83][0],translationPalette[83][1],translationPalette[83][2]]:[translationPalette[83][0],translationPalette[83][1],translationPalette[83][2]],
+        84:84=[translationPalette[84][0],translationPalette[84][1],translationPalette[84][2]]:[translationPalette[84][0],translationPalette[84][1],translationPalette[84][2]],
+        85:85=[translationPalette[85][0],translationPalette[85][1],translationPalette[85][2]]:[translationPalette[85][0],translationPalette[85][1],translationPalette[85][2]],
+        86:86=[translationPalette[86][0],translationPalette[86][1],translationPalette[86][2]]:[translationPalette[86][0],translationPalette[86][1],translationPalette[86][2]],
+        87:87=[translationPalette[87][0],translationPalette[87][1],translationPalette[87][2]]:[translationPalette[87][0],translationPalette[87][1],translationPalette[87][2]],
+        88:88=[translationPalette[88][0],translationPalette[88][1],translationPalette[88][2]]:[translationPalette[88][0],translationPalette[88][1],translationPalette[88][2]],
+        89:89=[translationPalette[89][0],translationPalette[89][1],translationPalette[89][2]]:[translationPalette[89][0],translationPalette[89][1],translationPalette[89][2]],
+        90:90=[translationPalette[90][0],translationPalette[90][1],translationPalette[90][2]]:[translationPalette[90][0],translationPalette[90][1],translationPalette[90][2]],
+        91:91=[translationPalette[91][0],translationPalette[91][1],translationPalette[91][2]]:[translationPalette[91][0],translationPalette[91][1],translationPalette[91][2]],
+        92:92=[translationPalette[92][0],translationPalette[92][1],translationPalette[92][2]]:[translationPalette[92][0],translationPalette[92][1],translationPalette[92][2]],
+        93:93=[translationPalette[93][0],translationPalette[93][1],translationPalette[93][2]]:[translationPalette[93][0],translationPalette[93][1],translationPalette[93][2]],
+        94:94=[translationPalette[94][0],translationPalette[94][1],translationPalette[94][2]]:[translationPalette[94][0],translationPalette[94][1],translationPalette[94][2]],
+        95:95=[translationPalette[95][0],translationPalette[95][1],translationPalette[95][2]]:[translationPalette[95][0],translationPalette[95][1],translationPalette[95][2]],
+        96:96=[translationPalette[96][0],translationPalette[96][1],translationPalette[96][2]]:[translationPalette[96][0],translationPalette[96][1],translationPalette[96][2]],
+        97:97=[translationPalette[97][0],translationPalette[97][1],translationPalette[97][2]]:[translationPalette[97][0],translationPalette[97][1],translationPalette[97][2]],
+        98:98=[translationPalette[98][0],translationPalette[98][1],translationPalette[98][2]]:[translationPalette[98][0],translationPalette[98][1],translationPalette[98][2]],
+        99:99=[translationPalette[99][0],translationPalette[99][1],translationPalette[99][2]]:[translationPalette[99][0],translationPalette[99][1],translationPalette[99][2]],
+        100:100=[translationPalette[100][0],translationPalette[100][1],translationPalette[100][2]]:[translationPalette[100][0],translationPalette[100][1],translationPalette[100][2]],
+        101:101=[translationPalette[101][0],translationPalette[101][1],translationPalette[101][2]]:[translationPalette[101][0],translationPalette[101][1],translationPalette[101][2]],
+        102:102=[translationPalette[102][0],translationPalette[102][1],translationPalette[102][2]]:[translationPalette[102][0],translationPalette[102][1],translationPalette[102][2]],
+        103:103=[translationPalette[103][0],translationPalette[103][1],translationPalette[103][2]]:[translationPalette[103][0],translationPalette[103][1],translationPalette[103][2]],
+        104:104=[translationPalette[104][0],translationPalette[104][1],translationPalette[104][2]]:[translationPalette[104][0],translationPalette[104][1],translationPalette[104][2]],
+        105:105=[translationPalette[105][0],translationPalette[105][1],translationPalette[105][2]]:[translationPalette[105][0],translationPalette[105][1],translationPalette[105][2]],
+        106:106=[translationPalette[106][0],translationPalette[106][1],translationPalette[106][2]]:[translationPalette[106][0],translationPalette[106][1],translationPalette[106][2]],
+        107:107=[translationPalette[107][0],translationPalette[107][1],translationPalette[107][2]]:[translationPalette[107][0],translationPalette[107][1],translationPalette[107][2]],
+        108:108=[translationPalette[108][0],translationPalette[108][1],translationPalette[108][2]]:[translationPalette[108][0],translationPalette[108][1],translationPalette[108][2]],
+        109:109=[translationPalette[109][0],translationPalette[109][1],translationPalette[109][2]]:[translationPalette[109][0],translationPalette[109][1],translationPalette[109][2]],
+        110:110=[translationPalette[110][0],translationPalette[110][1],translationPalette[110][2]]:[translationPalette[110][0],translationPalette[110][1],translationPalette[110][2]],
+        111:111=[translationPalette[111][0],translationPalette[111][1],translationPalette[111][2]]:[translationPalette[111][0],translationPalette[111][1],translationPalette[111][2]],
+        112:112=[translationPalette[112][0],translationPalette[112][1],translationPalette[112][2]]:[translationPalette[112][0],translationPalette[112][1],translationPalette[112][2]],
+        113:113=[translationPalette[113][0],translationPalette[113][1],translationPalette[113][2]]:[translationPalette[113][0],translationPalette[113][1],translationPalette[113][2]],
+        114:114=[translationPalette[114][0],translationPalette[114][1],translationPalette[114][2]]:[translationPalette[114][0],translationPalette[114][1],translationPalette[114][2]],
+        115:115=[translationPalette[115][0],translationPalette[115][1],translationPalette[115][2]]:[translationPalette[115][0],translationPalette[115][1],translationPalette[115][2]],
+        116:116=[translationPalette[116][0],translationPalette[116][1],translationPalette[116][2]]:[translationPalette[116][0],translationPalette[116][1],translationPalette[116][2]],
+        117:117=[translationPalette[117][0],translationPalette[117][1],translationPalette[117][2]]:[translationPalette[117][0],translationPalette[117][1],translationPalette[117][2]],
+        118:118=[translationPalette[118][0],translationPalette[118][1],translationPalette[118][2]]:[translationPalette[118][0],translationPalette[118][1],translationPalette[118][2]],
+        119:119=[translationPalette[119][0],translationPalette[119][1],translationPalette[119][2]]:[translationPalette[119][0],translationPalette[119][1],translationPalette[119][2]],
+        120:120=[translationPalette[120][0],translationPalette[120][1],translationPalette[120][2]]:[translationPalette[120][0],translationPalette[120][1],translationPalette[120][2]],
+        121:121=[translationPalette[121][0],translationPalette[121][1],translationPalette[121][2]]:[translationPalette[121][0],translationPalette[121][1],translationPalette[121][2]],
+        122:122=[translationPalette[122][0],translationPalette[122][1],translationPalette[122][2]]:[translationPalette[122][0],translationPalette[122][1],translationPalette[122][2]],
+        123:123=[translationPalette[123][0],translationPalette[123][1],translationPalette[123][2]]:[translationPalette[123][0],translationPalette[123][1],translationPalette[123][2]],
+        124:124=[translationPalette[124][0],translationPalette[124][1],translationPalette[124][2]]:[translationPalette[124][0],translationPalette[124][1],translationPalette[124][2]],
+        125:125=[translationPalette[125][0],translationPalette[125][1],translationPalette[125][2]]:[translationPalette[125][0],translationPalette[125][1],translationPalette[125][2]],
+        126:126=[translationPalette[126][0],translationPalette[126][1],translationPalette[126][2]]:[translationPalette[126][0],translationPalette[126][1],translationPalette[126][2]],
+        127:127=[translationPalette[127][0],translationPalette[127][1],translationPalette[127][2]]:[translationPalette[127][0],translationPalette[127][1],translationPalette[127][2]],
+        128:128=[translationPalette[128][0],translationPalette[128][1],translationPalette[128][2]]:[translationPalette[128][0],translationPalette[128][1],translationPalette[128][2]],
+        129:129=[translationPalette[129][0],translationPalette[129][1],translationPalette[129][2]]:[translationPalette[129][0],translationPalette[129][1],translationPalette[129][2]],
+        130:130=[translationPalette[130][0],translationPalette[130][1],translationPalette[130][2]]:[translationPalette[130][0],translationPalette[130][1],translationPalette[130][2]],
+        131:131=[translationPalette[131][0],translationPalette[131][1],translationPalette[131][2]]:[translationPalette[131][0],translationPalette[131][1],translationPalette[131][2]],
+        132:132=[translationPalette[132][0],translationPalette[132][1],translationPalette[132][2]]:[translationPalette[132][0],translationPalette[132][1],translationPalette[132][2]],
+        133:133=[translationPalette[133][0],translationPalette[133][1],translationPalette[133][2]]:[translationPalette[133][0],translationPalette[133][1],translationPalette[133][2]],
+        134:134=[translationPalette[134][0],translationPalette[134][1],translationPalette[134][2]]:[translationPalette[134][0],translationPalette[134][1],translationPalette[134][2]],
+        135:135=[translationPalette[135][0],translationPalette[135][1],translationPalette[135][2]]:[translationPalette[135][0],translationPalette[135][1],translationPalette[135][2]],
+        136:136=[translationPalette[136][0],translationPalette[136][1],translationPalette[136][2]]:[translationPalette[136][0],translationPalette[136][1],translationPalette[136][2]],
+        137:137=[translationPalette[137][0],translationPalette[137][1],translationPalette[137][2]]:[translationPalette[137][0],translationPalette[137][1],translationPalette[137][2]],
+        138:138=[translationPalette[138][0],translationPalette[138][1],translationPalette[138][2]]:[translationPalette[138][0],translationPalette[138][1],translationPalette[138][2]],
+        139:139=[translationPalette[139][0],translationPalette[139][1],translationPalette[139][2]]:[translationPalette[139][0],translationPalette[139][1],translationPalette[139][2]],
+        140:140=[translationPalette[140][0],translationPalette[140][1],translationPalette[140][2]]:[translationPalette[140][0],translationPalette[140][1],translationPalette[140][2]],
+        141:141=[translationPalette[141][0],translationPalette[141][1],translationPalette[141][2]]:[translationPalette[141][0],translationPalette[141][1],translationPalette[141][2]],
+        142:142=[translationPalette[142][0],translationPalette[142][1],translationPalette[142][2]]:[translationPalette[142][0],translationPalette[142][1],translationPalette[142][2]],
+        143:143=[translationPalette[143][0],translationPalette[143][1],translationPalette[143][2]]:[translationPalette[143][0],translationPalette[143][1],translationPalette[143][2]],
+        144:144=[translationPalette[144][0],translationPalette[144][1],translationPalette[144][2]]:[translationPalette[144][0],translationPalette[144][1],translationPalette[144][2]],
+        145:145=[translationPalette[145][0],translationPalette[145][1],translationPalette[145][2]]:[translationPalette[145][0],translationPalette[145][1],translationPalette[145][2]],
+        146:146=[translationPalette[146][0],translationPalette[146][1],translationPalette[146][2]]:[translationPalette[146][0],translationPalette[146][1],translationPalette[146][2]],
+        147:147=[translationPalette[147][0],translationPalette[147][1],translationPalette[147][2]]:[translationPalette[147][0],translationPalette[147][1],translationPalette[147][2]],
+        148:148=[translationPalette[148][0],translationPalette[148][1],translationPalette[148][2]]:[translationPalette[148][0],translationPalette[148][1],translationPalette[148][2]],
+        149:149=[translationPalette[149][0],translationPalette[149][1],translationPalette[149][2]]:[translationPalette[149][0],translationPalette[149][1],translationPalette[149][2]],
+        150:150=[translationPalette[150][0],translationPalette[150][1],translationPalette[150][2]]:[translationPalette[150][0],translationPalette[150][1],translationPalette[150][2]],
+        151:151=[translationPalette[151][0],translationPalette[151][1],translationPalette[151][2]]:[translationPalette[151][0],translationPalette[151][1],translationPalette[151][2]],
+        152:152=[translationPalette[152][0],translationPalette[152][1],translationPalette[152][2]]:[translationPalette[152][0],translationPalette[152][1],translationPalette[152][2]],
+        153:153=[translationPalette[153][0],translationPalette[153][1],translationPalette[153][2]]:[translationPalette[153][0],translationPalette[153][1],translationPalette[153][2]],
+        154:154=[translationPalette[154][0],translationPalette[154][1],translationPalette[154][2]]:[translationPalette[154][0],translationPalette[154][1],translationPalette[154][2]],
+        155:155=[translationPalette[155][0],translationPalette[155][1],translationPalette[155][2]]:[translationPalette[155][0],translationPalette[155][1],translationPalette[155][2]],
+        156:156=[translationPalette[156][0],translationPalette[156][1],translationPalette[156][2]]:[translationPalette[156][0],translationPalette[156][1],translationPalette[156][2]],
+        157:157=[translationPalette[157][0],translationPalette[157][1],translationPalette[157][2]]:[translationPalette[157][0],translationPalette[157][1],translationPalette[157][2]],
+        158:158=[translationPalette[158][0],translationPalette[158][1],translationPalette[158][2]]:[translationPalette[158][0],translationPalette[158][1],translationPalette[158][2]],
+        159:159=[translationPalette[159][0],translationPalette[159][1],translationPalette[159][2]]:[translationPalette[159][0],translationPalette[159][1],translationPalette[159][2]],
+        160:160=[translationPalette[160][0],translationPalette[160][1],translationPalette[160][2]]:[translationPalette[160][0],translationPalette[160][1],translationPalette[160][2]],
+        161:161=[translationPalette[161][0],translationPalette[161][1],translationPalette[161][2]]:[translationPalette[161][0],translationPalette[161][1],translationPalette[161][2]],
+        162:162=[translationPalette[162][0],translationPalette[162][1],translationPalette[162][2]]:[translationPalette[162][0],translationPalette[162][1],translationPalette[162][2]],
+        163:163=[translationPalette[163][0],translationPalette[163][1],translationPalette[163][2]]:[translationPalette[163][0],translationPalette[163][1],translationPalette[163][2]],
+        164:164=[translationPalette[164][0],translationPalette[164][1],translationPalette[164][2]]:[translationPalette[164][0],translationPalette[164][1],translationPalette[164][2]],
+        165:165=[translationPalette[165][0],translationPalette[165][1],translationPalette[165][2]]:[translationPalette[165][0],translationPalette[165][1],translationPalette[165][2]],
+        166:166=[translationPalette[166][0],translationPalette[166][1],translationPalette[166][2]]:[translationPalette[166][0],translationPalette[166][1],translationPalette[166][2]],
+        167:167=[translationPalette[167][0],translationPalette[167][1],translationPalette[167][2]]:[translationPalette[167][0],translationPalette[167][1],translationPalette[167][2]],
+        168:168=[translationPalette[168][0],translationPalette[168][1],translationPalette[168][2]]:[translationPalette[168][0],translationPalette[168][1],translationPalette[168][2]],
+        169:169=[translationPalette[169][0],translationPalette[169][1],translationPalette[169][2]]:[translationPalette[169][0],translationPalette[169][1],translationPalette[169][2]],
+        170:170=[translationPalette[170][0],translationPalette[170][1],translationPalette[170][2]]:[translationPalette[170][0],translationPalette[170][1],translationPalette[170][2]],
+        171:171=[translationPalette[171][0],translationPalette[171][1],translationPalette[171][2]]:[translationPalette[171][0],translationPalette[171][1],translationPalette[171][2]],
+        172:172=[translationPalette[172][0],translationPalette[172][1],translationPalette[172][2]]:[translationPalette[172][0],translationPalette[172][1],translationPalette[172][2]],
+        173:173=[translationPalette[173][0],translationPalette[173][1],translationPalette[173][2]]:[translationPalette[173][0],translationPalette[173][1],translationPalette[173][2]],
+        174:174=[translationPalette[174][0],translationPalette[174][1],translationPalette[174][2]]:[translationPalette[174][0],translationPalette[174][1],translationPalette[174][2]],
+        175:175=[translationPalette[175][0],translationPalette[175][1],translationPalette[175][2]]:[translationPalette[175][0],translationPalette[175][1],translationPalette[175][2]],
+        176:176=[translationPalette[176][0],translationPalette[176][1],translationPalette[176][2]]:[translationPalette[176][0],translationPalette[176][1],translationPalette[176][2]],
+        177:177=[translationPalette[177][0],translationPalette[177][1],translationPalette[177][2]]:[translationPalette[177][0],translationPalette[177][1],translationPalette[177][2]],
+        178:178=[translationPalette[178][0],translationPalette[178][1],translationPalette[178][2]]:[translationPalette[178][0],translationPalette[178][1],translationPalette[178][2]],
+        179:179=[translationPalette[179][0],translationPalette[179][1],translationPalette[179][2]]:[translationPalette[179][0],translationPalette[179][1],translationPalette[179][2]],
+        180:180=[translationPalette[180][0],translationPalette[180][1],translationPalette[180][2]]:[translationPalette[180][0],translationPalette[180][1],translationPalette[180][2]],
+        181:181=[translationPalette[181][0],translationPalette[181][1],translationPalette[181][2]]:[translationPalette[181][0],translationPalette[181][1],translationPalette[181][2]],
+        182:182=[translationPalette[182][0],translationPalette[182][1],translationPalette[182][2]]:[translationPalette[182][0],translationPalette[182][1],translationPalette[182][2]],
+        183:183=[translationPalette[183][0],translationPalette[183][1],translationPalette[183][2]]:[translationPalette[183][0],translationPalette[183][1],translationPalette[183][2]],
+        184:184=[translationPalette[184][0],translationPalette[184][1],translationPalette[184][2]]:[translationPalette[184][0],translationPalette[184][1],translationPalette[184][2]],
+        185:185=[translationPalette[185][0],translationPalette[185][1],translationPalette[185][2]]:[translationPalette[185][0],translationPalette[185][1],translationPalette[185][2]],
+        186:186=[translationPalette[186][0],translationPalette[186][1],translationPalette[186][2]]:[translationPalette[186][0],translationPalette[186][1],translationPalette[186][2]],
+        187:187=[translationPalette[187][0],translationPalette[187][1],translationPalette[187][2]]:[translationPalette[187][0],translationPalette[187][1],translationPalette[187][2]],
+        188:188=[translationPalette[188][0],translationPalette[188][1],translationPalette[188][2]]:[translationPalette[188][0],translationPalette[188][1],translationPalette[188][2]],
+        189:189=[translationPalette[189][0],translationPalette[189][1],translationPalette[189][2]]:[translationPalette[189][0],translationPalette[189][1],translationPalette[189][2]],
+        190:190=[translationPalette[190][0],translationPalette[190][1],translationPalette[190][2]]:[translationPalette[190][0],translationPalette[190][1],translationPalette[190][2]],
+        191:191=[translationPalette[191][0],translationPalette[191][1],translationPalette[191][2]]:[translationPalette[191][0],translationPalette[191][1],translationPalette[191][2]],
+        192:192=[translationPalette[192][0],translationPalette[192][1],translationPalette[192][2]]:[translationPalette[192][0],translationPalette[192][1],translationPalette[192][2]],
+        193:193=[translationPalette[193][0],translationPalette[193][1],translationPalette[193][2]]:[translationPalette[193][0],translationPalette[193][1],translationPalette[193][2]],
+        194:194=[translationPalette[194][0],translationPalette[194][1],translationPalette[194][2]]:[translationPalette[194][0],translationPalette[194][1],translationPalette[194][2]],
+        195:195=[translationPalette[195][0],translationPalette[195][1],translationPalette[195][2]]:[translationPalette[195][0],translationPalette[195][1],translationPalette[195][2]],
+        196:196=[translationPalette[196][0],translationPalette[196][1],translationPalette[196][2]]:[translationPalette[196][0],translationPalette[196][1],translationPalette[196][2]],
+        197:197=[translationPalette[197][0],translationPalette[197][1],translationPalette[197][2]]:[translationPalette[197][0],translationPalette[197][1],translationPalette[197][2]],
+        198:198=[translationPalette[198][0],translationPalette[198][1],translationPalette[198][2]]:[translationPalette[198][0],translationPalette[198][1],translationPalette[198][2]],
+        199:199=[translationPalette[199][0],translationPalette[199][1],translationPalette[199][2]]:[translationPalette[199][0],translationPalette[199][1],translationPalette[199][2]],
+        200:200=[translationPalette[200][0],translationPalette[200][1],translationPalette[200][2]]:[translationPalette[200][0],translationPalette[200][1],translationPalette[200][2]],
+        201:201=[translationPalette[201][0],translationPalette[201][1],translationPalette[201][2]]:[translationPalette[201][0],translationPalette[201][1],translationPalette[201][2]],
+        202:202=[translationPalette[202][0],translationPalette[202][1],translationPalette[202][2]]:[translationPalette[202][0],translationPalette[202][1],translationPalette[202][2]],
+        203:203=[translationPalette[203][0],translationPalette[203][1],translationPalette[203][2]]:[translationPalette[203][0],translationPalette[203][1],translationPalette[203][2]],
+        204:204=[translationPalette[204][0],translationPalette[204][1],translationPalette[204][2]]:[translationPalette[204][0],translationPalette[204][1],translationPalette[204][2]],
+        205:205=[translationPalette[205][0],translationPalette[205][1],translationPalette[205][2]]:[translationPalette[205][0],translationPalette[205][1],translationPalette[205][2]],
+        206:206=[translationPalette[206][0],translationPalette[206][1],translationPalette[206][2]]:[translationPalette[206][0],translationPalette[206][1],translationPalette[206][2]],
+        207:207=[translationPalette[207][0],translationPalette[207][1],translationPalette[207][2]]:[translationPalette[207][0],translationPalette[207][1],translationPalette[207][2]],
+        208:208=[translationPalette[208][0],translationPalette[208][1],translationPalette[208][2]]:[translationPalette[208][0],translationPalette[208][1],translationPalette[208][2]],
+        209:209=[translationPalette[209][0],translationPalette[209][1],translationPalette[209][2]]:[translationPalette[209][0],translationPalette[209][1],translationPalette[209][2]],
+        210:210=[translationPalette[210][0],translationPalette[210][1],translationPalette[210][2]]:[translationPalette[210][0],translationPalette[210][1],translationPalette[210][2]],
+        211:211=[translationPalette[211][0],translationPalette[211][1],translationPalette[211][2]]:[translationPalette[211][0],translationPalette[211][1],translationPalette[211][2]],
+        212:212=[translationPalette[212][0],translationPalette[212][1],translationPalette[212][2]]:[translationPalette[212][0],translationPalette[212][1],translationPalette[212][2]],
+        213:213=[translationPalette[213][0],translationPalette[213][1],translationPalette[213][2]]:[translationPalette[213][0],translationPalette[213][1],translationPalette[213][2]],
+        214:214=[translationPalette[214][0],translationPalette[214][1],translationPalette[214][2]]:[translationPalette[214][0],translationPalette[214][1],translationPalette[214][2]],
+        215:215=[translationPalette[215][0],translationPalette[215][1],translationPalette[215][2]]:[translationPalette[215][0],translationPalette[215][1],translationPalette[215][2]],
+        216:216=[translationPalette[216][0],translationPalette[216][1],translationPalette[216][2]]:[translationPalette[216][0],translationPalette[216][1],translationPalette[216][2]],
+        217:217=[translationPalette[217][0],translationPalette[217][1],translationPalette[217][2]]:[translationPalette[217][0],translationPalette[217][1],translationPalette[217][2]],
+        218:218=[translationPalette[218][0],translationPalette[218][1],translationPalette[218][2]]:[translationPalette[218][0],translationPalette[218][1],translationPalette[218][2]],
+        219:219=[translationPalette[219][0],translationPalette[219][1],translationPalette[219][2]]:[translationPalette[219][0],translationPalette[219][1],translationPalette[219][2]],
+        220:220=[translationPalette[220][0],translationPalette[220][1],translationPalette[220][2]]:[translationPalette[220][0],translationPalette[220][1],translationPalette[220][2]],
+        221:221=[translationPalette[221][0],translationPalette[221][1],translationPalette[221][2]]:[translationPalette[221][0],translationPalette[221][1],translationPalette[221][2]],
+        222:222=[translationPalette[222][0],translationPalette[222][1],translationPalette[222][2]]:[translationPalette[222][0],translationPalette[222][1],translationPalette[222][2]],
+        223:223=[translationPalette[223][0],translationPalette[223][1],translationPalette[223][2]]:[translationPalette[223][0],translationPalette[223][1],translationPalette[223][2]],
+        224:224=[translationPalette[224][0],translationPalette[224][1],translationPalette[224][2]]:[translationPalette[224][0],translationPalette[224][1],translationPalette[224][2]],
+        225:225=[translationPalette[225][0],translationPalette[225][1],translationPalette[225][2]]:[translationPalette[225][0],translationPalette[225][1],translationPalette[225][2]],
+        226:226=[translationPalette[226][0],translationPalette[226][1],translationPalette[226][2]]:[translationPalette[226][0],translationPalette[226][1],translationPalette[226][2]],
+        227:227=[translationPalette[227][0],translationPalette[227][1],translationPalette[227][2]]:[translationPalette[227][0],translationPalette[227][1],translationPalette[227][2]],
+        228:228=[translationPalette[228][0],translationPalette[228][1],translationPalette[228][2]]:[translationPalette[228][0],translationPalette[228][1],translationPalette[228][2]],
+        229:229=[translationPalette[229][0],translationPalette[229][1],translationPalette[229][2]]:[translationPalette[229][0],translationPalette[229][1],translationPalette[229][2]],
+        230:230=[translationPalette[230][0],translationPalette[230][1],translationPalette[230][2]]:[translationPalette[230][0],translationPalette[230][1],translationPalette[230][2]],
+        231:231=[translationPalette[231][0],translationPalette[231][1],translationPalette[231][2]]:[translationPalette[231][0],translationPalette[231][1],translationPalette[231][2]],
+        232:232=[translationPalette[232][0],translationPalette[232][1],translationPalette[232][2]]:[translationPalette[232][0],translationPalette[232][1],translationPalette[232][2]],
+        233:233=[translationPalette[233][0],translationPalette[233][1],translationPalette[233][2]]:[translationPalette[233][0],translationPalette[233][1],translationPalette[233][2]],
+        234:234=[translationPalette[234][0],translationPalette[234][1],translationPalette[234][2]]:[translationPalette[234][0],translationPalette[234][1],translationPalette[234][2]],
+        235:235=[translationPalette[235][0],translationPalette[235][1],translationPalette[235][2]]:[translationPalette[235][0],translationPalette[235][1],translationPalette[235][2]],
+        236:236=[translationPalette[236][0],translationPalette[236][1],translationPalette[236][2]]:[translationPalette[236][0],translationPalette[236][1],translationPalette[236][2]],
+        237:237=[translationPalette[237][0],translationPalette[237][1],translationPalette[237][2]]:[translationPalette[237][0],translationPalette[237][1],translationPalette[237][2]],
+        238:238=[translationPalette[238][0],translationPalette[238][1],translationPalette[238][2]]:[translationPalette[238][0],translationPalette[238][1],translationPalette[238][2]],
+        239:239=[translationPalette[239][0],translationPalette[239][1],translationPalette[239][2]]:[translationPalette[239][0],translationPalette[239][1],translationPalette[239][2]],
+        240:240=[translationPalette[240][0],translationPalette[240][1],translationPalette[240][2]]:[translationPalette[240][0],translationPalette[240][1],translationPalette[240][2]],
+        241:241=[translationPalette[241][0],translationPalette[241][1],translationPalette[241][2]]:[translationPalette[241][0],translationPalette[241][1],translationPalette[241][2]],
+        242:242=[translationPalette[242][0],translationPalette[242][1],translationPalette[242][2]]:[translationPalette[242][0],translationPalette[242][1],translationPalette[242][2]],
+        243:243=[translationPalette[243][0],translationPalette[243][1],translationPalette[243][2]]:[translationPalette[243][0],translationPalette[243][1],translationPalette[243][2]],
+        244:244=[translationPalette[244][0],translationPalette[244][1],translationPalette[244][2]]:[translationPalette[244][0],translationPalette[244][1],translationPalette[244][2]],
+        245:245=[translationPalette[245][0],translationPalette[245][1],translationPalette[245][2]]:[translationPalette[245][0],translationPalette[245][1],translationPalette[245][2]],
+        246:246=[translationPalette[246][0],translationPalette[246][1],translationPalette[246][2]]:[translationPalette[246][0],translationPalette[246][1],translationPalette[246][2]],
+        247:247=[translationPalette[247][0],translationPalette[247][1],translationPalette[247][2]]:[translationPalette[247][0],translationPalette[247][1],translationPalette[247][2]],
+        248:248=[translationPalette[248][0],translationPalette[248][1],translationPalette[248][2]]:[translationPalette[248][0],translationPalette[248][1],translationPalette[248][2]],
+        249:249=[translationPalette[249][0],translationPalette[249][1],translationPalette[249][2]]:[translationPalette[249][0],translationPalette[249][1],translationPalette[249][2]],
+        250:250=[translationPalette[250][0],translationPalette[250][1],translationPalette[250][2]]:[translationPalette[250][0],translationPalette[250][1],translationPalette[250][2]],
+        251:251=[translationPalette[251][0],translationPalette[251][1],translationPalette[251][2]]:[translationPalette[251][0],translationPalette[251][1],translationPalette[251][2]],
+        252:252=[translationPalette[252][0],translationPalette[252][1],translationPalette[252][2]]:[translationPalette[252][0],translationPalette[252][1],translationPalette[252][2]],
+        253:253=[translationPalette[253][0],translationPalette[253][1],translationPalette[253][2]]:[translationPalette[253][0],translationPalette[253][1],translationPalette[253][2]],
+        254:254=[translationPalette[254][0],translationPalette[254][1],translationPalette[254][2]]:[translationPalette[254][0],translationPalette[254][1],translationPalette[254][2]],
+        255:255=[translationPalette[255][0],translationPalette[255][1],translationPalette[255][2]]:[translationPalette[255][0],translationPalette[255][1],translationPalette[255][2]]
+    );
+}
+
+script "satanium_actortranslationcorrection" OPEN CLIENTSIDE
+{
+    // DefineHookFunction(DTADD_HF_PROJCLIENT, "satanium_actortranslationcorrection_apply", 0.0);
+    CreateTranslation(CLR_SATANIUM_DMG, 0:255=[255,255,255]:[255,255,255]);
+}

@@ -1,0 +1,157 @@
+#library "ST_EFFECT.acs"
+
+#include "zcommon.acs"
+
+#include "DTADD.acs"
+#include "ST_CONST.acs"
+#include "HOOKUTIL.acs"
+
+#include "8BDMMATH.acs"
+
+int vilesActive = 0;
+
+script "satanium_effect_open" OPEN
+{
+    DefineHookFunction(DTADD_HF_PROJ, "satanium_projectileflags", 0.0);
+    DefineHookFunction(DTADD_HF_ACTOR_DAMAGED, "satanium_monsterdamage", 0.0);
+}
+
+script "satanium_registermonster" (int e, int a, int b) EVENT
+{
+    if(e != GAMEEVENT_ACTOR_SPAWNED)
+        terminate;
+    if(!CheckFlag(0, "ISMONSTER"))
+        terminate;
+    if(checkArchvile()) {
+        int vileActive = false;
+        While(true) {
+            if(GetActorProperty(0, AProp_Health) <= 0) break;
+
+            if(isActive()) {
+                if(!vileActive) {
+                    vileActive = !vileActive;
+                    vilesActive++;
+                }
+            } else {
+                if(vileActive) {
+                    vileActive = !vileActive;
+                    vilesActive--;
+                }
+            }
+            delay(1);
+        }
+
+        if(vileActive) {
+            vileActive = !vileActive;
+            vilesActive--;
+        }
+    }
+}
+
+function bool isActive(void)
+{
+    return ACS_NamedExecuteWithResult("satanium_hastarget?");
+}
+script "satanium_hastarget?" (void) { SetResultValue(SetActivator(0, AAPTR_TARGET)); }
+
+function bool checkArchvile(void)
+{
+    if(CheckInventory("Satanium_IsArchvile")) return true;
+    if(CheckInventory("Satanium_NotArchvile")) return false;
+    GiveInventory("Satanium_CheckArchvile", 1);
+    if(CheckInventory("Satanium_IsArchvile")) return true;
+    return false;
+}
+
+script "satanium_monsterdamage" (int ev, int dmg, int type)
+{
+    if(!CheckFlag(0,"ISMONSTER"))
+        terminate;
+
+    if(CheckFlag(0,"NOBLOOD"))
+        terminate;
+
+    if(!DamageHook_SetActivator(0, AAPTR_DAMAGE_SOURCE))
+        terminate;
+
+    if(!CheckInventory("MM8BDMPlayer"))
+        terminate;
+
+    // [Russ] No need to check succeed here.
+    DamageHook_SetActivator(0, AAPTR_DAMAGE_INFLICTOR);
+    int shotX = GetActorX(0);
+    int shotY = GetActorY(0);
+    int shotZ = GetActorZ(0) + GetActorProperty(0, APROP_Height) / 2;
+
+    if(!DamageHook_SetActivator(0, AAPTR_DAMAGE_TARGET))
+        terminate;
+
+    int bodyX = GetActorX(0);
+    int bodyY = GetActorY(0);
+    int bodyZ = GetActorZ(0);
+    int height = GetActorProperty(0, APROP_Height);
+
+    if(dmg >= GetActorProperty(0, AProp_Health)) {
+        int u = UniqueTID();
+        SpawnForced("Satanium_Blood_Big", bodyX, bodyY, bodyZ+3*height/5, u, 0);
+        int scale = height/32; // 32 is the height of the sprite's core.
+        SetActorProperty(u, AProp_ScaleX, scale);
+        SetActorProperty(u, AProp_ScaleY, scale);
+        Thing_ChangeTID(u, 0);
+        ACS_NamedExecuteWithResult("core_changeactorflag", "INVISIBLE", true);
+
+        if(SetActorState(0, "Raise")) { // 👻
+            ACS_NamedExecuteWithResult("satanium_waitforrevive");
+        }
+        terminate;
+    }
+
+    if(CheckInventory("Satanium_JustBled"))
+        terminate;
+    GiveInventory("Satanium_JustBled", 1);
+
+    int rad = GetActorProperty(0, APROP_Radius);
+
+    int bloodX = clamp(shotX, bodyX - rad, bodyX + rad);
+    int bloodY = clamp(shotY, bodyY - rad, bodyY + rad);
+    int bloodZ = clamp(shotZ, bodyZ, bodyZ + height);
+
+    SpawnForced("Satanium_Blood_Small", bloodX, bloodY, bloodZ, 0, 0);
+
+    Thing_SetTranslation(0, CLR_SATANIUM_DMG);
+    while(Checkinventory("Satanium_JustBled")) delay(1);
+    Thing_SetTranslation(0, 0);
+}
+
+script "satanium_waitforrevive" (void)
+{
+    while(true) {
+        delay(1);
+        if(GetActorProperty(0, AProp_Health) > 0) break;
+    }
+
+    int bodyX = GetActorX(0);
+    int bodyY = GetActorY(0);
+    int bodyZ = GetActorZ(0);
+    int height = GetActorProperty(0, APROP_Height);
+    int u = UniqueTID();
+    SpawnForced("Satanium_Blood_Big_Reverse", bodyX, bodyY, bodyZ+3*height/5, u, 0);
+    int scale = height/32; // 32 is the height of the sprite's core.
+    SetActorProperty(u, AProp_ScaleX, scale);
+    SetActorProperty(u, AProp_ScaleY, scale);
+    Thing_ChangeTID(u, 0);
+    ACS_NamedExecuteWithResult("core_changeactorflag", "INVISIBLE", false);
+    Thing_SetTranslation(0, CLR_SATANIUM_RES1);
+    Delay(12);
+    Thing_SetTranslation(0, CLR_SATANIUM_RES2);
+    Delay(12);
+    Thing_SetTranslation(0, CLR_SATANIUM_RES3);
+    Delay(12);
+    Thing_SetTranslation(0, CLR_SATANIUM_BLANK);
+}
+
+script "satanium_projectileflags" (void)
+{
+    ACS_NamedExecuteWithResult("core_changeactorflag", "BLOODSPLATTER", false);
+    ACS_NamedExecuteWithResult("core_changeactorflag", "BLOODLESSIMPACT", true);
+}

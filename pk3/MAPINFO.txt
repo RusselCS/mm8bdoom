@@ -3,6 +3,7 @@
 gameinfo
 {
 	ForceDamageEventScripts = true
+	ForceSpawnEventScripts = true
 }
 
 clearskills
