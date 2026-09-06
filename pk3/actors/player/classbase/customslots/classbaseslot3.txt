@@ -1,4 +1,6 @@
 actor ClassBaseSlot3 : ClassBaseSlot2
 {
-    player.face "0OC"
+    // player.face "0OC"
+    // +USESPAWNEVENTSCRIPT
+    -NOGRAVITY // Breaks compatibility with using `core_nogravityplayer`, but fixes voodoo dolls.
 }

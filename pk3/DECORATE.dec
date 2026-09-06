@@ -1,1 +1,3 @@
+#include "decorate/sataniumarmor.dec"
 #include "decorate/sataniumbasics.dec"
+#include "decorate/sataniumkeys.dec"

@@ -1,0 +1,6 @@
+effects/blood ST_BLUD
+effects/gib ST_GIB
+effects/gib/reverse ST_GIBR
+
+item/energyup/tiny AUTRECV
+item/key CTFPCKUP

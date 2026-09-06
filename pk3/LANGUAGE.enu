@@ -1,0 +1,11 @@
+[enu default]
+
+PU_SMALLERARMOR = "Picked up a small shield capsule.";
+PU_BIGARMOR = "Picked up a large shield capsule.";
+
+KEY_BLUECODE = "Scanned blue-level access codes.";
+KEY_REDCODE = "Scanned red-level access codes.";
+KEY_YELLOWCODE = "Scanned yellow-level access codes.";
+KEY_REDJEWEL = "Found a red enchanted jewel.";
+KEY_BLUEJEWEL = "Found a blue enchanted jewel.";
+KEY_YELLOWJEWEL = "Found a yellow enchanted jewel.";

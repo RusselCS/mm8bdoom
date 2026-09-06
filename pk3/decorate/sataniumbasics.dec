@@ -7,10 +7,12 @@ actor SataniumWepReplacer : Inventory
     radius 2
     renderstyle "none"
     mass 999
+    accuracy 999
+    meleerange 999
     states
     {
     Spawn:
-        TNT1 A 0 nodelay ACS_NamedExecuteWithResult("satanium_replacepickup", mass)
+        TNT1 A 0 nodelay ACS_NamedExecuteWithResult("satanium_replacepickup", mass, accuracy, meleerange)
         TNT1 A 4
         stop
     }
@@ -19,41 +21,79 @@ actor SataniumWepReplacer : Inventory
 actor Satanium_TPFog : TeleportFog replaces TeleportFog {}
 actor Satanium_ItemFog : ItemFog replaces ItemFog {}
 
-actor Chainsawreplace : SataniumWepReplacer replaces Chainsaw { mass 1 }
+// Doom Items
+// accuracy 5 -- DTADD_GRP_ATTACK
+actor BerserkReplace : SataniumWepReplacer replaces Berserk { mass 1 }
 
-actor Chaingunreplace : SataniumWepReplacer replaces Chaingun { mass 3 }
+actor Chainsawreplace : SataniumWepReplacer replaces Chainsaw { mass 1 }
 actor Pistolreplace : SataniumWepReplacer replaces Pistol { mass 2 }
+actor Shotgunreplace : SataniumWepReplacer replaces Shotgun { mass 2 }
+actor Chaingunreplace : SataniumWepReplacer replaces Chaingun { mass 3 }
 actor PlasmaRiflereplace : SataniumWepReplacer replaces PlasmaRifle { mass 3 }
 actor RocketLauncherreplace : SataniumWepReplacer replaces RocketLauncher { mass 5 }
-actor Shotgunreplace : SataniumWepReplacer replaces Shotgun { mass 4 }
-actor SuperShotgunreplace : SataniumWepReplacer replaces SuperShotgun { mass 7 }
-
+actor SuperShotgunreplace : SataniumWepReplacer replaces SuperShotgun { mass 4 }
 actor BFG9000replace : SataniumWepReplacer replaces BFG9000 { mass 6 }
+actor DoomBigArmorReplace : SataniumWepReplacer replaces BlueArmor { mass 7 }
 
-actor BackpackReplace : SataniumWepReplacer replaces Backpack {}                 // Backpack (Increase carrying capacity)
-actor CellReplace : SataniumWepReplacer replaces Cell {}                     // Cell
-actor CellPackReplace : SataniumWepReplacer replaces CellPack {}                 // Cell Pack
-actor ClipReplace : SataniumWepReplacer replaces Clip {}                     // Ammo Clip
-actor ClipBoxReplace : SataniumWepReplacer replaces ClipBox {}                  // Box of Bullets
-actor RocketAmmoReplace : SataniumWepReplacer replaces RocketAmmo {}               // Rocket
-actor RocketBoxReplace : SataniumWepReplacer replaces RocketBox {}                // Box of Rockets
-actor ShellReplace : SataniumWepReplacer replaces Shell {}                    // 4 Shells
-actor ShellBoxReplace : SataniumWepReplacer replaces ShellBox {}                 // Box of Shells
+actor DoomSmallerArmorReplace : SataniumWepReplacer replaces ArmorBonus {}
+actor DoomSmallArmorReplace : SataniumWepReplacer replaces GreenArmor {}
+
+actor DoomSmallerHealthReplace : SataniumWepReplacer replaces HealthBonus {}
+actor DoomSmallHealthReplace : SataniumWepReplacer replaces Stimpack {}
+actor DoomBigHealthReplace : SataniumWepReplacer replaces Medikit {}
+actor DoomBiggerHealthReplace : SataniumWepReplacer replaces Soulsphere {}
+actor DoomBiggestHealthReplace : SataniumWepReplacer replaces Megasphere {}
+
+actor CellReplace : RandomSpawner replaces Cell {}
+actor ClipReplace : RandomSpawner replaces Clip {}
+actor RocketAmmoReplace : RandomSpawner replaces RocketAmmo {}
+actor ShellReplace : RandomSpawner replaces Shell {}
+
+actor CellPackReplace : SataniumWepReplacer replaces CellPack {}
+actor ClipBoxReplace : SataniumWepReplacer replaces ClipBox {}
+actor RocketBoxReplace : SataniumWepReplacer replaces RocketBox {}
+actor ShellBoxReplace : SataniumWepReplacer replaces ShellBox {}
+
+actor DoomBackpackReplace : SataniumWepReplacer replaces Backpack {}
+
 //actor AllmapReplace : SataniumWepReplacer replaces Allmap {}                 // Computer Area Map
-//actor ArmorBonusReplace : SataniumWepReplacer replaces ArmorBonus {}             // Armor Helmet
-actor BerserkReplace : SataniumWepReplacer replaces Berserk { mass 1 }                // Berserk Pack (Full Health+Super Strength)
-//actor BlueArmorReplace : SataniumWepReplacer replaces BlueArmor {}              // Heavy Armor
 //actor BlurSphereReplace : SataniumWepReplacer replaces BlurSphere {}             // Partial Invisibility
-//actor GreenArmorReplace : SataniumWepReplacer replaces GreenArmor {}             // Light Armor
-//actor HealthBonusReplace : SataniumWepReplacer replaces HealthBonus {}            // Health Potion
 //actor InfraredReplace : SataniumWepReplacer replaces Infrared {}               // Light-Amp Goggles
 //actor InvulnerabilitySphereReplace : SataniumWepReplacer replaces InvulnerabilitySphere {}  // Invulnerability
-actor MedikitReplace : SataniumWepReplacer replaces Medikit {}                // Medikit(+25 Health)
-actor MegasphereReplace : SataniumWepReplacer replaces Megasphere {}             // Megasphere (+200 Health/Armor)
 //actor RadSuitReplace : SataniumWepReplacer replaces RadSuit {}                // Radiation Suit
-actor SoulsphereReplace : SataniumWepReplacer replaces Soulsphere {}             // Soul Sphere (+100 Health)
-actor StimpackReplace : SataniumWepReplacer replaces Stimpack {}               // Stimpack(+10 Health)
 
+actor SuperBootsporkReplace : SataniumWepReplacer replaces SuperBootspork { mass 1 }
+actor MiniZorcherReplace : SataniumWepReplacer replaces MiniZorcher { mass 2 }
+actor LargeZorcherReplace : SataniumWepReplacer replaces LargeZorcher { mass 4 }
+actor RapidZorcherReplace : SataniumWepReplacer replaces RapidZorcher { mass 2 }
+actor PhasingZorcherReplace : SataniumWepReplacer replaces PhasingZorcher { mass 3 }
+actor ZorchPropulsorReplace : SataniumWepReplacer replaces ZorchPropulsor { mass 5 }
+actor SuperLargeZorcherReplace : SataniumWepReplacer replaces SuperLargeZorcher { mass 4 }
+actor LAZDeviceReplace : SataniumWepReplacer replaces LAZDevice { mass 6 }
+actor ChexBigArmorReplace : SataniumWepReplacer replaces SuperChexArmor { mass 7 }
+
+actor ChexSmallerArmorReplace : SataniumWepReplacer replaces SlimeRepellent {}
+actor ChexSmallArmorReplace : SataniumWepReplacer replaces ChexArmor {}
+
+actor ChexSmallerHealthReplace : SataniumWepReplacer replaces GlassOfWater {}
+actor ChexSmallHealthReplace : SataniumWepReplacer replaces BowlOfFruit {}
+actor ChexBigHealthReplace : SataniumWepReplacer replaces BowlOfVegetables {}
+actor ChexBiggerHealthReplace : SataniumWepReplacer replaces SuperchargeBreakfast {}
+
+actor MiniZorchRechargeReplace : SataniumWepReplacer replaces MiniZorchRecharge {}
+actor LargeZorchRechargeReplace : SataniumWepReplacer replaces LargeZorchRecharge {}
+actor PropulsorZorchReplace : SataniumWepReplacer replaces PropulsorZorch {}
+actor PhasingZorchReplace : SataniumWepReplacer replaces PhasingZorch {}
+
+actor MiniZorchPackReplace : SataniumWepReplacer replaces MiniZorchPack {}
+actor LargeZorchPackReplace : SataniumWepReplacer replaces LargeZorchPack {}
+actor PropulsorZorchPackReplace : SataniumWepReplacer replaces PropulsorZorchPack {}
+actor PhasingZorchPackReplace : SataniumWepReplacer replaces PhasingZorchPack {}
+
+actor ChexBackpackReplace : SataniumWepReplacer replaces Zorchpack {}
+
+// actor ComputerAreaMapReplace : SataniumWepReplacer replaces ComputerAreaMap {}			// Fills automap
+// actor SlimeProofSuitReplace : SataniumWepReplacer replaces SlimeProofSuit {}			// Radsuit equivalent (protects against slimy floors)
 
 actor Satanium_GetActorSpecial : CUstomInventory
 {
@@ -119,4 +159,94 @@ actor Satanium_Undropped : CUstomInventory
     }
 }
 
+actor Satanium_Blood_Small : BasicGraphicEffect
+{
+    +FORCEXYBILLBOARD
+    scale 2.0
+    States
+    {
+        Spawn:
+            TNT1 A 0
+            TNT1 A 0 A_PlaySoundEx("effects/blood", "body")
+            TNT1 A 0 A_Jump(256, "Blood1", "Blood2", "Blood3", "Blood4")
+            TNT1 A 1
+            wait
+        Blood1:
+            S_BL ABCD 2
+            stop
+        Blood2:
+            S_BL EFGH 2
+            stop
+        Blood3:
+            S_BL IJKL 2
+            stop
+        Blood4:
+            S_BL MNOP 2
+            stop
+    }
+}
 
+actor Satanium_Blood_Big : Satanium_Blood_Small
+{
+    States
+    {
+        Spawn:
+            TNT1 A 0
+            TNT1 A 0 A_PlaySoundEx("effects/gib", "body")
+            S_BL QRS 2
+            stop
+    }
+}
+
+actor Satanium_Blood_Big : Satanium_Blood_Small
+{
+    States
+    {
+        Spawn:
+            TNT1 A 0
+            TNT1 A 0 A_PlaySoundEx("effects/gib", "body")
+            S_BL QRS 2
+            stop
+    }
+}
+
+actor Satanium_Blood_Big_Reverse : Satanium_Blood_Big
+{
+    States
+    {
+        Spawn:
+            TNT1 A 0
+            TNT1 A 0 A_PlaySoundEx("effects/gib/reverse", "body")
+            S_BL SRQ 2
+            stop
+    }
+}
+
+actor Satanium_JustBled : Powerup { powerup.duration 4 }
+
+actor Satanium_ExitUnit : BaseMM8BDMUseItem
+{
+    inventory.amount 1
+    inventory.maxamount 1
+    inventory.pickupmessage "$PU_EXITUNIT"
+    inventory.icon "EXITSI"
+    Inventory.PickupSound "item/1up"
+    Tag "$TAG_EXITUNIT"
+    scale 2.0
+    +COUNTITEM
+    +INVBAR
+    States
+    {
+    SpawnLoop:
+        EXIT BC 6
+        Loop
+    Use:
+        EXIT C 0 A_GiveInventory("Satanium_ExitUnitUse", 1)
+        fail
+    Death:
+        EXIT A 1
+        stop
+    }
+}
+
+actor Satanium_ExitUnitUse : ArtiTeleport { +INVENTORY.AUTOACTIVATE }

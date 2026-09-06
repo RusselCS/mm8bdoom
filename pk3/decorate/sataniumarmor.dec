@@ -1,0 +1,54 @@
+actor SataniumSmallerArmor_P : BasicArmorBonus
+{
+    armor.maxsaveamount 9999
+    armor.savepercent 100
+    armor.saveamount 1
+}
+
+actor SataniumSmallerArmor : BaseMM8BDMItem
+{
+//$Category MM8BDM-Energy
+//$Title Small Health
+//$Sprite HBALA0
+//Inventory.RespawnTics 210
+//$Color 14
+var int user_RemoveAsArmor;
+inventory.pickupmessage "$PU_SMALLERARMOR"
++COUNTITEM
+inventory.pickupsound "item/energyup/tiny"
+Scale 2.0
+States
+{
+SpawnLoop:
+STRM ABCD 5
+loop
+Pickup:
+TNT1 A 0 A_GiveInventory("SataniumSmallerArmor_P", 1)
+stop
+}
+}
+
+actor SataniumBigArmor_P : BasicArmorBonus
+{
+    armor.maxsaveamount 9999
+    armor.savepercent 100
+    armor.saveamount 55
+}
+
+actor SataniumBigArmor : BaseMM8BDMItem
+{
+var int user_RemoveAsArmor;
+inventory.pickupmessage "$PU_BIGARMOR"
++COUNTITEM
+inventory.pickupsound "item/energyup/large"
+Scale 2.0
+States
+{
+SpawnLoop:
+STRM EFGH 5
+loop
+Pickup:
+TNT1 A 0 A_GiveInventory("SataniumBigArmor_P", 1)
+stop
+}
+}

@@ -2,7 +2,20 @@
 
 #include "zcommon.acs"
 
+#include "DTADD.acs"
+#include "HOOKUTIL.acs"
+#include "NODEUTIL.acs"
+
+#include "ASSTLIB.acs"
+#include "UIXLIB.acs"
+
+#include "8BDMVARS.acs"
+#include "8BDMDEFS.acs"
+
 #import "8BDT.acs"
+
+#define CLR_SATANIUM_DMG 32666
+#define NODE_PICKUPS -666
 
 script "satanium_aircontrol" OPEN
 {
@@ -14,30 +27,219 @@ script "satanium_aircontrol" OPEN
 
     SetGameplaySetting("sv_nojump", false);
     SetGameplaySetting("sv_allowjump", true);
+
+    // DefineHookFunction(DTADD_HF_PROJ, "satanium_projectileflags", 0.0);
+    DefineHookFunction(DTADD_HF_ACTOR_DAMAGED, "satanium_monsterdamage", 0.0);
+
+    DefineReservedTID(NODE_PICKUPS);
+}
+
+script "satanium_modlib" OPEN
+{
+    DefineAssistItem("TAG_EXITUNIT", "Satanium_ExitUnit", "EXITA0", 1, DTADD_GRP_ESCAPE, false, false);
+}
+
+script "satanium_modlib_c" OPEN CLIENTSIDE
+{
+    InitializeDataForClients("satanium_modlib");
+
+    DefineAssistDisplay("satanium_assist");
+}
+
+script "satanium_assist" (int tid, int pln) CLIENTSIDE
+{
+    SetAssistBarCallbackScript(GetAssistBarID(), "satanium_keys");
+}
+
+script "satanium_keys" (int x, int y, int scale, int alpha)
+{
+    if(checkKey(0)) displayIcon(0, "STKEYRC", x, y, scale, scale, alpha, 0, 0);
+    if(checkKey(1)) displayIcon(0, "STKEYBC", x, y, scale, scale, alpha, 0, 0);
+    if(checkKey(2)) displayIcon(0, "STKEYYC", x, y, scale, scale, alpha, 0, 0);
+    if(checkKey(3)) displayIcon(0, "STKEYRS", x, y, scale, scale, alpha, 0, 0);
+    if(checkKey(4)) displayIcon(0, "STKEYBS", x, y, scale, scale, alpha, 0, 0);
+    if(checkKey(5)) displayIcon(0, "STKEYYS", x, y, scale, scale, alpha, 0, 0);
+
+    displayIcon(0, "STKEYBG", x, y, scale, scale, alpha, 0, 0);
+}
+
+script "satanium_monsterdamage" (int ev, int dmg, int type)
+{
+    if(!CheckFlag(0,"ISMONSTER"))
+        terminate;
+
+    if(CheckFlag(0,"NOBLOOD"))
+        terminate;
+
+    if(!DamageHook_SetActivator(0, AAPTR_DAMAGE_SOURCE))
+        terminate;
+
+    if(!CheckInventory("MM8BDMPlayer"))
+        terminate;
+
+    // [Russ] No need to check succeed here.
+    DamageHook_SetActivator(0, AAPTR_DAMAGE_INFLICTOR);
+    int shotX = GetActorX(0);
+    int shotY = GetActorY(0);
+    int shotZ = GetActorZ(0) + GetActorProperty(0, APROP_Height) / 2;
+
+    if(!DamageHook_SetActivator(0, AAPTR_DAMAGE_TARGET))
+        terminate;
+
+    int bodyX = GetActorX(0);
+    int bodyY = GetActorY(0);
+    int bodyZ = GetActorZ(0);
+    int height = GetActorProperty(0, APROP_Height);
+
+    if(dmg >= GetActorProperty(0, AProp_Health)) {
+        int u = UniqueTID();
+        SpawnForced("Satanium_Blood_Big", bodyX, bodyY, bodyZ+3*height/5, u, 0);
+        int scale = height/32; // 32 is the height of the sprite's core.
+        SetActorProperty(u, AProp_ScaleX, scale);
+        SetActorProperty(u, AProp_ScaleY, scale);
+        Thing_ChangeTID(u, 0);
+        ACS_NamedExecuteWithResult("core_changeactorflag", "INVISIBLE", true);
+
+        if(SetActorState(0, "Raise")) { // 👻
+            ACS_NamedExecuteWithResult("satanium_waitforrevive");
+        }
+        terminate;
+    }
+
+    if(CheckInventory("Satanium_JustBled"))
+        terminate;
+    GiveInventory("Satanium_JustBled", 1);
+
+    int rad = GetActorProperty(0, APROP_Radius);
+
+    int bloodX = clamp(shotX, bodyX - rad, bodyX + rad);
+    int bloodY = clamp(shotY, bodyY - rad, bodyY + rad);
+    int bloodZ = clamp(shotZ, bodyZ, bodyZ + height);
+
+    SpawnForced("Satanium_Blood_Small", bloodX, bloodY, bloodZ, 0, 0);
+
+    Thing_SetTranslation(0, CLR_SATANIUM_DMG);
+    while(Checkinventory("Satanium_JustBled")) delay(1);
+    Thing_SetTranslation(0, 0);
+}
+
+script "satanium_waitforrevive" (void)
+{
+    while(true) {
+        delay(1);
+        if(GetActorProperty(0, AProp_Health) > 0) break;
+    }
+
+    int bodyX = GetActorX(0);
+    int bodyY = GetActorY(0);
+    int bodyZ = GetActorZ(0);
+    int height = GetActorProperty(0, APROP_Height);
+    int u = UniqueTID();
+    SpawnForced("Satanium_Blood_Big_Reverse", bodyX, bodyY, bodyZ+3*height/5, u, 0);
+    int scale = height/32; // 32 is the height of the sprite's core.
+    SetActorProperty(u, AProp_ScaleX, scale);
+    SetActorProperty(u, AProp_ScaleY, scale);
+    Thing_ChangeTID(u, 0);
+    ACS_NamedExecuteWithResult("core_changeactorflag", "INVISIBLE", false);
+}
+
+script "satanium_projectileflags" (void)
+{
+    ACS_NamedExecuteWithResult("core_changeactorflag", "BLOODSPLATTER", false);
+    ACS_NamedExecuteWithResult("core_changeactorflag", "BLOODLESSIMPACT", true);
 }
 
 script "satanium_fixbugsig_r" RESPAWN { ACS_NamedExecuteWithResult("satanium_fixbugsig"); }
 script "satanium_fixbugsig" ENTER
 {
-    SetPlayerProperty(0, 0, PROP_FLY);
+    // GiveInventory("PlayerPropertyNoGravity", 1);
+    // ACS_NamedExecuteWithResult("core_nogravityplayer", 0, false);
+    GiveInventory("Satanium_ExitUnit", 1);
+}
+
+#define KEYS_LIMIT 6
+#define KEYS_GAMES 2
+// 0 - doom
+// 1 - chex
+//
+str keys[KEYS_LIMIT][KEYS_GAMES] = {
+    {"RedCard", "ChexRedCard"},
+    {"BlueCard", "ChexBlueCard"},
+    {"YellowCard", "ChexYellowCard"},
+    {"RedSkull", ""},
+    {"BlueSkull", ""},
+    {"YellowSkull", ""},
+};
+
+script "satanium_checkkey" (int keyid) { SetResultValue(checkKey(keyId)); }
+function int checkKey(int keyId)
+{
+    if(keyId >= KEYS_LIMIT) return false;
+    if(keyId < 0) return false;
+
+    for(int i = 0; i < KEYS_GAMES; i++) {
+        if(StrLen(keys[keyid][i]) == 0)
+            continue;
+        if(CheckInventory(keys[keyid][i]) > 0)
+            return true;
+    }
+    return false;
+}
+
+script "satanium_givekey" (int keyid, int gameId) { SetResultValue(giveKey(keyId, gameId)); }
+function int giveKey(int keyId, int gameId)
+{
+    if(keyId >= KEYS_LIMIT) return false;
+    if(keyId < 0) return false;
+    if(StrLen(keys[keyid][gameId])==0) return false;
+
+    GiveInventory(keys[keyid][gameId], 1);
+    return true;
 }
 
 #define replace_max_limit 1000
-int replace_max = 13;
+int replace_max = 40;
 str replacePickups[replace_max_limit][2] = {
-    {"BackpackReplace", "WTank"},
+    {"DoomSmallerArmorReplace", "SataniumSmallerArmor"},
+    {"DoomSmallArmorReplace", "SataniumBigArmor"},
+    {"DoomSmallerHealthReplace", "SataniumSmallerArmor"},
+    {"DoomSmallHealthReplace", "SmallHealth"},
+    {"DoomBigHealthReplace", "BigHealth"},
+    {"DoomBiggerHealthReplace", "MegaHealth"},
+    {"DoomBiggestHealthReplace", "ETank"},
     {"CellReplace", "WeaponEnergy"},
-    {"CellPackReplace", "BigWeaponEnergy"},
     {"ClipReplace", "WeaponEnergy"},
-    {"ClipBoxReplace", "BigWeaponEnergy"},
     {"RocketAmmoReplace", "WeaponEnergy"},
-    {"RocketBoxReplace", "BigWeaponEnergy"},
     {"ShellReplace", "WeaponEnergy"},
+    {"CellPackReplace", "BigWeaponEnergy"},
+    {"ClipBoxReplace", "BigWeaponEnergy"},
+    {"RocketBoxReplace", "BigWeaponEnergy"},
     {"ShellBoxReplace", "BigWeaponEnergy"},
-    {"MedikitReplace", "BigHealth"},
-    {"MegasphereReplace", "MegaHealth"},
-    {"SoulsphereReplace", "MegaHealth"},
-    {"StimpackReplace", "SmallHealth"},
+    {"DoomRedKeyReplacer", "SataniumRedCode"},
+    {"DoomBlueKeyReplacer", "SataniumBlueCode"},
+    {"DoomYellowKeyReplacer", "SataniumYellowCode"},
+    {"DoomRedSkullReplacer", "SataniumRedJewel"},
+    {"DoomBlueSkullReplacer", "SataniumBlueJewel"},
+    {"DoomYellowSkullReplacer", "SataniumYellowJewel"},
+
+    {"ChexSmallerArmorReplace", "SataniumSmallerArmor"},
+    {"ChexSmallArmorReplace", "SataniumBigArmor"},
+    {"ChexSmallerHealthReplace", "SataniumSmallerArmor"},
+    {"ChexSmallHealthReplace", "SmallHealth"},
+    {"ChexBigHealthReplace", "BigHealth"},
+    {"ChexBiggerHealthReplace", "ETank"},
+    {"MiniZorchRechargeReplace", "WeaponEnergy"},
+    {"LargeZorchRechargeReplace", "WeaponEnergy"},
+    {"PropulsorZorchReplace", "WeaponEnergy"},
+    {"PhasingZorchReplace", "WeaponEnergy"},
+    {"MiniZorchPackReplace", "BigWeaponEnergy"},
+    {"LargeZorchPackReplace", "BigWeaponEnergy"},
+    {"PropulsorZorchPackReplace", "BigWeaponEnergy"},
+    {"PhasingZorchPackReplace", "BigWeaponEnergy"},
+    {"ChexBackpackReplace", "WTank"},
+    {"ChexRedKeyReplacer", "ChexSataniumRedCode"},
+    {"ChexBlueKeyReplacer", "ChexSataniumBlueCode"},
+    {"ChexYellowKeyReplacer", "ChexSataniumYellowCode"},
 
     // {"AllmapReplace", ""},
     // {"ArmorBonusReplace", ""},
@@ -53,14 +255,27 @@ str replacePickups[replace_max_limit][2] = {
 
 int showTable = false;
 
+#define DROPCHECK_DIST 512
+
+int dropReplacement = -1;
 script "satanium_replacepickup" (int mass)
 {
     if(timer() < 2) delay(2);
 
     str replacement = "None";
-    int i;
+    int i, u, a;
     int findIndex = -1;
     str cls = GetActorClass(0);
+
+    int x = GetActorX(0);
+    int y = GetActorY(0);
+    int z = GetActorZ(0);
+    int dropped = CheckFlag(0, "DROPPED");
+
+    if(dropped) {
+        x += random(-32, 32) << 16;
+        y += random(-32, 32) << 16;
+    }
 
     for(i = 0; i < replace_max; i++) {
         if(StrLen(replacePickups[i][0]) == 0)
@@ -68,6 +283,31 @@ script "satanium_replacepickup" (int mass)
 
         if(StrICmp(cls, replacePickups[i][0]) == 0) {
             replacement = replacePickups[i][1];
+            if(dropped) {
+                dropReplacement = 0;
+
+                for(int p = PLN_TID; p < PLN_TID + ServerMAX; p++) {
+                    if(CheckActorInventory(p, cls) == 0)
+                        continue;
+                    if(!CheckSight(0, p, 0))
+                        continue;
+                    dropReplacement = 1;
+                }
+
+                if(dropReplacement == 0) {
+                    a = ActivatorTID();
+                    u = UniqueTID();
+                    Thing_ChangeTID(0, u);
+                    MapOverNodeList(NODE_PICKUPS, "satanium_checkifcandrop", u, replacement, 0, 0);
+                    Thing_ChangeTID(u, a);
+                }
+
+                if(dropReplacement > 0) {
+                    replacement = "WeaponEnergy";
+                }
+
+                dropReplacement = -1;
+            }
             findIndex = i;
             break;
         }
@@ -101,30 +341,48 @@ script "satanium_replacepickup" (int mass)
         terminate;
     }
 
-    int spc = getActorArg(-1);
-    int arg0 = getActorArg(0);
-    int arg1 = getActorArg(1);
-    int arg2 = getActorArg(2);
-    int arg3 = getActorArg(3);
-    int arg4 = getActorArg(4);
-
-    int dropped = CheckFlag(0, "DROPPED");
+    int spc = satanium_getActorArg(-1);
+    int arg0 = satanium_getActorArg(0);
+    int arg1 = satanium_getActorArg(1);
+    int arg2 = satanium_getActorArg(2);
+    int arg3 = satanium_getActorArg(3);
+    int arg4 = satanium_getActorArg(4);
 
     // Log(s:GetActorClass(0), s:" ", s:replacement);
 
-    int u = UniqueTID();
-    SpawnSpotForced(replacement, 0, u, GetActorAngle(0) >> 8);
+    a = ActivatorTID();
+    Thing_ChangeTID(0, 0);
+    u = UniqueTID();
+    SpawnForced(replacement, x, y, z, u, GetActorAngle(0) >> 8);
     SetActivator(u);
-    Thing_ChangeTID(u, 0);
+    AddToNodeList(NODE_PICKUPS);
+    Thing_ChangeTID(u, a);
     Thing_SetSpecial(0, spc, arg0, arg1, arg2);
     if(!dropped)
         GiveInventory("Satanium_Undropped", 1);
 }
 
+script "satanium_checkifcandrop" (int otherTid, int replacement)
+{
+    if(dropReplacement != 0)
+        terminate;
+    if(dist3d(otherTid, 0) > DROPCHECK_DIST)
+        terminate;
+    if(StrICmp(replacement, GetActorClass(0)) != 0)
+        terminate;
+
+    dropReplacement = 1;
+}
+
+function int dist3d(int a, int b)
+{
+    return VectorLength(VectorLength(GetActorX(a)-GetActorX(b), GetActorY(a)-GetActorY(b)), GetActorZ(a)-GetActorZ(b)) >> 16;
+}
+
 int ArgWhich = -2;
 int ArgResult;
 str GetArgItems[6] = { "Satanium_GetActorSpecial", "Satanium_GetActorArg0", "Satanium_GetActorArg1", "Satanium_GetActorArg2", "Satanium_GetActorArg3", "Satanium_GetActorArg4" };
-function int getActorArg(int arg)
+function int satanium_getActorArg(int arg)
 {
     if(ArgWhich != -2)
         return 0;
@@ -140,10 +398,6 @@ script "satanium_getactorspecial" (int res)
         terminate;
     ArgResult = res;
 }
-
-
-
-
 
 
 
@@ -589,3 +843,20 @@ script "satanium_CreatePlayerTranslationGlow" (int id, int cyan, int blue, int b
         255:255=[glowstack[255][0],glowstack[255][1],glowstack[255][2]]:[glowstack[255][0],glowstack[255][1],glowstack[255][2]]
     );
 }
+
+// script "satanium_actortranslationcorrection_apply" (void)
+// {
+//     int u = UniqueTID();
+//     int a = ActivatorTID();
+//     Thing_ChangeTID(0, u);
+//     SetActivatorToTarget(0);
+//     Thing_SetTranslation(u, -1);
+//     Thing_ChangeTID(u, a);
+// }
+
+script "satanium_actortranslationcorrection" OPEN CLIENTSIDE
+{
+    // DefineHookFunction(DTADD_HF_PROJCLIENT, "satanium_actortranslationcorrection_apply", 0.0);
+    CreateTranslation(CLR_SATANIUM_DMG, 0:255=[255,255,255]:[255,255,255]);
+}
+

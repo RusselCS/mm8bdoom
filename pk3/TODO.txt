@@ -1,0 +1,4 @@
+- Passive buster scripts break between maps?
+- Give an infinite use exit unit on spawn.
+- Voodoo dolls are not given a new baseflagpack on new map. This is a major problem.
+
