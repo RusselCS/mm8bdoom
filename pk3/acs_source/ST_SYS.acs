@@ -3,18 +3,8 @@
 #include "zcommon.acs"
 
 #include "DTADD.acs"
-#include "HOOKUTIL.acs"
-#include "NODEUTIL.acs"
-
 #include "ASSTLIB.acs"
 #include "UIXLIB.acs"
-
-#include "8BDMVARS.acs"
-#include "8BDMDEFS.acs"
-
-#include "ST_CONST.acs"
-
-#import "8BDT.acs"
 
 script "satanium_aircontrol" OPEN
 {
