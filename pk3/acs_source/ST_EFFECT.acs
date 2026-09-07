@@ -22,6 +22,9 @@ script "satanium_registermonster" (int e, int a, int b) EVENT
         terminate;
     if(!CheckFlag(0, "ISMONSTER"))
         terminate;
+
+    checkFlemoid();
+
     if(checkArchvile()) {
         int vileActive = false;
         While(true) {
@@ -63,6 +66,51 @@ function bool checkArchvile(void)
     return false;
 }
 
+str flemoidMonsters[1000][2];
+int flemoidTypeCount = 0;
+
+function bool checkFlemoid(void)
+{
+    if(CheckInventory("Satanium_IsFlemoid")) return true;
+    if(CheckInventory("Satanium_NotFlemoid")) return false;
+
+    str cls = GetActorClass(0);
+    int ret = -1;
+
+    for(int i = 0; i < flemoidTypeCount; i++) {
+        if(StrCmp(cls, flemoidMonsters[i][0]) == 0) {
+            ret = flemoidMonsters[i][1];
+        }
+    }
+
+    if(ret == -1) if(strFind(cls, "Flem") > -1) ret = true;
+    if(ret == -1) if(strFind(cls, "Larva") > -1) ret = true;
+    if(ret == -1) if(strFind(cls, "Quadrumpus") > -1) ret = true;
+    if(ret == -1) if(strFind(cls, "SuperCycloptis") > -1) ret = true;
+    if(ret == -1) if(strFind(cls, "Snotfolus") > -1) ret = true;
+
+    if(ret > 0)
+    {
+        GiveInventory("Satanium_IsFlemoid", 1);
+    }
+    else
+    {
+        GiveInventory("Satanium_NotFlemoid", 1);
+        ret = false;
+    }
+
+    flemoidMonsters[flemoidTypeCount][0] = cls;
+    flemoidMonsters[flemoidTypeCount][1] = ret;
+    flemoidTypeCount++;
+
+    return ret;
+}
+
+str bloodSplatters[2][2] = {
+    {"Satanium_Blood_Small", "Satanium_Blood_Small_Green"},
+    {"Satanium_Blood_Big", "Satanium_Blood_Big_Green"},
+};
+
 script "satanium_monsterdamage" (int ev, int dmg, int type)
 {
     if(!CheckFlag(0,"ISMONSTER"))
@@ -93,7 +141,7 @@ script "satanium_monsterdamage" (int ev, int dmg, int type)
 
     if(dmg >= GetActorProperty(0, AProp_Health)) {
         int u = UniqueTID();
-        SpawnForced("Satanium_Blood_Big", bodyX, bodyY, bodyZ+3*height/5, u, 0);
+        SpawnForced(bloodSplatters[1][checkFlemoid()], bodyX, bodyY, bodyZ+3*height/5, u, 0);
         int scale = height/32; // 32 is the height of the sprite's core.
         SetActorProperty(u, AProp_ScaleX, scale);
         SetActorProperty(u, AProp_ScaleY, scale);
@@ -109,6 +157,7 @@ script "satanium_monsterdamage" (int ev, int dmg, int type)
     if(CheckInventory("Satanium_JustBled"))
         terminate;
     GiveInventory("Satanium_JustBled", 1);
+    GiveInventory("Satanium_HitFlash", 1);
 
     int rad = GetActorProperty(0, APROP_Radius);
 
@@ -116,10 +165,10 @@ script "satanium_monsterdamage" (int ev, int dmg, int type)
     int bloodY = clamp(shotY, bodyY - rad, bodyY + rad);
     int bloodZ = clamp(shotZ, bodyZ, bodyZ + height);
 
-    SpawnForced("Satanium_Blood_Small", bloodX, bloodY, bloodZ, 0, 0);
+    SpawnForced(bloodSplatters[0][checkFlemoid()], bloodX, bloodY, bloodZ, 0, 0);
 
     Thing_SetTranslation(0, CLR_SATANIUM_DMG);
-    while(Checkinventory("Satanium_JustBled")) delay(1);
+    while(Checkinventory("Satanium_HitFlash")) delay(1);
     Thing_SetTranslation(0, 0);
 }
 
@@ -154,4 +203,51 @@ script "satanium_projectileflags" (void)
 {
     ACS_NamedExecuteWithResult("core_changeactorflag", "BLOODSPLATTER", false);
     ACS_NamedExecuteWithResult("core_changeactorflag", "BLOODLESSIMPACT", true);
+}
+
+#define STR_CONT_LIMIT 300
+int contText[STR_CONT_LIMIT];
+int contKey[STR_CONT_LIMIT];
+
+function int strFind(str text, str key)
+{
+    int textlen = StrLen(text);
+    int keylen = StrLen(key);
+
+    if(keyLen > STR_CONT_LIMIT) return -1;
+    if(textlen > STR_CONT_LIMIT) return -1;
+    if(keyLen > textLen) return -1;
+
+    if(StrICmp(text, key) == 0)
+        return 0;
+
+    StrCpy(a:contText, text, 0);
+    StrCpy(a:contKey, Key, 0);
+
+    for(int i = 0; i < textLen-keyLen; i++) {
+        for(int j = 0; j < keyLen; j++) {
+            if(charToLower(contText[i+j]) != charToLower(contKey[j]))
+                break;
+        }
+        if(j == keyLen)
+            return i;
+    }
+    return -1;
+}
+
+function bool isLowerCase(int ch)
+{
+    return ch >= 'a' && ch <= 'z';
+}
+
+function bool isUpperCase(int ch)
+{
+    return ch >= 'A' && ch <= 'Z';
+}
+
+function int charToLower(int ch)
+{
+    if(isUpperCase(ch))
+        return (ch+32);
+    return ch;
 }

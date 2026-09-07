@@ -79,6 +79,7 @@ actor SataniumRedJewel : BaseMM8BDMUseItem
             stop
     }
 }
+actor ChexSataniumRedJewel : SataniumRedJewel { States { Pickup: S_KY A 0 ACS_NamedExecuteWithResult("satanium_givekey", 3, 1) stop } }
 
 actor SataniumBlueJewel : BaseMM8BDMUseItem
 {
@@ -98,6 +99,7 @@ actor SataniumBlueJewel : BaseMM8BDMUseItem
             stop
     }
 }
+actor ChexSataniumBlueJewel : SataniumBlueJewel { States { Pickup: S_KY A 0 ACS_NamedExecuteWithResult("satanium_givekey", 4, 1) stop } }
 
 actor SataniumYellowJewel : BaseMM8BDMUseItem
 {
@@ -117,6 +119,7 @@ actor SataniumYellowJewel : BaseMM8BDMUseItem
             stop
     }
 }
+actor ChexSataniumYellowJewel : SataniumYellowJewel { States { Pickup: S_KY A 0 ACS_NamedExecuteWithResult("satanium_givekey", 5, 1) stop } }
 
 actor SataniumJewelParticle : BasicGraphicEffect
 {

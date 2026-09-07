@@ -3,6 +3,7 @@ actor Satanium_ItemFog : ItemFog replaces ItemFog {}
 
 actor Satanium_Blood_Small : BasicGraphicEffect
 {
+    Translation "192:192=[165,0,0]:[165,0,0]", "198:198=[231,0,90]:[231,0,90]"
     +FORCEXYBILLBOARD
     scale 2.0
     States
@@ -27,6 +28,7 @@ actor Satanium_Blood_Small : BasicGraphicEffect
             stop
     }
 }
+actor Satanium_Blood_Small_Green : Satanium_Blood_Small { translation "192:192=[0,168,68]:[0,168,68]", "198:198=[128,208,16]:[128,208,16]" }
 
 actor Satanium_Blood_Big : Satanium_Blood_Small
 {
@@ -39,6 +41,7 @@ actor Satanium_Blood_Big : Satanium_Blood_Small
             stop
     }
 }
+actor Satanium_Blood_Big_Green : Satanium_Blood_Big { translation "192:192=[0,168,68]:[0,168,68]", "198:198=[128,208,16]:[128,208,16]" }
 
 actor Satanium_Blood_Big_Reverse : Satanium_Blood_Big
 {
@@ -53,3 +56,30 @@ actor Satanium_Blood_Big_Reverse : Satanium_Blood_Big
 }
 
 actor Satanium_JustBled : Powerup { powerup.duration 4 }
+actor Satanium_HitFlash : Powerup { powerup.duration 7 }
+
+// Drives conditional monster effects
+
+// Archvile -- Some VFX trigger when an archvile is active and wandering around.
+// Also when a monster is revived.
+actor Satanium_IsArchvile : Once {}
+actor Satanium_NotArchvile : Once {}
+
+// Archvile check is simple.
+actor Satanium_CheckArchvile : CustomInventory
+{
+    States
+    {
+        Pickup:
+            TNT1 A 0 A_JumpIf(CheckClass("Archvile", 0, true), "IsArchvile")
+            TNT1 A 0 A_GiveInventory("Satanium_NotArchvile", 1)
+            stop
+        IsArchvile:
+            TNT1 A 0 A_GiveInventory("Satanium_IsArchvile", 1)
+            stop
+    }
+}
+
+// The Flemoid check was *not*.
+actor Satanium_IsFlemoid : Once {}
+actor Satanium_NotFlemoid : Once {}

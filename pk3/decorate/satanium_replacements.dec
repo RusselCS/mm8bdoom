@@ -92,6 +92,9 @@ actor ChexBackpackReplace : SataniumWepReplacer replaces Zorchpack {}
 actor ChexRedKeyReplacer : SataniumWepReplacer replaces ChexRedCard {}
 actor ChexBlueKeyReplacer : SataniumWepReplacer replaces ChexBlueCard {}
 actor ChexYellowKeyReplacer : SataniumWepReplacer replaces ChexYellowCard {}
+actor ChexRedSkullReplacer : SataniumWepReplacer replaces RedFlemKey {}
+actor ChexBlueSkullReplacer : SataniumWepReplacer replaces BlueFlemKey {}
+actor ChexYellowSkullReplacer : SataniumWepReplacer replaces YellowFlemKey {}
 
 // actor ComputerAreaMapReplace : SataniumWepReplacer replaces ComputerAreaMap {}			// Fills automap
 // actor SlimeProofSuitReplace : SataniumWepReplacer replaces SlimeProofSuit {}			// Radsuit equivalent (protects against slimy floors)
