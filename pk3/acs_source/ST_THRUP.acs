@@ -1,0 +1,35 @@
+#library "ST_THRUP"
+
+#include "zcommon.acs"
+
+#include "DTADD.acs"
+
+script "satanium_thrup_register" OPEN
+{
+    DefineHookFunction(DTADD_HF_PROJ, "satanium_propthru_projectileflags", 0.0);
+    // DefineHookFunction(DTADD_HF_PLAYER_SPAWN, "satanium_propthru_projectileflags", 0.0);
+}
+
+script "satanium_thrup_playerspawn" ENTER
+{
+    SetActorProperty(0, AProp_Species, "Satanium_Object");
+}
+
+script "satanium_propthru_projectileflags" (void)
+{
+    ACS_NamedExecuteWithResult("core_changeactorflag", "MTHRUSPECIES", true);
+}
+
+script "satanium_propthru_propspecies" (int e, int a, int b) EVENT
+{
+    if(e != GAMEEVENT_ACTOR_SPAWNED) terminate;
+
+    if(CheckFlag(0, "SPECIAL")) terminate;
+    if(!CheckFlag(0, "SOLID")) terminate;
+    if(CheckFlag(0, "CANPASS")) terminate;
+
+    int filter = ACTOR_PLAYER | ACTOR_BOT | ACTOR_VOODOODOLL | ACTOR_MONSTER | ACTOR_ALIVE | ACTOR_DEAD | ACTOR_MISSILE;
+    if(ClassifyActor(0) & filter) terminate;
+
+    SetActorProperty(0, AProp_Species, "Satanium_Object");
+}
