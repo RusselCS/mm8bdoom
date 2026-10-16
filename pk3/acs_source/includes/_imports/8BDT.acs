@@ -560,7 +560,7 @@ function void setPowerApropPermanent(int idx, int val) { PowerProperty_Value[idx
 // These are just several arrays that contain the ACS scripts run by various hooks tied to said arrays.
 //
 #LIBDEFINE MAX_HOOKFUNCTION_LIMIT 200
-#LIBDEFINE MAX_HOOK_TYPES 47
+#LIBDEFINE MAX_HOOK_TYPES 49
 
 str HookFunctions_Table[MAX_HOOK_TYPES][MAX_HOOKFUNCTION_LIMIT];
 int HookFunctions_Priority[MAX_HOOK_TYPES][MAX_HOOKFUNCTION_LIMIT];

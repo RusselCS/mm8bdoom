@@ -9,6 +9,7 @@
 #include "8BDMVARS.acs"
 
 #include "ST_CONST.acs"
+#include "ST_COMM.acs"
 
 #import "8BDT.acs"
 
@@ -92,6 +93,7 @@ script "satanium_replacepickup" (int mass)
     int x = GetActorX(0);
     int y = GetActorY(0);
     int z = GetActorZ(0);
+    int h = GetActorProperty(0, AProp_Height);
     int dropped = CheckFlag(0, "DROPPED");
 
     if(dropped) {
@@ -111,7 +113,7 @@ script "satanium_replacepickup" (int mass)
                 for(int p = PLN_TID; p < PLN_TID + ServerMAX; p++) {
                     if(CheckActorInventory(p, cls) == 0)
                         continue;
-                    if(!CheckSight(0, p, 0))
+                    if(!canISeeItXYZH(p, x, y, z, h))
                         continue;
                     dropReplacement = 1;
                 }
@@ -240,5 +242,6 @@ function int giveKey(int keyId, int gameId)
     if(StrLen(keys[keyid][gameId])==0) return false;
 
     GiveInventory(keys[keyid][gameId], 1);
+    ACS_NamedExecuteWithResult("satanium_callhook", "satanium_getkey", keys[keyid][gameId]);
     return true;
 }

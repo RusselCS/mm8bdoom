@@ -1,0 +1,21 @@
+#library "ST_SAVE"
+
+#include "zcommon.acs"
+
+#include "DTADD.acs"
+
+script "satanium_save_definehook" OPEN
+{
+    DefineCustomHookFunction("satanium_getkey", "satanium_keyautosave", 0.0);
+}
+
+script "satanium_keyautosave" (int key)
+{
+    ACS_NamedExecuteWithResult("satanium_quicksave", StrParam(s:"Picked up ", s:key, s:"."));
+}
+
+script "satanium_quicksave" (int msg)
+{
+    Autosave();
+    Log(s:"Autosave: ", s:msg);
+}

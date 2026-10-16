@@ -1,0 +1,149 @@
+
+model Satanium_Blood_Floor
+{
+    Path "models"
+    Model 0 "SCSLASH.md3"
+    Skin 0 "STBLSPLQ"
+
+    FrameIndex S_BL Q 0 0
+}
+model Satanium_Blood_Floor
+{
+    Path "models"
+    Model 0 "SCSLASH.md3"
+    Skin 0 "STBLSPLR"
+
+    FrameIndex S_BL R 0 0
+}
+
+model Satanium_Blood_Floor_Green
+{
+    Path "models"
+    Model 0 "SCSLASH.md3"
+    Skin 0 "STSLSPLQ"
+
+    FrameIndex S_BL Q 0 0
+}
+model Satanium_Blood_Floor_Green
+{
+    Path "models"
+    Model 0 "SCSLASH.md3"
+    Skin 0 "STSLSPLR"
+
+    FrameIndex S_BL R 0 0
+}
+
+
+model Satanium_Pentagram_Floor
+{
+    Path "models"
+    Model 0 "SCSLASH.md3"
+    Skin 0 "PNTGRMA.png"
+
+    FrameIndex STPN A 0 0
+}
+model Satanium_Pentagram_Floor
+{
+    Path "models"
+    Model 0 "SCSLASH.md3"
+    Skin 0 "PNTGRMB.png"
+
+    FrameIndex STPN B 0 0
+}
+model Satanium_Pentagram_Floor
+{
+    Path "models"
+    Model 0 "SCSLASH.md3"
+    Skin 0 "PNTGRMC.png"
+
+    FrameIndex STPN C 0 0
+}
+model Satanium_Pentagram_Floor
+{
+    Path "models"
+    Model 0 "SCSLASH.md3"
+    Skin 0 "PNTGRMD.png"
+
+    FrameIndex STPN D 0 0
+}
+model Satanium_Pentagram_Floor
+{
+    Path "models"
+    Model 0 "SCSLASH.md3"
+    Skin 0 "PNTGRME.png"
+
+    FrameIndex STPN E 0 0
+}
+model Satanium_Pentagram_Floor
+{
+    Path "models"
+    Model 0 "SCSLASH.md3"
+    Skin 0 "PNTGRMF.png"
+
+    FrameIndex STPN F 0 0
+}
+model Satanium_Pentagram_Floor
+{
+    Path "models"
+    Model 0 "SCSLASH.md3"
+    Skin 0 "PNTGRMG.png"
+
+    FrameIndex STPN G 0 0
+}
+
+model Satanium_Pentagram_Raise
+{
+    Path "models"
+    Model 0 "SCSLASH.md3"
+    Skin 0 "PNTGRMA.png"
+
+    FrameIndex STPN A 0 0
+}
+model Satanium_Pentagram_Raise
+{
+    Path "models"
+    Model 0 "SCSLASH.md3"
+    Skin 0 "PNTGRMB.png"
+
+    FrameIndex STPN B 0 0
+}
+model Satanium_Pentagram_Raise
+{
+    Path "models"
+    Model 0 "SCSLASH.md3"
+    Skin 0 "PNTGRMC.png"
+
+    FrameIndex STPN C 0 0
+}
+model Satanium_Pentagram_Raise
+{
+    Path "models"
+    Model 0 "SCSLASH.md3"
+    Skin 0 "PNTGRMD.png"
+
+    FrameIndex STPN D 0 0
+}
+model Satanium_Pentagram_Raise
+{
+    Path "models"
+    Model 0 "SCSLASH.md3"
+    Skin 0 "PNTGRME.png"
+
+    FrameIndex STPN E 0 0
+}
+model Satanium_Pentagram_Raise
+{
+    Path "models"
+    Model 0 "SCSLASH.md3"
+    Skin 0 "PNTGRMF.png"
+
+    FrameIndex STPN F 0 0
+}
+model Satanium_Pentagram_Raise
+{
+    Path "models"
+    Model 0 "SCSLASH.md3"
+    Skin 0 "PNTGRMG.png"
+
+    FrameIndex STPN G 0 0
+}

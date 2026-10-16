@@ -3,8 +3,10 @@
 #include "zcommon.acs"
 
 #include "MEGAPAL.acs"
+#include "DTADD.acs"
 
 #include "ST_CONST.acs"
+#include "ST_COMM.acs"
 
 function bool IsRGB(int x) { return ((x>>0)  & 0x000000FF) == 0; }
 
@@ -425,6 +427,73 @@ function void createFullTranslation(int id) {
 
 script "satanium_actortranslationcorrection" OPEN CLIENTSIDE
 {
-    // DefineHookFunction(DTADD_HF_PROJCLIENT, "satanium_actortranslationcorrection_apply", 0.0);
+    // for(int i = 0; i < 256; i++) {
+    //     translationPalette[i][0] = palette_data[i][0];
+    //     translationPalette[i][1] = palette_data[i][1];
+    //     translationPalette[i][2] = palette_data[i][2];
+    // }
+    // createFullTranslation(CLR_SATANIUM_CORRECT);
+
     CreateTranslation(CLR_SATANIUM_DMG, 0:255=[255,255,255]:[255,255,255]);
+}
+
+script "satanium_colorfix" (int e, int a, int b) EVENT BUSY
+{
+    // if(e != GAMEEVENT_ACTOR_SPAWNED)
+    //     terminate;
+    // while(actors[0] == 0) delay(1);
+
+    // str act = GetActorClass(0);
+    // str cv = StrParam(s:"_SATANIUM_TRNSSTORE_", s:act);
+    // int val = GetCVar(cv);
+
+    // if(val == -1)
+    //     terminate;
+    // if(val != 0) {
+    //     Thing_SetTranslation(0, val);
+    //     terminate;
+    // }
+
+    // int idx = findActor(act);
+    // if(idx == -1)
+    //     terminate;
+
+    // str trns = getActorField(idx, FIELD_TRANSLATION);
+    // // Log(s:act, s:" // ", i:trns, s:" ", s:trns);
+    // if(trns == 0)
+    //     terminate;
+
+
+    // int seq[1000]; // unsure how long this should be?
+    // int len = StrLen(trns);
+    // StrCpy(a:seq, trns);
+
+    // int ranges[100][8];
+    // // source start
+    // // source end
+    // // dest start r
+    // // dest start g
+    // // dest start b
+    // // dest end r
+    // // dest end g
+    // // dest end b
+
+    // int inBlock = false;
+    // int m, n;
+
+    // for(int i = 0; i < len; i++) {
+    //     Log(i:i);
+    //     if(seq[i] == '"') {
+    //         inBlock = !inBlock;
+    //         i++;
+    //     }
+
+    //     if(!inBlock)
+    //         continue;
+
+    //     m = i;
+    //     while(seq[i] != ':') { i++; }
+    //     n = i;
+    //     Log(s:act, s:" first seq ", a:(seq, m, n-m));
+    // }
 }

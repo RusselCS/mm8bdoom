@@ -4,11 +4,20 @@
 
 #include "DTADD.acs"
 #include "ST_CONST.acs"
+#include "ST_COMM.acs"
 #include "HOOKUTIL.acs"
 
 #include "8BDMMATH.acs"
 
 int vilesActive = 0;
+int trackedViles[1000][4];
+int vileCount = 0;
+
+#define VILE_X 0
+#define VILE_Y 1
+#define VILE_Z 2
+#define VILE_H 3
+#define VILE_ACTIVE 4
 
 script "satanium_effect_open" OPEN
 {
@@ -26,26 +35,35 @@ script "satanium_registermonster" (int e, int a, int b) EVENT
     checkFlemoid();
 
     if(checkArchvile()) {
-        int vileActive = false;
+        int vileId = vileCount;
+        vileCount++;
+        trackedViles[vileId][VILE_X] = GetActorX(0);
+        trackedViles[vileId][VILE_Y] = GetActorY(0);
+        trackedViles[vileId][VILE_Z] = GetActorZ(0);
+        trackedViles[vileId][VILE_H] = GetActorProperty(0, AProp_Height);
+        trackedViles[vileId][VILE_ACTIVE] = false;
         While(true) {
             if(GetActorProperty(0, AProp_Health) <= 0) break;
 
             if(isActive()) {
-                if(!vileActive) {
-                    vileActive = !vileActive;
+                if(!trackedViles[vileId][VILE_ACTIVE]) {
+                    trackedViles[vileId][VILE_ACTIVE] = !trackedViles[vileId][VILE_ACTIVE];
                     vilesActive++;
                 }
+                trackedViles[vileId][VILE_X] = GetActorX(0);
+                trackedViles[vileId][VILE_Y] = GetActorY(0);
+                trackedViles[vileId][VILE_Z] = GetActorZ(0);
             } else {
-                if(vileActive) {
-                    vileActive = !vileActive;
+                if(trackedViles[vileId][VILE_ACTIVE]) {
+                    trackedViles[vileId][VILE_ACTIVE] = !trackedViles[vileId][VILE_ACTIVE];
                     vilesActive--;
                 }
             }
             delay(1);
         }
 
-        if(vileActive) {
-            vileActive = !vileActive;
+        if(trackedViles[vileId][VILE_ACTIVE]) {
+            trackedViles[vileId][VILE_ACTIVE] = !trackedViles[vileId][VILE_ACTIVE];
             vilesActive--;
         }
     }
@@ -106,9 +124,15 @@ function bool checkFlemoid(void)
     return ret;
 }
 
-str bloodSplatters[2][2] = {
+#define BLOOD_SMALL 0
+#define BLOOD_BIG 1
+#define BLOOD_FLOOR 2
+#define BLOOD_REVERSE 3
+str bloodSplatters[4][2] = {
     {"Satanium_Blood_Small", "Satanium_Blood_Small_Green"},
     {"Satanium_Blood_Big", "Satanium_Blood_Big_Green"},
+    {"Satanium_Blood_Floor", "Satanium_Blood_Floor_Green"},
+    {"Satanium_Blood_Reverse", "Satanium_Blood_Reverse_Green"},
 };
 
 script "satanium_monsterdamage" (int ev, int dmg, int type)
@@ -124,6 +148,7 @@ script "satanium_monsterdamage" (int ev, int dmg, int type)
 
     if(!CheckInventory("MM8BDMPlayer"))
         terminate;
+    dmg = DamageHook_GetEventResult();
 
     // [Russ] No need to check succeed here.
     DamageHook_SetActivator(0, AAPTR_DAMAGE_INFLICTOR);
@@ -174,21 +199,63 @@ script "satanium_monsterdamage" (int ev, int dmg, int type)
 
 script "satanium_waitforrevive" (void)
 {
-    while(true) {
-        delay(1);
-        if(GetActorProperty(0, AProp_Health) > 0) break;
-    }
+    int height = GetActorProperty(0, APROP_Height);
+    int scale = height/32; // 32 is the height of the sprite's core.
+    while(getActorZ(0) - GetActorFloorZ(0) > 0) delay(1);
 
     int bodyX = GetActorX(0);
     int bodyY = GetActorY(0);
     int bodyZ = GetActorZ(0);
-    int height = GetActorProperty(0, APROP_Height);
-    int u = UniqueTID();
-    SpawnForced("Satanium_Blood_Big_Reverse", bodyX, bodyY, bodyZ+3*height/5, u, 0);
-    int scale = height/32; // 32 is the height of the sprite's core.
-    SetActorProperty(u, AProp_ScaleX, scale);
-    SetActorProperty(u, AProp_ScaleY, scale);
-    Thing_ChangeTID(u, 0);
+
+    int mon = UniqueTID();
+    int at = ActivatorTID();
+    Thing_ChangeTID(0, mon);
+    int fx = UniqueTID();
+
+    SpawnForced(bloodSplatters[BLOOD_FLOOR][checkFlemoid()], bodyX, bodyY, bodyZ+0.1, fx, 0);
+    SetActivator(fx);
+    SetActorProperty(0, AProp_ScaleX, scale);
+    SetActorProperty(0, AProp_ScaleY, scale);
+    SetPointer(AAPTR_MASTER, mon);
+    Thing_ChangeTID(0, 0);
+    SetActivator(mon);
+
+    SpawnForced("Satanium_Pentagram_Floor", bodyX, bodyY, bodyZ+0.2, fx, 0);
+    SetActivator(fx);
+    SetActorProperty(0, AProp_ScaleX, scale);
+    SetActorProperty(0, AProp_ScaleY, scale);
+    SetPointer(AAPTR_MASTER, mon);
+    ACS_NamedExecuteWithResult("satanium_flatsprite");
+    Thing_ChangeTID(0, 0);
+    SetActivator(mon);
+
+    Thing_ChangeTID(0, at);
+
+    int waitingForVile = false;
+    while(true) {
+        if(checkForViles()) {
+            if(!waitingForVile) {
+                waitingForVile = !waitingForVile;
+                GiveInventory("Satanium_Archvile_State_Wander_CI", 1); // Waiting for vile state.
+            }
+        } else {
+            if(waitingForVile) {
+                waitingForVile = !waitingForVile;
+                GiveInventory("Satanium_Archvile_State_Gone_CI", 1); // Resting state.
+            }
+        }
+
+        delay(1);
+        if(GetActorProperty(0, AProp_Health) > 0) break;
+    }
+    GiveInventory("Satanium_Archvile_State_Revive_CI", 1); // Revive state.
+
+    fx = UniqueTID();
+    SpawnForced(bloodSplatters[BLOOD_REVERSE][checkFlemoid()], bodyX, bodyY, bodyZ+3*height/5, fx, 0);
+    SetActorProperty(fx, AProp_ScaleX, scale);
+    SetActorProperty(fx, AProp_ScaleY, scale);
+    Thing_ChangeTID(fx, 0);
+
     ACS_NamedExecuteWithResult("core_changeactorflag", "INVISIBLE", false);
     Thing_SetTranslation(0, CLR_SATANIUM_RES1);
     Delay(12);
@@ -197,6 +264,17 @@ script "satanium_waitforrevive" (void)
     Thing_SetTranslation(0, CLR_SATANIUM_RES3);
     Delay(12);
     Thing_SetTranslation(0, CLR_SATANIUM_BLANK);
+}
+
+function bool checkForViles(void)
+{
+    if(vilesActive == 0) return false;
+    for(int i = 0; i < vileCount; i++) {
+        if(!trackedViles[i][VILE_ACTIVE]) continue;
+        if(canISeeItXYZH(0, trackedViles[i][VILE_X], trackedViles[i][VILE_Y], trackedViles[i][VILE_Z], trackedViles[i][VILE_H]) == YES)
+            return true;
+    }
+    return false;
 }
 
 script "satanium_projectileflags" (void)
@@ -250,4 +328,71 @@ function int charToLower(int ch)
     if(isUpperCase(ch))
         return (ch+32);
     return ch;
+}
+
+int px, py, pz;
+int ppitch, pyaw;
+int plastupdate = -1;
+
+script "satanium_flatsprite" (int zoffs) CLIENTSIDE
+{
+    zoffs <<= 16;
+
+    int baseScale = GetActorProperty(0, APROP_ScaleY);
+    int scale = baseScale;
+    int cln = ConsolePlayerNumber();
+    int invisibleForAnAmazingReason = false;
+    while(true)
+    {
+        if(ClassifyActor(0) & ACTOR_WORLD) terminate;
+
+        if(canModels()) {
+            scale = baseScale;
+        } else {
+            ACS_NamedExecuteWithResult("satanium_wherecamera", cln);
+
+            int xy = VectorLength(GetActorX(0)-px, GetActorY(0)-py);
+            int z = abs((GetActorZ(0)+zoffs)-pz);
+            int vang = abs(VectorAngle(xy, z));
+            int pdiff = abs(vang-ppitch);
+
+            scale = FixedMul(vang*4, 4*FixedMul(0.25-pdiff, baseScale));
+        }
+
+        if(scale == 0) {
+            if(!invisibleForAnAmazingReason) {
+                invisibleForAnAmazingReason = !invisibleForAnAmazingReason;
+                ACS_NamedExecuteWithResult("core_changeactorflag", "INVISIBLE", true);
+            }
+        } else {
+            if(invisibleForAnAmazingReason) {
+                invisibleForAnAmazingReason = !invisibleForAnAmazingReason;
+                ACS_NamedExecuteWithResult("core_changeactorflag", "INVISIBLE", false);
+            }
+            SetActorProperty(0, AProp_ScaleY, scale);
+        }
+
+        delay(1);
+    }
+}
+
+script "satanium_wherecamera" (int who)
+{
+    if(plastupdate >= Timer())
+        terminate;
+    SetActivatorToPlayer(who);
+    SetActivator(0, AAPTR_PLAYER_GETCAMERA);
+    px = GetActorX(0);
+    py = GetActorY(0);
+    pz = GetActorZ(0)+GetActorProperty(0, APROP_ViewHeight);
+    ppitch = GetActorPitch(0);
+    pyaw = GetActorAngle(0);
+    plastupdate = Timer();
+}
+
+function bool canModels(void)
+{
+    if(GetCvar("vid_renderer")==0) return false;
+    if(!GetCvar("gl_use_models")) return false;
+    return true;
 }

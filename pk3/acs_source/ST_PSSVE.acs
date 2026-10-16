@@ -1,0 +1,178 @@
+#library "ST_PSSVE"
+
+#include "zcommon.acs"
+
+#include "DTADD.acs"
+#include "HOOKUTIL.acs"
+
+#include "8BDMMATH.acs"
+#include "8BDMEFCT.acs"
+
+#import "8BDT.acs"
+
+script "satanium_passive_register" OPEN
+{
+    DefineHookFunction(DTADD_HF_ACTOR_DAMAGED, "satanium_handleshield_damage", 0.0);
+    DefineHookFunction(DTADD_HF_ACTOR_DAMAGED, "satanium_handleexit_damage", -1.1);
+
+    DefineHookFunction(DTADD_HF_ACTOR_DAMAGED, "satanium_handlemonster_damage", 1.0);
+}
+
+// SHIELDING ----------------------------------------------------------------------------------------------------------
+
+#define ST_MAX_ITEMS_GLOBAL_LIMIT MAX_ITEMS_GLOBAL_LIMIT+MAX_BUSTER_LIMIT
+
+script "satanium_passive_enter_r" RESPAWN { ACS_NamedExecuteWithResult("satanium_sys_enter"); }
+script "satanium_passive_enter" ENTER
+{
+    GiveInventory("Satanium_ExitUnit", 1);
+
+    int i, count;
+    str item;
+
+    int itemCounts[ST_MAX_ITEMS_GLOBAL_LIMIT];
+    while(true) {
+        bool selected = false;
+        for(i = 0; i < MAX_ITEMS_GLOBAL; i++) {
+            item = getItemActor(i);
+            count = CheckInventory(item);
+            if(itemCounts[i] == count) continue;
+            itemCounts[i] = count;
+
+            if(selected) continue;
+            if(StrCmp("Satanium_ExitUnit", GetSelectedInventory()) != 0) continue;
+            selected = true;
+            SetSelectedInventory(item);
+        }
+
+        for(i = 0; i < MAX_BUSTERUPGRADES; i++) {
+            item = getBusterUpgrade(i);
+            count = CheckInventory(item);
+            if(itemCounts[MAX_ITEMS_GLOBAL+i] == count) continue;
+            itemCounts[i] = count;
+
+            if(selected) continue;
+            if(StrCmp("Satanium_ExitUnit", GetSelectedInventory()) != 0) continue;
+            selected = true;
+            SetSelectedInventory(item);
+        }
+        delay(1);
+    }
+}
+
+script "satanium_handleshield_damage" (int e, int dmg, int type)
+{
+    dmg = DamageHook_GetEventResult();
+    if(dmg == 0)
+        terminate;
+
+    int armor = CheckInventory("SataniumArmor_F");
+    if(armor == 0)
+        terminate;
+
+    if(armor > 0) {
+        int resDmg = dmg - armor;
+        TakeInventory("SataniumArmor_F", dmg);
+    } else {
+        resDmg = dmg;
+    }
+
+    if(resDmg <= 0) {
+        resDmg = 0;
+        DamageHook_SetResultValue(1);
+        int hp = getActorProperty(0, AProp_Health);
+        int mhp = ACS_NamedExecuteWithResult("core_getmaxhealth");
+        updateArmor(CheckInventory("SataniumArmor_F"), hp-resDmg);
+        if(hp == mhp) delay(1);
+        HealThing(1);
+    } else {
+        DamageHook_SetResultValue(resDmg);
+    }
+}
+
+script "satanium_handleshield_pickup" (int amt)
+{
+    if(CheckInventory("SataniumArmor_F") < 200) {
+        setResultValue(true);
+    } else {
+        SetResultValue(false);
+    }
+    GiveInventory("SataniumArmor_F", amt);
+    updateArmor(CheckInventory("SataniumArmor_F"), GetActorProperty(0, AProp_Health));
+}
+
+function void updateArmor(int newArmor, int hp)
+{
+    SetInventory("SataniumArmorHealthBar_F", min(newArmor, hp));
+
+    if(newArmor >= 100) {
+        SetInventory("SataniumArmorBar1_F", 100);
+        SetInventory("SataniumArmorBar2_F", newArmor-100);
+    } else {
+        SetInventory("SataniumArmorBar1_F", newArmor);
+        SetInventory("SataniumArmorBar2_F", 0);
+    }
+}
+
+// ESCAPE UNIT --------------------------------------------------------------------------------------------------------
+
+#define EXIT_SECONDS 3
+#define EXIT_TIME 35*EXIT_SECONDS
+script "satanium_handleexitunit" (void)
+{
+    int startTime = Timer();
+    int x = GetActorX(0);
+    int y = GetActorY(0);
+    int z = GetActorZ(0);
+    Print(s:"Calibrating Exit position, please remain still for ", i:EXIT_SECONDS, s:" seconds...");
+    while(true) {
+        if(CheckInventory("Satanium_Damaged")) break;
+        if(X != GetActorX(0)) break;
+        if(Y != GetActorY(0)) break;
+        if(Z != GetActorZ(0)) break;
+
+        int curTime = Timer()-startTime;
+        if(curTime >= EXIT_TIME) {
+            Print(s:"Exit succeeded.");
+            GiveInventory("Satanium_ExitUnitUse", 1);
+            terminate;
+        }
+
+        if((curTime % 35) == 0) {
+            Print(s:"Calibrating Exit position, please remain still for ", i:EXIT_SECONDS-(curTime/35), s:" seconds...");
+        }
+
+        delay(1);
+    }
+    Print(s:"Exit failed.");
+}
+
+script "satanium_handleexit_damage" (void)
+{
+    GiveInventory("Satanium_Damaged", 1);
+}
+
+// MONSTER DAMAGE -----------------------------------------------------------------------------------------------------
+
+#define DMG_THRESHOLD 15
+
+script "satanium_handlemonster_damage" (int e, int dmg, int type)
+{
+    if(!CheckFlag(0,"ISMONSTER"))
+        terminate;
+
+    if(!DamageHook_SetActivator(0, AAPTR_DAMAGE_SOURCE))
+        terminate;
+
+    if(!CheckInventory("MM8BDMPlayer"))
+        terminate;
+
+    dmg = DamageHook_GetEventResult();
+    int overDmg = dmg / 6;
+    if(overDmg <= 0)
+        terminate;
+
+    overDmg = (overDmg * overDmg) / 3;
+
+    DamageHook_SetResultValue(dmg + random(1, 3) * overDmg);
+}

@@ -1,0 +1,31 @@
+// Vertical
+appendstatusbar fullscreen, forcescaled
+{
+    InInventory SataniumArmor_F, 1
+    {
+        DrawBar "STANARM1", "NOBAR", SataniumArmorBar1_F, vertical, 24, 8;
+        DrawBar "STANARM2", "NOBAR", SataniumArmorBar2_F, vertical, 24, 8;
+        DrawBar "STANARMB", "NOBAR", SataniumArmorHealthBar_F, vertical, 24, 8;
+
+        InInventory HealthNumberFlag, 1
+        {
+	        DrawNumber 5, "8BDMAFONT", ShieldBlue, SataniumArmor_F, alignment(left), 31, 21;
+        }
+    }
+}
+
+// Horizontal
+appendstatusbar normal, forcescaled
+{
+    InInventory SataniumArmor_F, 1
+    {
+        Drawbar "STANARH1", "VNOBAR", SataniumArmorBar1_F, horizontal, 130, 184;
+        Drawbar "STANARH2", "VNOBAR", SataniumArmorBar2_F, horizontal, 130, 184;
+        Drawbar "STANARHB", "VNOBAR", SataniumArmorHealthBar_F, horizontal, 130, 184;
+
+        InInventory HealthNumberFlag, 1
+        {
+            DrawNumber 5, "8BDMAFONT", ShieldBlue, SataniumArmor_F, alignment(left), 132, 177;
+        }
+    }
+}

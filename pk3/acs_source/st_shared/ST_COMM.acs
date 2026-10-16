@@ -1,2 +1,29 @@
 
+function bool canISeeItXYZH(int tid, int x, int y, int z, int h)
+{
+    int u = UniqueTID();
+    int u2 = UniqueTID(u+1);
+    int res;
+
+    res = 0;
+    res += SpawnForced("MapSpot", x, y, z, u, 0);
+    res += SpawnForced("MapSpot", x, y, z+h, u, 0);
+    if(res < 2) {
+        Thing_Remove(u);
+        return false;
+    }
+
+    res = 0;
+    res += SpawnForced("MapSpot", GetActorx(tid), GetActory(tid), GetActorz(tid), u2, 0);
+    res += SpawnForced("MapSpot", GetActorx(tid), GetActory(tid), GetActorz(tid)+GetActorProperty(tid, AProp_Height), u2, 0);
+    if(res < 2) {
+        Thing_Remove(u2);
+        return false;
+    }
+
+    res = CheckSight(u, u2, 0);
+    Thing_Remove(u);
+    Thing_Remove(u2);
+    return res;
+}
 

@@ -1,9 +1,7 @@
-actor SataniumSmallerArmor_P : BasicArmorBonus
-{
-    armor.maxsaveamount 9999
-    armor.savepercent 100
-    armor.saveamount 1
-}
+actor SataniumArmor_F : Once { inventory.maxamount 200 }
+actor SataniumArmorBar1_F : Once { inventory.maxamount 100 }
+actor SataniumArmorBar2_F : SataniumArmorBar1_F {}
+actor SataniumArmorHealthBar_F : SataniumArmorBar1_F {}
 
 actor SataniumSmallerArmor : BaseMM8BDMItem
 {
@@ -23,8 +21,7 @@ SpawnLoop:
 STRM ABCD 5
 loop
 Pickup:
-TNT1 A 0 A_GiveInventory("SataniumSmallerArmor_P", 1)
-stop
+TNT1 A 0 ACS_NamedExecuteWithResult("satanium_handleshield_pickup", 1)
 }
 }
 
@@ -48,7 +45,6 @@ SpawnLoop:
 STRM EFGH 5
 loop
 Pickup:
-TNT1 A 0 A_GiveInventory("SataniumBigArmor_P", 1)
-stop
+TNT1 A 0 ACS_NamedExecuteWithResult("satanium_handleshield_pickup", 55)
 }
 }

@@ -1,0 +1,510 @@
+#library "ST_PARSE"
+
+#include "zcommon.acs"
+
+#include "ST_COMM.acs"
+
+#define MAX_INT 2147483647
+
+world int 22: f[];
+world str 22: actors[];
+#define FIELD_MAX 3
+#define FIELD_NAME 0
+#define FIELD_TRANSLATION 1
+#define FIELD_PARENT 2
+
+#define DEF_INIT 0
+#define DEF_COUNT 1
+
+function str getActorField(int idx, int prop) { return actors[(1+idx)*FIELD_MAX+prop]; }
+function void setActorField(int idx, int prop, int res) { actors[(1+idx)*FIELD_MAX+prop] = res; }
+function int findActor(str act) {
+    int count = getActorField(-1, DEF_COUNT);
+    for(int i = 0; i < count; i++) {
+        if(StrICmp(act, getActorField(i, FIELD_NAME)) == 0) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+#define MAX_ARRAY_SIZE MAX_INT >> 17
+
+str fileList[MAX_ARRAY_SIZE][2];
+str tempActors[MAX_ARRAY_SIZE][FIELD_MAX];
+int actorIdx[MAX_ARRAY_SIZE];
+
+#define KEY_INCLUDE 0
+#define KEY_ACTOR 1
+#define KEY_TRANSLATION 2
+#define KEY_STATES 3
+
+int keyWords[100][12] = {
+    {8,'#','i','n','c','l','u','d','e'},
+    {5,'a','c','t','o','r'},
+    {11,'t','r','a','n','s','l','a','t','i','o','n'},
+    {6, 's','t','a','t','e','s'},
+};
+
+function bool checkKey(int st, int len, int key)
+{
+    if(keyWords[key][0] != len)
+        return false;
+    for(int i = 0; i < len; i++) {
+        if(!charMatch(f[st+i], keyWords[key][i+1]))
+            return false;
+    }
+    return true;
+}
+
+function bool isWhiteSpace(int x)
+{
+    if(x == 32) return true; // space
+    if(x == '\t') return true;
+    if(x == '\n') return true;
+    if(x == 10) return true; // line feed
+    if(x == 13) return true; // carriage return
+    return false;
+}
+
+function bool isInit(void)
+{
+    return getActorField(-1, DEF_INIT);
+}
+
+function int lo(int x)
+{
+    if(x < 'A') return x;
+    if(x > 'Z') return x;
+    return x + 32;
+}
+
+function bool charMatch(int x, int y)
+{
+    return lo(x) == lo(y);
+}
+
+function bool isNumber(int x)
+{
+    if(x < '0') return false;
+    if(x > '9') return false;
+    return true;
+}
+
+// Pointers for the tokenizer.
+int start, end, length, eof;
+
+// Symbols that can start a token.
+function bool tokenStarter(int i)
+{
+    // if(i >= eof) return false;
+    return !isWhiteSpace(f[i]);
+}
+
+// Symbols that can end a token.
+function bool tokenEnder(int i)
+{
+    int res = tokenEnder_(i);
+    if(res) {
+        // // Log(s:"Char in slot ", i:i, s:" (", i:f[i], s:") is a token ender.");
+    } else {
+        // // Log(s:"Char in slot ", i:i, s:" (", i:f[i], s:") is NOT a token ender.");
+    }
+    return res;
+}
+
+function bool tokenEnder_(int i)
+{
+    if(isCommentStarter(i) > 0) return true;
+    int x = f[i];
+    if(x == ':') return true;
+    if(x == '"') return true;
+    if(x == '{') return true;
+    if(x == '}') return true;
+    return isWhiteSpace(x);
+}
+
+function int isCommentStarter(int i)
+{
+    int x = f[i];
+    if(x != '/') return 0;
+    if(i+1 >= eof) return 0;
+    int y = f[i+1];
+    if(y == '/') return 1;
+    if(y == '*') return 2;
+    return 0;
+}
+
+function bool isCommentEnder(int i, int style)
+{
+    int x = f[i];
+    if(style == 1) { // line
+        if(x == '\n') return true;
+    } else { // block
+        if(x != '*') return false;
+        if(i+1 >= eof) return false;
+        int y = f[i+1];
+        if(y == '/') return true;
+    }
+    return false;
+}
+
+// Symbols that are themselves tokens because they handle flow control.
+function bool symbolToken(int i)
+{
+    int x = f[i];
+    if(x == ':') return true;
+    if(x == ',') return true;
+    if(x == '{') return true;
+    if(x == '}') return true;
+    return false;
+}
+
+function int tokenizeFile(str file, int st, int flags) {
+    int res = LumpOpen(file, st, flags);
+    // // Log(s:file, s:" found at index ", i:res);
+    if(res == -1)
+        return -1;
+    start = 0;
+    end = -1;
+    eof = LumpGetInfo(res, LUMP_INFO_SIZE);
+    LumpReadArray(res, 0, f, 0);
+
+    return res;
+}
+
+function bool nextToken(void)
+{
+    int i = end+1;
+
+    if(i >= eof) {
+        start = eof;
+        end = eof;
+        return false;
+    }
+
+    // // Log(s:"Finding token start.");
+    while(!tokenStarter(i)) {
+        if(i >= eof) {
+            start = eof;
+            end = eof;
+            return false;
+        }
+        i++;
+    }
+    start = i;
+    // // Log(s:"fhfh ", c:f[i]);
+    // // Log(s:"Token starter is #", i:f[i], s:" whitespace: ", i:isWhiteSpace(f[i]));
+    if(symbolToken(i)) {
+        end = start;
+        length = 1;
+        return true;
+    }
+
+    i++;
+
+    int commentStyle = isCommentStarter(start);
+
+    if(f[start] == '"') {
+        // // Log(s:"Finding token end.");
+        while(f[i] != '"') {
+            if(f[i] == 92) i++; // escape character
+            if(i >= eof) break;
+            i++;
+        }
+        i++;
+    } else if(commentStyle > 0) {
+        while(!isCommentEnder(i, commentStyle)) {
+            if(i >= eof) break;
+            i++;
+        }
+        if(commentStyle == 2) {
+            i+=2;
+        }
+    } else {
+        while(!tokenEnder(i)) {
+            if(i >= eof) break;
+            i++;
+        }
+    }
+    end = i-1;
+
+    length = end-start+1;
+    return hasNext();
+}
+
+function bool next(void)
+{
+    int res;
+    while(true) {
+        res = nextToken();
+        if(!res) break;
+        if(!isComment(start)) break;
+    }
+
+    return res;
+}
+
+function bool hasNext(void)
+{
+    return end < eof;
+}
+
+function bool isComment(int st)
+{
+    if(f[st] != '/') return false;
+    if(f[st+1] == '/') return true;
+    if(f[st+1] == '*') return true;
+    return false;
+}
+
+script "bigdata" OPEN BUSY
+{
+    if(isInit()) terminate;
+
+    int len = 0;
+    int fileCount = 0;
+    int currFile = 0;
+
+    int actorCount = 0;
+
+    // // Log(s:"Putting the first decorate in...");
+    fileList[fileCount][0] = "DECORATE";
+    fileList[fileCount][1] = 0;
+
+    // fileList[fileCount][0] = "decorate/_satanium_root.dec";
+    // fileList[fileCount][1] = LUMP_OPEN_FULLPATH;
+
+    fileCount++;
+    // // Log(s:"Succeeded");
+
+    while(currFile < fileCount) {
+        int index = 0;
+        while(true) {
+            index = tokenizeFile(fileList[currFile][0], index, fileList[currFile][1]);
+            if(index == -1) {
+                // Log(s:"exiting.");
+                break;
+            }
+
+            bool lineComment = false;
+            bool blockComment = false;
+            bool inString = false;
+            bool inActor = false;
+            int j, m, n, goal;
+            int fieldStart, fieldEnd;
+
+            while(next())
+            {
+                // // Log(s:"Current token: '", a:(f, start, length), s:"' length: ", i:length);
+
+                if(checkKey(start, length, KEY_INCLUDE)) {
+                    if(!next()) break;
+                    if(f[start] == '"') {
+                        fileList[fileCount][0] = StrParam(a:(f, start+1, length-2));
+                        fileList[fileCount][1] = LUMP_OPEN_FULLPATH;
+                        // Log(s:"Adding file ", s:fileList[fileCount][0]);
+                        fileCount++;
+                    }
+                }
+
+                if(checkKey(start, length, KEY_ACTOR)) {
+                    if(!next()) break;
+                    if(f[start] == '"')
+                        tempActors[actorCount][FIELD_NAME] = StrParam(a:(f, start+1, length-2));
+                    else
+                        tempActors[actorCount][FIELD_NAME] = StrParam(a:(f, start, length));
+
+                    // Iterate until the first opening brace.
+                    while(next()) {
+                        if(f[start] == '{')
+                            break;
+                        // Log(s:"FLOW CONTROL: ACTOR HEADER");
+
+                        if(f[start] == ':') {
+                            if(!next()) break;
+
+                            if(f[start] == '"')
+                                tempActors[actorCount][FIELD_PARENT] = StrParam(a:(f, start+1, length-2));
+                            else
+                                tempActors[actorCount][FIELD_PARENT] = StrParam(a:(f, start, length));
+                        }
+
+                        // if(checkKey(start, length, KEY_REPLACES)) {
+
+                        // }
+                    }
+                    // Log(s:"FLOW CONTROL: IN ACTOR");
+
+                    // Iterate until the closing brace.
+                    while(next()) {
+                        if(f[start] == '}')
+                            break;
+                        // Log(s:"FLOW CONTROL: SEARCHING FIELDS");
+
+                        if(checkKey(start, length, KEY_STATES)) {
+                            // Log(s:"FLOW CONTROL: SEARCHING STATES");
+                            while(f[start] != '{') { next(); } // no safety rails cuz the engine does it for me 🥳
+
+                            while(next()) { // scan the state machine!!
+                                // Log(s:"FLOW CONTROL: IN STATES");
+                                if(f[start] == '}')
+                                    break;
+                            }
+                        }
+
+                        if(checkKey(start, length, KEY_TRANSLATION)) {
+                            next();
+                            fieldStart = start;
+                            fieldEnd = end;
+                            while(next()) {
+                                if(f[start] != ',')
+                                    break;
+                                next();
+                                fieldEnd = end;
+                            }
+                            // Log(s:tempActors[actorCount][FIELD_NAME], s:" translation ", a:(f, fieldStart, fieldEnd-fieldStart+1));
+                        }
+                    }
+
+                    // if(!hasNext()) break;
+
+                    actorIdx[actorCount] = actorCount;
+                    actorCount++;
+                }
+            }
+
+            if(fileList[currFile][1] == LUMP_OPEN_FULLPATH)
+                break;
+        }
+
+        fileList[currFile][0] = 0;
+        fileList[currFile][1] = 0;
+        currFile++;
+    }
+
+    setActorField(-1, DEF_INIT, true);
+    setActorField(-1, DEF_COUNT, actorCount);
+
+    // quickSort(0, actorCount-1);
+    // quickSortItr(0, actorCount-1);
+
+    for(int i = 0; i < actorCount; i++) {
+        int o = actorIdx[i];
+        if(tempActors[o][FIELD_TRANSLATION] != 0) {
+            // // Log(s:"Actor ", s:tempActors[i][FIELD_NAME], s:" translation ", s:tempActors[i][FIELD_TRANSLATION]);
+        }
+
+        for(j = 0; j < FIELD_MAX; j++) {
+            setActorField(i, j, tempActors[o][j]);
+            tempActors[o][j] = 0;
+        }
+        // Log(s:"stored ", s:getActorField(i, FIELD_NAME));
+        // // Log(s:"with translation ", s:getActorField(i, FIELD_TRANSLATION));
+    }
+}
+
+script "satanium_getactorfield" (int act, int field)
+{
+    int count = getActorField(-1, DEF_COUNT);
+    for(int i = 0; i < count; i++) {
+        if(StrICmp(act, getActorField(i, FIELD_NAME)) == 0) {
+            SetResultValue(getActorField(i, field));
+            terminate;
+        }
+    }
+    SetResultValue("None");
+}
+
+script "quickwrap" (int size)
+{
+    quickSortItr(0, size);
+}
+
+function void quickSortItr(int low, int high)
+{
+    int l = low;
+    int h = high;
+
+    // Create an auxiliary stack
+    int stack[MAX_ARRAY_SIZE];
+
+    // initialize top of stack
+    int top = -1;
+
+    // push initial values of l and h to stack
+    stack[++top] = l;
+    stack[++top] = h;
+
+    // Keep popping from stack while is not empty
+    while (top >= 0) {
+        // Pop h and l
+        h = stack[top--];
+        l = stack[top--];
+
+        // Set pivot element at its correct position
+        // in sorted array
+        int p = partition(l, h);
+
+        // If there are elements on left side of pivot,
+        // then push left side to stack
+        if (p - 1 > l) {
+            stack[++top] = l;
+            stack[++top] = p - 1;
+        }
+
+        // If there are elements on right side of pivot,
+        // then push right side to stack
+        if (p + 1 < h) {
+            stack[++top] = p + 1;
+            stack[++top] = h;
+        }
+    }
+}
+
+function void quickSort(int low, int high)
+{
+    if(low >= high) return;
+    int pivotPosition = partition(low, high);
+    quickSort(low, pivotPosition-1);
+    quickSort(pivotPosition+1, high);
+}
+
+function int partition(int low, int high) {
+
+    int temp;
+
+    // choose the pivot
+    // int pivot = arr[high];
+    int pivot = tempActors[actorIdx[high]][FIELD_NAME];
+
+    // index of smaller element and indicates
+    // the right position of pivot found so far
+    int i = low - 1;
+
+    // Traverse arr[low..high] and move all smaller
+    // elements on left side. Elements from low to
+    // i are smaller after every iteration
+    for (int j = low; j <= high - 1; j++)
+    {
+        // if (arr[j] < pivot)
+        if (StrICmp(tempActors[actorIdx[j]][FIELD_NAME], pivot) < 0)
+        {
+            i++;
+            // swap(arr[i], arr[j]);
+            temp = actorIdx[i];
+            actorIdx[i] = actorIdx[j];
+            actorIdx[j] = temp;
+        }
+    }
+
+    // move pivot after smaller elements and
+    // return its position
+    temp = actorIdx[i + 1];
+    actorIdx[i + 1] = actorIdx[high];
+    actorIdx[high] = temp;
+    // swap(arr[i + 1], arr[high]);
+    return i + 1;
+}
+
+// tempActors[actorIdx[high]][FIELD_NAME];

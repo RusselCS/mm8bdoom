@@ -1,0 +1,3 @@
+texture STANARH1, 56, 8{patch STANARM1, 0, 0 {rotate 90}}
+texture STANARH2, 56, 8{patch STANARM2, 0, 0 {rotate 90}}
+texture STANARHB, 56, 8{patch STANARMB, 0, 0 {rotate 90}}

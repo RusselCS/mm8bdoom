@@ -152,7 +152,7 @@ actor Satanium_ExitUnit : BaseMM8BDMUseItem
         EXIT BC 6
         Loop
     Use:
-        EXIT C 0 A_GiveInventory("Satanium_ExitUnitUse", 1)
+        EXIT C 0 ACS_NamedExecuteWithResult("satanium_handleexitunit")
         fail
     Death:
         EXIT A 1
@@ -160,4 +160,7 @@ actor Satanium_ExitUnit : BaseMM8BDMUseItem
     }
 }
 
+actor Satanium_Damaged : Powerup { powerup.duration 3 }
+
 actor Satanium_ExitUnitUse : ArtiTeleport { +INVENTORY.AUTOACTIVATE }
+

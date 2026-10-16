@@ -43,7 +43,7 @@ actor Satanium_Blood_Big : Satanium_Blood_Small
 }
 actor Satanium_Blood_Big_Green : Satanium_Blood_Big { translation "192:192=[0,168,68]:[0,168,68]", "198:198=[128,208,16]:[128,208,16]" }
 
-actor Satanium_Blood_Big_Reverse : Satanium_Blood_Big
+actor Satanium_Blood_Reverse : Satanium_Blood_Big
 {
     States
     {
@@ -54,6 +54,7 @@ actor Satanium_Blood_Big_Reverse : Satanium_Blood_Big
             stop
     }
 }
+actor Satanium_Blood_Reverse_Green : Satanium_Blood_Reverse { translation "192:192=[0,168,68]:[0,168,68]", "198:198=[128,208,16]:[128,208,16]" }
 
 actor Satanium_JustBled : Powerup { powerup.duration 4 }
 actor Satanium_HitFlash : Powerup { powerup.duration 7 }
@@ -80,6 +81,188 @@ actor Satanium_CheckArchvile : CustomInventory
     }
 }
 
-// The Flemoid check was *not*.
+// Gotta mark corpses somehow...
+actor Satanium_Blood_Floor : BasicGraphicEffect
+{
+    scale 2.0
+    +FORCEXYBILLBOARD
+    // Translation "192:192=[165,0,0]:[165,0,0]", "198:198=[231,0,90]:[231,0,90]"
+    States
+    {
+        Spawn:
+            S_BL Q 0 nodelay A_ClientsideACSExecute("satanium_flatsprite")
+            S_BL QR 2
+            wait
+        ACSState2: // Archvile revive successful.
+            S_BL Q 4
+            S_BL Q 4 A_SetScale(scalex/2, scaley/2)
+            stop
+    }
+}
+actor Satanium_Blood_Floor_Green : Satanium_Blood_Floor { // translation "192:192=[0,168,68]:[0,168,68]", "198:198=[128,208,16]:[128,208,16]"
+}
+
+// Archvile revive effects.
+actor Satanium_Archvile_State_Wander_CI : CustomInventory
+{
+    States
+    {
+    Pickup:
+        TNT1 A 0 A_GiveToChildren("Satanium_Archvile_State_Wander_Child_CI", 1)
+        stop
+    }
+}
+
+actor Satanium_Archvile_State_Wander_Child_CI : CustomInventory
+{
+    States
+    {
+    Pickup:
+        TNT1 A 0 ACS_NamedExecuteWithResult("core_setactorstate", 0, 0)
+        stop
+    }
+}
+
+actor Satanium_Archvile_State_Gone_CI : CustomInventory
+{
+    States
+    {
+    Pickup:
+        TNT1 A 0 A_GiveToChildren("Satanium_Archvile_State_Gone_Child_CI", 1)
+        stop
+    }
+}
+
+actor Satanium_Archvile_State_Gone_Child_CI : CustomInventory
+{
+    States
+    {
+    Pickup:
+        TNT1 A 0 ACS_NamedExecuteWithResult("core_setactorstate", 0, 1)
+        stop
+    }
+}
+
+actor Satanium_Archvile_State_Revive_CI : CustomInventory
+{
+    States
+    {
+    Pickup:
+        TNT1 A 0 A_GiveToChildren("Satanium_Archvile_State_Revive_Child_CI", 1)
+        stop
+    }
+}
+
+actor Satanium_Archvile_State_Revive_Child_CI : CustomInventory
+{
+    States
+    {
+    Pickup:
+        TNT1 A 0 ACS_NamedExecuteWithResult("core_setactorstate", 0, 2)
+        stop
+    }
+}
+
+const int SATANIUM_REVIVE_SPIN = 4;
+
+actor Satanium_Pentagram_Floor : BasicGraphicEffect
+{
+    Scale 2.0
+    +FORCEXYBILLBOARD
+    +BRIGHT
+    States
+    {
+        Spawn:
+            TNT1 A 1
+            wait
+        ACSState0: // Archvile starts walking.
+            STPN ABCB 5
+            loop
+        ACSState1: // Archvile dies or gets bored.
+            STPN BA 5
+            TNT1 A 1
+            wait
+        ACSState2: // Revive successful, even sans archvile.
+            STPN A 0 A_SpawnItemEx("Satanium_Pentagram_Raise", 0, 0, 4, 0, 0, 0, 0, SXF_TRANSFERSCALE)
+            STPN ABCDE 2 A_SetAngle(angle + SATANIUM_REVIVE_SPIN)
+            STPN F 0 A_SpawnItemEx("Satanium_Pentagram_Raise", 0, 0, 0, 0, 0, 10, 0, SXF_TRANSFERSCALE)
+            STPN FFGG 2 A_SetAngle(angle + SATANIUM_REVIVE_SPIN)
+            STPN F 0 A_SpawnItemEx("Satanium_Pentagram_Raise", 0, 0, 0, 0, 0, 10, 0, SXF_TRANSFERSCALE)
+            STPN FFGG 2 A_SetAngle(angle + SATANIUM_REVIVE_SPIN)
+            STPN F 0 A_SpawnItemEx("Satanium_Pentagram_Raise", 0, 0, 0, 0, 0, 10, 0, SXF_TRANSFERSCALE)
+            STPN FFGG 2 A_SetAngle(angle + SATANIUM_REVIVE_SPIN)
+            STPN F 0 A_SpawnItemEx("Satanium_Pentagram_Raise", 0, 0, 0, 0, 0, 10, 0, SXF_TRANSFERSCALE)
+            STPN BBAA 2 A_SetAngle(angle + SATANIUM_REVIVE_SPIN)
+            stop
+    }
+}
+
+actor ArchvileFire_Gone : ArchvileFire replaces ArchvileFire { renderstyle "none" }
+
+actor Satanium_Pentagram_Raise : Satanium_Pentagram_Floor
+{
+    renderstyle "add"
+    alpha 0.8
+    States
+    {
+        Spawn:
+            TNT1 A 0 nodelay A_SetScale(scalex, scalex) // need scalex on both because flatsprite script tweaks scaley
+            TNT1 A 0 A_ClientsideACSExecute("satanium_flatsprite", -4)
+            TNT1 A 0 A_JumpIf(momz == 0, "Animate")
+            goto Float
+        Animate:
+            TNT1 A 0 A_SetScale(scalex*1.1, scaley*1.1)
+            STPN A 2 A_SetTranslucent(alpha < 1.0 ? 1.0 : 0.8, 1)
+            STPN A 0 A_SetAngle(angle - SATANIUM_REVIVE_SPIN)
+            STPN B 2 A_SetTranslucent(alpha < 1.0 ? 1.0 : 0.8, 1)
+            STPN A 0 A_SetAngle(angle - SATANIUM_REVIVE_SPIN)
+            STPN C 2 A_SetTranslucent(alpha < 1.0 ? 1.0 : 0.8, 1)
+            STPN A 0 A_SetAngle(angle - SATANIUM_REVIVE_SPIN)
+            STPN D 2 A_SetTranslucent(alpha < 1.0 ? 1.0 : 0.8, 1)
+            STPN A 0 A_SetAngle(angle - SATANIUM_REVIVE_SPIN)
+            STPN E 2 A_SetTranslucent(alpha < 1.0 ? 1.0 : 0.8, 1)
+            STPN A 0 A_SetAngle(angle - SATANIUM_REVIVE_SPIN)
+            STPN F 2 A_SetTranslucent(alpha < 1.0 ? 1.0 : 0.8, 1)
+            STPN A 0 A_SetAngle(angle - SATANIUM_REVIVE_SPIN)
+            STPN F 2 A_SetTranslucent(alpha < 1.0 ? 1.0 : 0.8, 1)
+            STPN A 0 A_SetAngle(angle - SATANIUM_REVIVE_SPIN)
+            STPN G 2 A_SetTranslucent(alpha < 1.0 ? 1.0 : 0.8, 1)
+            STPN A 0 A_SetAngle(angle - SATANIUM_REVIVE_SPIN)
+            STPN G 2 A_SetTranslucent(alpha < 1.0 ? 1.0 : 0.8, 1)
+            STPN A 0 A_SetAngle(angle - SATANIUM_REVIVE_SPIN)
+            STPN F 2 A_SetTranslucent(alpha < 1.0 ? 1.0 : 0.8, 1)
+            STPN A 0 A_SetAngle(angle - SATANIUM_REVIVE_SPIN)
+            STPN F 2 A_SetTranslucent(alpha < 1.0 ? 1.0 : 0.8, 1)
+            STPN A 0 A_SetAngle(angle - SATANIUM_REVIVE_SPIN)
+            STPN G 2 A_SetTranslucent(alpha < 1.0 ? 1.0 : 0.8, 1)
+            STPN A 0 A_SetAngle(angle - SATANIUM_REVIVE_SPIN)
+            STPN G 2 A_SetTranslucent(alpha < 1.0 ? 1.0 : 0.8, 1)
+            STPN A 0 A_SetAngle(angle - SATANIUM_REVIVE_SPIN)
+            STPN F 2 A_SetTranslucent(alpha < 1.0 ? 1.0 : 0.8, 1)
+            STPN A 0 A_SetAngle(angle - SATANIUM_REVIVE_SPIN)
+            STPN F 2 A_SetTranslucent(alpha < 1.0 ? 1.0 : 0.8, 1)
+            STPN A 0 A_SetAngle(angle - SATANIUM_REVIVE_SPIN)
+            STPN G 2 A_SetTranslucent(alpha < 1.0 ? 1.0 : 0.8, 1)
+            STPN A 0 A_SetAngle(angle - SATANIUM_REVIVE_SPIN)
+            STPN G 2 A_SetTranslucent(alpha < 1.0 ? 1.0 : 0.8, 1)
+            STPN A 0 A_SetAngle(angle - SATANIUM_REVIVE_SPIN)
+            STPN B 2 A_SetTranslucent(alpha < 1.0 ? 1.0 : 0.8, 1)
+            STPN A 0 A_SetAngle(angle - SATANIUM_REVIVE_SPIN)
+            STPN B 2 A_SetTranslucent(alpha < 1.0 ? 1.0 : 0.8, 1)
+            STPN A 0 A_SetAngle(angle - SATANIUM_REVIVE_SPIN)
+            STPN A 2 A_SetTranslucent(alpha < 1.0 ? 1.0 : 0.8, 1)
+            STPN A 0 A_SetAngle(angle - SATANIUM_REVIVE_SPIN)
+            STPN A 2 A_SetTranslucent(alpha < 1.0 ? 1.0 : 0.8, 1)
+            stop
+        Float:
+            STPN C 5
+            STPN BA 2
+            stop
+    }
+}
+
+// Effect for when archvile is wandering / reviving.
+
+// Flemoid check handled by ACS.
 actor Satanium_IsFlemoid : Once {}
 actor Satanium_NotFlemoid : Once {}
