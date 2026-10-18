@@ -28,12 +28,6 @@ function int findActor(str act) {
     return -1;
 }
 
-#define MAX_ARRAY_SIZE MAX_INT >> 17
-
-str fileList[MAX_ARRAY_SIZE][2];
-str tempActors[MAX_ARRAY_SIZE][FIELD_MAX];
-int actorIdx[MAX_ARRAY_SIZE];
-
 #define KEY_INCLUDE 0
 #define KEY_ACTOR 1
 #define KEY_TRANSLATION 2
@@ -55,6 +49,84 @@ function bool checkKey(int st, int len, int key)
             return false;
     }
     return true;
+}
+
+#define MAX_ARRAY_SIZE MAX_INT >> 17
+
+str fileList[MAX_ARRAY_SIZE][2];
+str tempActors[MAX_ARRAY_SIZE][FIELD_MAX];
+int actorIdx[MAX_ARRAY_SIZE];
+
+// Perform a binary search to find the best slot to put this in.
+function int findTempPivot(str key, int actorCount)
+{
+    if(actorCount == 0)
+        return 0;
+
+    int low = 0;
+    int high = actorCount-1;
+    int res;
+    // Log(s:"Size: ", i:actorCount);
+
+    res = StrICmp(tempActors[actorIdx[high]][FIELD_NAME], key);
+    if(res < 0) {
+        return actorCount;
+    }
+
+    res = StrICmp(tempActors[actorIdx[low]][FIELD_NAME], key);
+    if(res >= 0) {
+        return 0;
+    }
+
+    while(high-low > 1) {
+        int mid = low + (high - low) / 2;
+        res = StrICmp(tempActors[actorIdx[mid]][FIELD_NAME], key);
+
+        if (res < 0)
+            low = mid;
+        else
+            high = mid;
+    }
+
+    return high;
+}
+
+function int findTempActor(str key, int size)
+{
+    int low = 0;
+    int high = size-1;
+    int res;
+
+    while(low <= high) {
+        int mid = low + (high - low) / 2;
+        res = StrICmp(tempActors[actorIdx[mid]][FIELD_NAME], key);
+        if(res == 0)
+            return actorIdx[mid];
+
+        if (res < 0)
+            low = mid+1;
+        else
+            high = mid-1;
+    }
+
+    return -1;
+}
+
+function void testSort(int actorCount)
+{
+    int res = true;
+    for(int i = 1; i < actorCount; i++)
+    {
+        if(StrICmp(tempActors[actorIdx[i-1]][FIELD_NAME], tempActors[actorIdx[i]][FIELD_NAME]) >= 0) {
+            res = false;
+            break;
+        }
+    }
+    if(res) {
+        Log(s:"\n+++ ARRAY IS SORTED! +++\n");
+    } else {
+        Log(s:"\n+++ ARRAY IS NOT SORTED! +++\n");
+    }
 }
 
 function bool isWhiteSpace(int x)
@@ -242,6 +314,8 @@ function bool next(void)
         if(!isComment(start)) break;
     }
 
+    // Log(s:"Current token: ", a:(f, start, length));
+
     return res;
 }
 
@@ -267,6 +341,7 @@ script "bigdata" OPEN BUSY
     int currFile = 0;
 
     int actorCount = 0;
+    int i;
 
     // // Log(s:"Putting the first decorate in...");
     fileList[fileCount][0] = "DECORATE";
@@ -277,6 +352,10 @@ script "bigdata" OPEN BUSY
 
     fileCount++;
     // // Log(s:"Succeeded");
+
+    int protoIdx = -1;
+    int currIdx = -1;
+    str currActor;
 
     while(currFile < fileCount) {
         int index = 0;
@@ -311,9 +390,24 @@ script "bigdata" OPEN BUSY
                 if(checkKey(start, length, KEY_ACTOR)) {
                     if(!next()) break;
                     if(f[start] == '"')
-                        tempActors[actorCount][FIELD_NAME] = StrParam(a:(f, start+1, length-2));
+                        currActor = StrParam(a:(f, start+1, length-2));
                     else
-                        tempActors[actorCount][FIELD_NAME] = StrParam(a:(f, start, length));
+                        currActor = StrParam(a:(f, start, length));
+
+                    currIdx = findTempActor(currActor, actorCount);
+                    if(currIdx == -1) {
+                        currIdx = actorCount;
+                    } else {
+                        // grumble grumble
+                        for(j = 0; j < FIELD_MAX; j++) {
+                            tempActors[currIdx][j] = 0;
+                        }
+                    }
+                    tempActors[currIdx][FIELD_NAME] = currActor;
+
+                    if(protoIdx == -1)
+                        if(StrCmp("Actor", tempActors[currIdx][FIELD_NAME]) == 0)
+                            protoIdx = currIdx;
 
                     // Iterate until the first opening brace.
                     while(next()) {
@@ -325,22 +419,20 @@ script "bigdata" OPEN BUSY
                             if(!next()) break;
 
                             if(f[start] == '"')
-                                tempActors[actorCount][FIELD_PARENT] = StrParam(a:(f, start+1, length-2));
+                                tempActors[currIdx][FIELD_PARENT] = StrParam(a:(f, start+1, length-2));
                             else
-                                tempActors[actorCount][FIELD_PARENT] = StrParam(a:(f, start, length));
+                                tempActors[currIdx][FIELD_PARENT] = StrParam(a:(f, start, length));
                         }
 
                         // if(checkKey(start, length, KEY_REPLACES)) {
 
                         // }
                     }
-                    // Log(s:"FLOW CONTROL: IN ACTOR");
 
                     // Iterate until the closing brace.
                     while(next()) {
                         if(f[start] == '}')
                             break;
-                        // Log(s:"FLOW CONTROL: SEARCHING FIELDS");
 
                         if(checkKey(start, length, KEY_STATES)) {
                             // Log(s:"FLOW CONTROL: SEARCHING STATES");
@@ -363,13 +455,25 @@ script "bigdata" OPEN BUSY
                                 next();
                                 fieldEnd = end;
                             }
-                            // Log(s:tempActors[actorCount][FIELD_NAME], s:" translation ", a:(f, fieldStart, fieldEnd-fieldStart+1));
+                            tempActors[currIdx][FIELD_TRANSLATION] = StrParam(a:(f, fieldStart, fieldEnd-fieldStart+1));
+
+                            if(f[start] == '}')
+                                break;
                         }
                     }
+                    // Log(s:"Closing actor.");
 
                     // if(!hasNext()) break;
 
-                    actorIdx[actorCount] = actorCount;
+                    // We're replacing the actor, so just skip all the below garbage.
+                    if(currIdx != actorCount)
+                        continue;
+
+                    int swapIdx = findTempPivot(currActor, actorCount);
+                    for(i = actorCount; i > swapIdx; i--) {
+                        actorIdx[i] = actorIdx[i-1];
+                    }
+                    actorIdx[swapIdx] = currIdx;
                     actorCount++;
                 }
             }
@@ -383,24 +487,43 @@ script "bigdata" OPEN BUSY
         currFile++;
     }
 
+    testSort(actorCount);
+
     setActorField(-1, DEF_INIT, true);
     setActorField(-1, DEF_COUNT, actorCount);
 
     // quickSort(0, actorCount-1);
     // quickSortItr(0, actorCount-1);
 
-    for(int i = 0; i < actorCount; i++) {
+    for(i = 0; i < actorCount; i++) {
         int o = actorIdx[i];
-        if(tempActors[o][FIELD_TRANSLATION] != 0) {
-            // // Log(s:"Actor ", s:tempActors[i][FIELD_NAME], s:" translation ", s:tempActors[i][FIELD_TRANSLATION]);
+        int parentIdx = tempActors[o][FIELD_PARENT];
+
+        if(parentIdx != 0) {
+            parentIdx = findTempActor(parentIdx, actorCount);
+        }
+
+        if(parentIdx <= 0) {
+            parentIdx = protoIdx;
         }
 
         for(j = 0; j < FIELD_MAX; j++) {
-            setActorField(i, j, tempActors[o][j]);
+            if(tempActors[o][j] == 0) {
+                setActorField(i, j, tempActors[parentIdx][j]);
+            } else {
+                setActorField(i, j, tempActors[o][j]);
+            }
+        }
+        Log(c:'[', i:i, s:"] stored ", s:getActorField(i, FIELD_NAME));
+        if(getActorField(i, FIELD_TRANSLATION) != 0) Log(s:" with translation ", s:getActorField(i, FIELD_TRANSLATION));
+    }
+
+    // Needed to split out the "memory clear" method from the double loop above so actors can resolve their heritage cleanly.
+    for(i = 0; i < actorCount; i++) {
+        for(j = 0; j < FIELD_MAX; j++) {
             tempActors[o][j] = 0;
         }
-        // Log(s:"stored ", s:getActorField(i, FIELD_NAME));
-        // // Log(s:"with translation ", s:getActorField(i, FIELD_TRANSLATION));
+        actorIdx[i] = 0;
     }
 }
 
