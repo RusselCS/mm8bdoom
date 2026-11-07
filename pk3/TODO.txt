@@ -3,3 +3,88 @@
 - Voodoo dolls are not given a new baseflagpack on new map. This is a major problem.
 - Figure out how to color the floor splatters the same in software and opengl
 
+Fodder Enemies:
+- ZombieMan:
+    - Sniper Joe:
+        ...sniper joe. Maybe sans-shield.
+    - Mettool:
+        ...mettool.
+
+- ShotgunGuy:
+    - Joe Classic (MM8):
+        sniper joe with shield. throws grenades too.
+    - Pickelman:
+        ... it's just a pickelman.
+
+- ChaingunGuy:
+    - Cannon Joe (MM6):
+        the machinegun-type joes from the Shark fight. Predicts shots.
+    - Shot Man (MM2):
+        spend a long time cranking up a shot before firing it. very botw guardian. if a projectile comes its way, spam shots instead.
+
+- DoomImp:
+    - Mummira (MM4):
+        Can hide in the wall. Otherwise behaves a lot like normal imps. Head maybe homes in? Head maybe returns?
+
+- Demon:
+    - Mono Roader (MM4):
+        Wheeled enemy that rolls at players. Not too fast, but their spin attack has knockback.
+    - Popo Heli (MM9):
+        Welding mask enemy that blows its blowtorch at you.
+
+- Specter
+    - Dust Crusher (MM7):
+        Digs around underground. Can pass under doors and climb walls. If a player walks close-by, it'll reveal its camera. If the camera sees a player, it'll lunge.
+    - Crunchran (MM8):
+        One-eyed crocodile robot that crawls in a portable hole. Can sneak under doors.
+
+- LostSoul:
+    - Telly
+    - Adamski (MM9)
+    - Yombain (MM10)
+        The funny mitosis enemy.
+
+- PainElemental:
+    - Petit Devil (MM9)
+        Movement kinda snakes around, slowly approaching the player to melee. On taking damage, splits into a smaller one that more quickly approaches. On death, spawn 3.
+    - Hologran (MM3):
+        Attaches itself to the ceiling and makes all enemies in its sight range spectral.
+
+- CacoDemon:
+    - 100Watton (MM4)
+        Fires the funny bomb that splits.
+
+- Hell Knight:
+
+- Revenant:
+
+Miniboss Level:
+- Baron of Hell:
+
+- Mancubus:
+    - Whopper (MM4):
+        Floats around slowly, sometimes attacking with its wide-hitting rings attack.
+
+- Archvile:
+    - Illusian (MM9):
+        Hover around quickly
+    - Dompan (MM4):
+        Walks around and fires a firework above dead enemies. New ones spawn at those positions.
+
+Boss Level:
+- Cyberdemon:
+- SpiderMastermind:
+    - Yellow Devil (multiple games):
+        "Teleport" - Split apart and dash all at once at the target. Drop to the floor and reform.
+        "Slam" - A grab/pound attack. On success, deal damage over time and throw the target towards the nearest monster.
+        "Float" - When moving short distances, form a blob and float there.
+        "Laser" - While in "float", can shoot a laser at the target that crosses their predicted path perpendicularly.
+        "Resurrect" - While in "float", can 'revive' a monster as a devil-ling.
+        - devil-ling (Mega Man 2: The Power Fighters)
+            these dudes are just imps with hops, frankly.
+
+- icon of sin: weapon archive.
+
+
+
+

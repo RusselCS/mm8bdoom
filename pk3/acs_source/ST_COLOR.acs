@@ -69,13 +69,24 @@ script "satanium_findPalette" OPEN CLIENTSIDE BUSY
     }
 }
 
+function int tr(int triplet) { return UnpackByte1(triplet); }
+function int tg(int triplet) { return UnpackByte2(triplet); }
+function int tb(int triplet) { return UnpackByte3(triplet); }
+
 function int closestColorFrom8BDM(int idx)
 {
+    if(!IsRGB(idx)) {
+        int r = palette_data[idx][0];
+        int g = palette_data[idx][1];
+        int b = palette_data[idx][2];
+    } else {
+        r = tr(idx);
+        g = tg(idx);
+        b = tb(idx);
+    }
+
     int bestcolor = 0;
     int bestdist = 257*257+257*257+257*257;
-    int r = palette_data[idx][0];
-    int g = palette_data[idx][1];
-    int b = palette_data[idx][2];
 
     for (int color = 0; color < 256; color++)
     {

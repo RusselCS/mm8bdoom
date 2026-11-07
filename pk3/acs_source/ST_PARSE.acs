@@ -8,10 +8,6 @@
 
 world int 22: f[];
 world str 22: actors[];
-#define FIELD_MAX 3
-#define FIELD_NAME 0
-#define FIELD_TRANSLATION 1
-#define FIELD_PARENT 2
 
 #define DEF_INIT 0
 #define DEF_COUNT 1
@@ -41,12 +37,14 @@ function int findActor(str act) {
 #define KEY_INCLUDE 0
 #define KEY_ACTOR 1
 #define KEY_TRANSLATION 2
-#define KEY_STATES 3
+#define KEY_OBITUARY 3
+#define KEY_STATES 4
 
 int keyWords[100][12] = {
     {8,'#','i','n','c','l','u','d','e'},
     {5,'a','c','t','o','r'},
     {11,'t','r','a','n','s','l','a','t','i','o','n'},
+    {8,'o','b','i','t','u','a','r','y'},
     {6, 's','t','a','t','e','s'},
 };
 
@@ -455,6 +453,16 @@ script "bigdata" OPEN BUSY
                             }
                         }
 
+                        if(checkKey(start, length, KEY_OBITUARY)) {
+                            next();
+                            fieldStart = start;
+                            fieldEnd = end;
+                            tempActors[currIdx][FIELD_OBITUARY] = StrParam(a:(f, fieldStart, fieldEnd-fieldStart+1));
+
+                            if(f[start] == '}')
+                                break;
+                        }
+
                         if(checkKey(start, length, KEY_TRANSLATION)) {
                             next();
                             fieldStart = start;
@@ -533,13 +541,19 @@ script "bigdata" OPEN BUSY
 script "satanium_getactorfield" (int act, int field)
 {
     int count = getActorField(-1, DEF_COUNT);
-    for(int i = 0; i < count; i++) {
-        if(StrICmp(act, getActorField(i, FIELD_NAME)) == 0) {
-            SetResultValue(getActorField(i, field));
-            terminate;
-        }
+    if(count == 0) {
+        Log(s:"Called too early!");
+        SetResultValue("None");
+        terminate;
     }
-    SetResultValue("None");
+
+    int id = findActor(act);
+    if(id == -1) {
+        SetResultValue("None");
+        terminate;
+    }
+
+    SetResultValue(getActorField(id, field));
 }
 
 // tempActors[actorIdx[high]][FIELD_NAME];

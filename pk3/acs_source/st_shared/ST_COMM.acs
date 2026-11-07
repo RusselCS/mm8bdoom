@@ -1,4 +1,10 @@
 
+#define FIELD_MAX 3
+#define FIELD_NAME 0
+#define FIELD_PARENT 1
+#define FIELD_TRANSLATION 2
+#define FIELD_OBITUARY 3
+
 function bool canISeeItXYZH(int tid, int x, int y, int z, int h)
 {
     int u = UniqueTID();
