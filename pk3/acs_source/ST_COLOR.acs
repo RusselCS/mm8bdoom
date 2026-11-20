@@ -448,63 +448,198 @@ script "satanium_actortranslationcorrection" OPEN CLIENTSIDE
     CreateTranslation(CLR_SATANIUM_DMG, 0:255=[255,255,255]:[255,255,255]);
 }
 
+int currTranslation = 13370;
+
+world str 22: actors[];
 script "satanium_colorfix" (int e, int a, int b) EVENT BUSY
 {
-    // if(e != GAMEEVENT_ACTOR_SPAWNED)
-    //     terminate;
-    // while(actors[0] == 0) delay(1);
+    if(e != GAMEEVENT_ACTOR_SPAWNED)
+        terminate;
+    while(actors[0] == 0) delay(1);
 
-    // str act = GetActorClass(0);
-    // str cv = StrParam(s:"_SATANIUM_TRNSSTORE_", s:act);
-    // int val = GetCVar(cv);
+    str act = GetActorClass(0);
+    str cv = StrParam(s:"_SATANIUM_TRNSSTORE_", s:act);
+    int val = GetCVar(cv);
 
-    // if(val == -1)
-    //     terminate;
-    // if(val != 0) {
-    //     Thing_SetTranslation(0, val);
-    //     terminate;
-    // }
+    if(val > 0) {
+        Thing_SetTranslation(0, val);
+        terminate;
+    }
 
-    // int idx = findActor(act);
-    // if(idx == -1)
-    //     terminate;
+    if(val < 0)
+        terminate;
 
-    // str trns = getActorField(idx, FIELD_TRANSLATION);
-    // // Log(s:act, s:" // ", i:trns, s:" ", s:trns);
-    // if(trns == 0)
-    //     terminate;
+    str trns = CallACS("satanium_getactorfield", act, FIELD_TRANSLATION);
+    // Log(s:"Successfully found all the required info...");
+    if(trns == 0) {
+        // Log(s:"Terminating for 0.");
+        ConsoleCommand(StrParam(s:"set ", s:cv, s:" ", i:-1));
+        terminate;
+    }
+    if(StrLen(trns) == 0) {
+        // Log(s:"Terminating for no length.");
+        ConsoleCommand(StrParam(s:"set ", s:cv, s:" ", i:-1));
+        terminate;
+    }
+    if(StrCmp(trns, "None") == 0) {
+        // Log(s:"Terminating for none");
+        ConsoleCommand(StrParam(s:"set ", s:cv, s:" ", i:-1));
+        terminate;
+    }
 
+    int seq[1000]; // unsure how long this should be?
+    int l = StrLen(trns);
+    StrCpy(a:seq, trns);
+    if(l > 1000) {
+        Log(s:act, s:"'s translation is too long!!");
+    }
 
-    // int seq[1000]; // unsure how long this should be?
-    // int len = StrLen(trns);
-    // StrCpy(a:seq, trns);
+    int ranges[256][12];
+    // source start r
+    // source start g
+    // source start b
+    // source end r
+    // source end g
+    // source end b
+    // dest start r
+    // dest start g
+    // dest start b
+    // dest end r
+    // dest end g
+    // dest end b
 
-    // int ranges[100][8];
-    // // source start
-    // // source end
-    // // dest start r
-    // // dest start g
-    // // dest start b
-    // // dest end r
-    // // dest end g
-    // // dest end b
+    int idx = 0;
 
-    // int inBlock = false;
-    // int m, n;
+    int currNumber = 0;
+    int w = 0;
+    int s = 3;
+    int o = 6;
 
-    // for(int i = 0; i < len; i++) {
-    //     Log(i:i);
-    //     if(seq[i] == '"') {
-    //         inBlock = !inBlock;
-    //         i++;
-    //     }
+    bool inBlock = false;
 
-    //     if(!inBlock)
-    //         continue;
+/*
+    "192:192=170:170", "198:198=41:41"
+    [193, 0, 0]:[0, 0, 0]=[193, 0, 0]:[0, 0, 0]
+    [170199, 0, 0]:[0, 0, 0]=[199, 0, 0]:[0, 0, 0]
+    [42, 0, 0]:[0, 0, 0]=[0, 0, 0]:[0, 0, 0]
+*/
 
-    //     m = i;
-    //     while(seq[i] != ':') { i++; }
-    //     n = i;
-    //     Log(s:act, s:" first seq ", a:(seq, m, n-m));
-    // }
+    for(int i = 0; i < l; i++)
+    {
+        // Log(i:i);
+        if(!inBlock) {
+            if(seq[i] == '"')
+                inBlock = true;
+
+            if(seq[i] == ',')
+                w = 0;
+
+            continue;
+        }
+
+        if(seq[i] == '"') {
+            ranges[idx][w] = 1+currNumber;
+            currNumber = 0;
+            inBlock = false;
+            w = 0;
+            idx++;
+            continue;
+        }
+
+        s = 3 - (w % 3);
+        o = 6 - (w % 6);
+        int t = trnsControl(seq[i]);
+
+        if(t == 0) continue;
+
+        if(t == 1) {
+            currNumber *= 10;
+            currNumber += seq[i]-'0';
+            continue;
+        }
+
+        if(t > 1) {
+            ranges[idx][w] = 1+currNumber;
+            currNumber = 0;
+        }
+
+        if(t == 2) // iterate one
+            w ++;
+
+        if(t == 3) // iterate next slot
+            w += s;
+
+        if(t == 4) // iterate next slot
+            w += o;
+    }
+
+    for(i = idx-1; i > -1; i--) {
+        // The colors are indexed from 1 to allow uninitialized values to just die immediately.
+        if(ranges[i][0] == 0)
+            break;
+
+        int start = closestColorFrom8BDM(ranges[i][0]-1);
+        int end = closestColorFrom8BDM(ranges[i][3]-1);
+
+        int bot = min(start, end);
+        int top = max(start, end);
+
+        if(ranges[i][7] != 0) {
+            int botr = ranges[i][6]-1;
+            int botg = ranges[i][7]-1;
+            int botb = ranges[i][8]-1;
+
+            int topr = ranges[i][9]-1;
+            int topg = ranges[i][10]-1;
+            int topb = ranges[i][11]-1;
+        } else {
+            botr = palette_data[ranges[i][6]-1][0];
+            botg = palette_data[ranges[i][6]-1][1];
+            botb = palette_data[ranges[i][6]-1][2];
+            topr = palette_data[ranges[i][9]-1][0];
+            topg = palette_data[ranges[i][9]-1][1];
+            topb = palette_data[ranges[i][9]-1][2];
+        }
+
+        int c = top-bot+1;
+        int diffr = (topr-botr)/c;
+        int diffg = (topg-botg)/c;
+        int diffb = (topb-botb)/c;
+
+        for(int j = 0; j < c; j++)
+        {
+            int p = bot + j;
+            translationPalette[p][0] = diffr*j+botr;
+            translationPalette[p][1] = diffg*j+botg;
+            translationPalette[p][2] = diffb*j+botb;
+            ranges[p][1] = -1;
+        }
+    }
+
+    for(p = 0; p < 256; p++) {
+        if(ranges[p][1] == -1)
+            continue;
+        translationPalette[p][0] = palette_data[p][0];
+        translationPalette[p][1] = palette_data[p][1];
+        translationPalette[p][2] = palette_data[p][2];
+    }
+
+    int finalVal = currTranslation++;
+
+    createFullTranslation(finalVal);
+    Thing_SetTranslation(0, finalVal);
+    ConsoleCommand(StrParam(s:"set ", s:cv, s:" ", i:finalVal));
+
+    terminate;
+}
+
+function int isNumber(int ch) { return ch >= '0' && ch <= '9'; }
+
+function int trnsControl(int ch)
+{
+    if(isNumber(ch)) return 1;
+    if(ch == ',') return 2;
+    if(ch == ':') return 3;
+    if(ch == '=') return 3;
+    return 0;
 }
