@@ -2,6 +2,8 @@
 
 #include "zcommon.acs"
 
+#include "8BDMDEFS.acs"
+#include "8BDMINFO.acs"
 #include "MEGAPAL.acs"
 #include "DTADD.acs"
 
@@ -449,11 +451,17 @@ script "satanium_actortranslationcorrection" OPEN CLIENTSIDE
 }
 
 int currTranslation = 13370;
+function int newTranslationId(void)
+{
+    return currTranslation++;
+}
 
 world str 22: actors[];
-script "satanium_colorfix" (int e, int a, int b) EVENT BUSY
+script "satanium_colorfix" (int e, int a, int b) EVENT CLIENTSIDE BUSY
 {
     if(e != GAMEEVENT_ACTOR_SPAWNED)
+        terminate;
+    if(CheckForVar("user_nativeTranslation"))
         terminate;
     while(actors[0] == 0) delay(1);
 
@@ -624,13 +632,11 @@ script "satanium_colorfix" (int e, int a, int b) EVENT BUSY
         translationPalette[p][2] = palette_data[p][2];
     }
 
-    int finalVal = currTranslation++;
+    int finalVal = newTranslationId();
 
     createFullTranslation(finalVal);
     Thing_SetTranslation(0, finalVal);
     ConsoleCommand(StrParam(s:"set ", s:cv, s:" ", i:finalVal));
-
-    terminate;
 }
 
 function int isNumber(int ch) { return ch >= '0' && ch <= '9'; }

@@ -4,6 +4,7 @@ actor Satanium_ItemFog : ItemFog replaces ItemFog {}
 actor Satanium_Blood_Small : BasicGraphicEffect
 {
     Translation "192:192=[165,0,0]:[165,0,0]", "198:198=[231,0,90]:[231,0,90]"
+    var int user_nativeTranslation;
     +FORCEXYBILLBOARD
     scale 2.0
     States

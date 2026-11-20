@@ -340,7 +340,7 @@ function bool isComment(int st)
     return false;
 }
 
-script "bigdata" OPEN BUSY
+script "bigdata" OPEN CLIENTSIDE BUSY
 {
     if(isInit()) terminate;
 

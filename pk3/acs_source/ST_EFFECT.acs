@@ -201,6 +201,7 @@ script "satanium_waitforrevive" (void)
 {
     int height = GetActorProperty(0, APROP_Height);
     int scale = height/32; // 32 is the height of the sprite's core.
+    int yaw = GetActorAngle(0) >> 8;
     while(getActorZ(0) - GetActorFloorZ(0) > 0) delay(1);
 
     int bodyX = GetActorX(0);
@@ -212,7 +213,7 @@ script "satanium_waitforrevive" (void)
     Thing_ChangeTID(0, mon);
     int fx = UniqueTID();
 
-    SpawnForced(bloodSplatters[BLOOD_FLOOR][checkFlemoid()], bodyX, bodyY, bodyZ+0.1, fx, 0);
+    SpawnForced(bloodSplatters[BLOOD_FLOOR][checkFlemoid()], bodyX, bodyY, bodyZ+0.1, fx, yaw);
     SetActivator(fx);
     SetActorProperty(0, AProp_ScaleX, scale);
     SetActorProperty(0, AProp_ScaleY, scale);
