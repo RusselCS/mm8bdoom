@@ -267,3 +267,14 @@ actor Satanium_Pentagram_Raise : Satanium_Pentagram_Floor
 // Flemoid check handled by ACS.
 actor Satanium_IsFlemoid : Once {}
 actor Satanium_NotFlemoid : Once {}
+
+// Need to reset colors on an actor that's ACS-controlled
+actor satanium_setbasetranslation_ci : CustomInventory
+{
+    States
+    {
+    Pickup:
+        TNT1 A 0 ACS_NamedExecuteWithResult("satanium_setbasetranslation")
+        stop
+    }
+}

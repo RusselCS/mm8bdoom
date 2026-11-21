@@ -465,6 +465,11 @@ script "satanium_colorfix" (int e, int a, int b) EVENT CLIENTSIDE BUSY
         terminate;
     while(actors[0] == 0) delay(1);
 
+    CallACS("satanium_setbasetranslation");
+}
+
+script "satanium_setbasetranslation" (void)
+{
     str act = GetActorClass(0);
     str cv = StrParam(s:"_SATANIUM_TRNSSTORE_", s:act);
     int val = GetCVar(cv);
@@ -648,4 +653,32 @@ function int trnsControl(int ch)
     if(ch == ':') return 3;
     if(ch == '=') return 3;
     return 0;
+}
+
+int weColorReset = false;
+script "satanium_weaponenergycolor" (int tid, int pln)
+{
+    if(pln < 0) {
+        if(!weColorReset) {
+            weColorReset = true;
+            GiveActorInventory(999, "satanium_setbasetranslation_ci", 1);
+        }
+        terminate;
+    }
+
+    SetActivatorToPlayer(pln);
+
+    if(GetUserCvar(ConsolePlayerNumber(), "mm8bdm_noenergycolors")) {
+        if(!weColorReset) {
+            weColorReset = true;
+            GiveActorInventory(999, "satanium_setbasetranslation_ci", 1);
+        }
+    } else {
+        if(weColorReset)
+            weColorReset = false;
+
+        Thing_SetTranslation(999, -1);
+    }
+
+    Thing_SetTranslation(pln + PLN_EXITUNITIMAGE, -1);
 }

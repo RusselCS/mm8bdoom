@@ -79,3 +79,13 @@ script "satanium_getactorspecial" (int res)
         terminate;
     ArgResult = res;
 }
+
+script "satanium_replace_codes" OPEN CLIENTSIDE
+{
+    while(HookFunctions_Max[DTADD_HF_UI_TICK_ALWAYS] == 0) delay(1);
+    for(int i = 0; i < HookFunctions_Max[DTADD_HF_UI_TICK_ALWAYS]; i++) {
+        if(StrCmp(getHookFunction(DTADD_HF_UI_TICK_ALWAYS, i), "core_weaponenergycolor") == 0) {
+            setHookFunction(DTADD_HF_UI_TICK_ALWAYS, i, "satanium_weaponenergycolor");
+        }
+    }
+}
