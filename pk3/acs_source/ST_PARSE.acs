@@ -561,14 +561,13 @@ script "satanium_checkheritage" (int act, int ancestor) { SetResultValue(CheckHe
 
 function int CheckHeritage(str act, str ancestor)
 {
-    if(StrICmp(act, "Actor") == 0)
-        return false;
+    if(StrICmp(act, ancestor) == 0) return true;
+    if(StrICmp(act, "Actor") == 0) return false;
+
     int idx = findActor(act);
-    if(idx == -1)
-        return false;
+    if(idx == -1) return false;
     str parent = getActorField(idx, FIELD_PARENT);
-    if(StrICmp(ancestor, parent) == 0)
-        return true;
+
     return CheckHeritage(parent, ancestor);
 }
 
