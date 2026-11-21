@@ -24,6 +24,7 @@ script "satanium_propthru_propspecies" (int e, int a, int b) EVENT
 {
     if(e != GAMEEVENT_ACTOR_SPAWNED) terminate;
 
+    if(CheckFlag(0, "SHOOTABLE")) terminate;
     if(CheckFlag(0, "SPECIAL")) terminate;
     if(!CheckFlag(0, "SOLID")) terminate;
     if(CheckFlag(0, "CANPASS")) terminate;
