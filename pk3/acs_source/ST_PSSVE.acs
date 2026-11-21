@@ -16,6 +16,7 @@ script "satanium_passive_register" OPEN
     DefineHookFunction(DTADD_HF_ACTOR_DAMAGED, "satanium_handleexit_damage", -1.1);
 
     DefineHookFunction(DTADD_HF_ACTOR_DAMAGED, "satanium_handlemonster_damage", 1.0);
+    DefineHookFunction(DTADD_HF_ACTOR_DAMAGED, "satanium_handlemonster_fixonhit", -65536.0);
 }
 
 // SHIELDING ----------------------------------------------------------------------------------------------------------
@@ -175,4 +176,19 @@ script "satanium_handlemonster_damage" (int e, int dmg, int type)
     overDmg = (overDmg * overDmg) / 3;
 
     DamageHook_SetResultValue(dmg + random(1, 3) * overDmg);
+}
+
+// Fixes the "Crash" state weapons not properly proccing on monsters.
+script "satanium_handlemonster_fixonhit" (int e, int dmg, int type)
+{
+    if(!CheckFlag(0,"ISMONSTER")) terminate;
+    if(CheckFlag(0,"NOBLOOD")) terminate;
+    if(DamageHook_GetEventResult() <= 0) terminate;
+    if(!DamageHook_SetActivator(0, AAPTR_DAMAGE_SOURCE)) terminate;
+    if(!CheckInventory("MM8BDMPlayer")) terminate;
+    if(!DamageHook_SetActivator(0, AAPTR_DAMAGE_TARGET)) terminate;
+
+    CallACS("core_changeactorflag", "NOBLOOD", true, 0);
+    delay(1);
+    CallACS("core_changeactorflag", "NOBLOOD", false, 0);
 }
