@@ -343,6 +343,7 @@ function bool isComment(int st)
 script "bigdata" OPEN CLIENTSIDE BUSY
 {
     if(isInit()) terminate;
+    if(GameType() == GAME_TITLE_MAP) terminate;
 
     int len = 0;
     int fileCount = 0;
