@@ -557,4 +557,19 @@ script "satanium_getactorfield" (int act, int field)
     SetResultValue(getActorField(id, field));
 }
 
+script "satanium_checkheritage" (int act, int ancestor) { SetResultValue(CheckHeritage(act, ancestor)); }
+
+function int CheckHeritage(str act, str ancestor)
+{
+    if(StrICmp(act, "Actor") == 0)
+        return false;
+    int idx = findActor(act);
+    if(idx == -1)
+        return false;
+    str parent = getActorField(idx, FIELD_PARENT);
+    if(StrICmp(ancestor, parent) == 0)
+        return true;
+    return CheckHeritage(parent, ancestor);
+}
+
 // tempActors[actorIdx[high]][FIELD_NAME];
