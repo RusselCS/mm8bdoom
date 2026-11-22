@@ -25,37 +25,52 @@ script "satanium_passive_register" OPEN
 
 #define ST_MAX_ITEMS_GLOBAL_LIMIT MAX_ITEMS_GLOBAL_LIMIT+MAX_BUSTER_LIMIT
 
+#define ST_MAX_PASSIVES 2
+str satanium_passiveItems[ST_MAX_PASSIVES] = {
+    "Satanium_ExitUnit",
+    "Satanium_RemoteController"
+};
+
 script "satanium_passive_enter_r" RESPAWN { ACS_NamedExecuteWithResult("satanium_sys_enter"); }
 script "satanium_passive_enter" ENTER
 {
-    GiveInventory("Satanium_ExitUnit", 1);
-
-    int i, count;
+    int i, ii, count;
     str item;
+
+    for(ii = 0; ii < ST_MAX_PASSIVES; ii++)
+    {
+        GiveInventory(satanium_passiveItems[ii], 1);
+    }
 
     int itemCounts[ST_MAX_ITEMS_GLOBAL_LIMIT];
     while(true) {
         bool selected = false;
-        for(i = 0; i < MAX_ITEMS_GLOBAL; i++) {
+        for(i = 0; i < MAX_ITEMS_GLOBAL + MAX_BUSTERUPGRADES; i++) {
+            if(i < MAX_ITEMS_GLOBAL) {
             item = getItemActor(i);
+            } else {
+                item = getBusterUpgrade(i-MAX_ITEMS_GLOBAL);
+            }
+
             count = CheckInventory(item);
             if(itemCounts[i] == count) continue;
+
+            bool skip = !(itemCounts[i] > count);
             itemCounts[i] = count;
+            if(!skip) continue;
 
+            // Always update counts, but if counts grow that means you just picked up something.
             if(selected) continue;
-            if(StrCmp("Satanium_ExitUnit", GetSelectedInventory()) != 0) continue;
-            selected = true;
-            SetSelectedInventory(item);
-        }
 
-        for(i = 0; i < MAX_BUSTERUPGRADES; i++) {
-            item = getBusterUpgrade(i);
-            count = CheckInventory(item);
-            if(itemCounts[MAX_ITEMS_GLOBAL+i] == count) continue;
-            itemCounts[i] = count;
+            str s = GetSelectedInventory();
+            for(ii = 0; ii < ST_MAX_PASSIVES; ii++) {
+                if(StrCmp(satanium_passiveItems[ii], s) == 0) {
+                    skip = false;
+                    break;
+                }
+            }
+            if(skip) continue;
 
-            if(selected) continue;
-            if(StrCmp("Satanium_ExitUnit", GetSelectedInventory()) != 0) continue;
             selected = true;
             SetSelectedInventory(item);
         }

@@ -1,0 +1,13 @@
+Graphic STEXIT, 30, 30
+{
+	XScale 2.0
+	YScale 2.0
+	Patch STRMJ0, 0, 0
+}
+
+Graphic STREMO, 30, 30
+{
+	XScale 2.0
+	YScale 2.0
+	Patch STRMK0, 0, 0
+}

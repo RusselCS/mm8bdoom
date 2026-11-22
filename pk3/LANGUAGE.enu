@@ -22,3 +22,5 @@ PD_YELLOWCO = "This needs \c[KeyYellow]yellow\c--level clearance.";
 PD_BLUESO = "This needs the \c[KeyBlue]blue\c- jewel.";
 PD_REDSO = "This needs the \c[KeyRed]red\c- jewel.";
 PD_YELLOWSO = "This needs the \c[KeyYellow]yellow\c- jewel.";
+
+TAG_REMOTECONTROL = "Remote Button";

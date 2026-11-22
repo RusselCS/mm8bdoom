@@ -24,7 +24,8 @@ script "satanium_aircontrol" OPEN
 
 script "satanium_modlib" OPEN
 {
-    DefineAssistItem("TAG_EXITUNIT", "Satanium_ExitUnit", "EXITA0", 1, DTADD_GRP_ESCAPE, false, false);
+    DefineAssistItem("TAG_EXITUNIT", "Satanium_ExitUnit", "STRMJ0", 1, DTADD_GRP_INNATE, false, false);
+    DefineAssistItem("TAG_REMOTECONTROL", "Satanium_RemoteController", "STRMK0", 1, DTADD_GRP_INNATE, false, false);
 }
 
 script "satanium_modlib_c" OPEN CLIENTSIDE
