@@ -17,6 +17,8 @@ script "satanium_passive_register" OPEN
 
     DefineHookFunction(DTADD_HF_ACTOR_DAMAGED, "satanium_handlemonster_damage", 1.0);
     DefineHookFunction(DTADD_HF_ACTOR_DAMAGED, "satanium_handlemonster_fixonhit", -65536.0);
+
+    DefineHookFunction(DTADD_HF_PROJ, "satanium_switchhitter", 0.0);
 }
 
 // SHIELDING ----------------------------------------------------------------------------------------------------------
@@ -191,4 +193,60 @@ script "satanium_handlemonster_fixonhit" (int e, int dmg, int type)
     CallACS("core_changeactorflag", "NOBLOOD", true, 0);
     delay(1);
     CallACS("core_changeactorflag", "NOBLOOD", false, 0);
+}
+
+// HITSCAN SWITCH HANDLER ---------------------------------------------------------------------------------------------
+
+script "satanium_switchhitter" (void)
+{
+    int vx, vy, vz;
+    int x, y, z;
+
+    // no reason to assume a monster owns this later, so may as well filter it immediately.
+    int owner = CallACS("core_gettarget", 0, 1);
+    if(owner < 0) terminate;
+
+    // pre-calculate the hypotenuse of the radius to offset the shot from.
+    // needed since all hitboxes in this engine are square. "radius" is actual apothem.
+    int radius = FixedMul(GetActorProperty(0, AProp_Radius), 1.4142);
+    // int radius = GetActorProperty(0, AProp_Radius);
+
+    int act = GetActorClass(0);
+
+    while(ClassifyActor(0) & ACTOR_MISSILE)
+    {
+        // Don't need z-axis for this since this functionality is basically ONLY for boom-compat maps.
+        // This means there should be no floors or ceilings that need shooting with specifically hitscans.
+        // 🐊🤞
+        vx = GetActorVelX(0);
+        vy = GetActorVelY(0);
+        vz = GetActorVelZ(0);
+        x = GetActorX(0);
+        y = GetActorY(0);
+        z = GetActorZ(0);
+        delay(1);
+    }
+    int dist = VectorLength(vx, vy);
+    if(dist < 1.0) terminate;
+
+    if(!SetActivatorToPlayer(owner)) terminate;
+    str spc = GetActorProperty(0, AProp_Species);
+
+    int u = UniqueTID();
+    if(!SpawnForced("SataniumGhostMissile", x, y, z+vz, u, 0)) terminate;
+
+    int yaw = VectorAngle(vx, vy);
+    int pitch = VectorAngle(dist, vz);
+    int range = VectorLength(dist, vz) + radius;
+
+    int u2 = UniqueTID();
+    int o = ActivatorTID();
+    Thing_ChangeTID(0, u2);
+    SetActivator(u);
+    SetPointer(AAPTR_TARGET, u2);
+    SetActorProperty(0, AProp_Species, spc);
+    Thing_ChangeTID(u2, o);
+    LineAttack(u, yaw, -pitch, 0, "SataniumSwitchHitter", "None", dist*2, FHF_NORANDOMPUFFZ|FHF_NOIMPACTDECAL);
+
+    Thing_Remove(u);
 }

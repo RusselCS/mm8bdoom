@@ -18,6 +18,36 @@ actor SataniumWepReplacer : Inventory
     }
 }
 
+actor SataniumGhostMissile : Actor
+{
+    +MISSILE
+    +NOINTERACTION
+    States
+    {
+    Spawn:
+        TNT1 A 0
+        stop
+        PLY1 BCDE 4
+        loop
+    }
+}
+
+actor SataniumSwitchHitter : BulletPuff
+{
+    -ALLOWPARTICLES
+    +MTHRUSPECIES
+    vspeed 0
+    renderstyle none
+    States
+    {
+    Spawn:
+        TNT1 A 0
+        stop
+        GUTS BCDE 4
+        loop
+    }
+}
+
 actor Satanium_Undropped : CUstomInventory
 {
     states
