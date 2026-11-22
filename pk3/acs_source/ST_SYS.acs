@@ -90,3 +90,16 @@ script "satanium_replace_codes" OPEN CLIENTSIDE
         }
     }
 }
+
+int transferPointerStats[4];
+
+script "satanium_transferpointers" (int src, int dest, int srcptr, int destptr)
+{
+    transferPointerStats[0] = src;
+    transferPointerStats[1] = dest;
+    transferPointerStats[2] = srcptr;
+    transferPointerStats[3] = destptr;
+    GiveInventory("ACS_transferPointers_runner", 1);
+}
+
+script "satanium_transferpointers_get" (int slot) { SetResultValue(transferPointerStats[slot]); }

@@ -33,3 +33,7 @@ function bool canISeeItXYZH(int tid, int x, int y, int z, int h)
     return res;
 }
 
+function void transferPointer(int src, int dest, int srcptr, int destptr)
+{
+    ACS_NamedExecuteWithResult("satanium_transferpointers", src, dest, srcptr, destptr);
+}

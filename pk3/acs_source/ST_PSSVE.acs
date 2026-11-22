@@ -47,7 +47,7 @@ script "satanium_passive_enter" ENTER
         bool selected = false;
         for(i = 0; i < MAX_ITEMS_GLOBAL + MAX_BUSTERUPGRADES; i++) {
             if(i < MAX_ITEMS_GLOBAL) {
-            item = getItemActor(i);
+                item = getItemActor(i);
             } else {
                 item = getBusterUpgrade(i-MAX_ITEMS_GLOBAL);
             }
