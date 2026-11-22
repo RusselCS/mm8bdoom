@@ -179,10 +179,10 @@ script "satanium_monsterdamage" (int ev, int dmg, int type)
         terminate;
     }
 
+    GiveInventory("Satanium_HitFlash", 1);
     if(CheckInventory("Satanium_JustBled"))
         terminate;
     GiveInventory("Satanium_JustBled", 1);
-    GiveInventory("Satanium_HitFlash", 1);
 
     int rad = GetActorProperty(0, APROP_Radius);
 
@@ -192,9 +192,15 @@ script "satanium_monsterdamage" (int ev, int dmg, int type)
 
     SpawnForced(bloodSplatters[0][checkFlemoid()], bloodX, bloodY, bloodZ, 0, 0);
 
+    if(CheckInventory("Satanium_HitDim"))
+        terminate;
+
     Thing_SetTranslation(0, CLR_SATANIUM_DMG);
+    CallACS("core_changeactorflag", "BRIGHT", true);
     while(Checkinventory("Satanium_HitFlash")) delay(1);
     Thing_SetTranslation(0, 0);
+    CallACS("core_changeactorflag", "BRIGHT", false);
+    GiveInventory("Satanium_HitDim", 1);
 }
 
 script "satanium_waitforrevive" (void)
