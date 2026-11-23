@@ -9,16 +9,6 @@
 
 #include "8BDMMATH.acs"
 
-int vilesActive = 0;
-int trackedViles[1000][4];
-int vileCount = 0;
-
-#define VILE_X 0
-#define VILE_Y 1
-#define VILE_Z 2
-#define VILE_H 3
-#define VILE_ACTIVE 4
-
 script "satanium_effect_open" OPEN
 {
     DefineHookFunction(DTADD_HF_PROJ, "satanium_fx_projectileflags", 0.0);
@@ -32,6 +22,16 @@ script "satanium_fx_projectileflags" (void)
     ACS_NamedExecuteWithResult("core_changeactorflag", "BLOODSPLATTER", false);
     ACS_NamedExecuteWithResult("core_changeactorflag", "BLOODLESSIMPACT", true);
 }
+
+int vilesActive = 0;
+int trackedViles[1000][4];
+int vileCount = 0;
+
+#define VILE_X 0
+#define VILE_Y 1
+#define VILE_Z 2
+#define VILE_H 3
+#define VILE_ACTIVE 4
 
 script "satanium_fx_registermonster" (int e, int a, int b) EVENT
 {

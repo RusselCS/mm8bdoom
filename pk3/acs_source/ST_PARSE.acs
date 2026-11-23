@@ -34,18 +34,18 @@ function int findActor(str act) {
     return -1;
 }
 
-#define KEY_INCLUDE 0
-#define KEY_ACTOR 1
-#define KEY_TRANSLATION 2
-#define KEY_OBITUARY 3
-#define KEY_STATES 4
+// these for the most part coincide with the control logic
+// the sole exceptions at the moment are `#include` and `actor`, which take the first two slots
+#define KEY_INCLUDE FIELD_NAME
+#define KEY_ACTOR FIELD_PARENT
 
-int keyWords[100][12] = {
-    {8,'#','i','n','c','l','u','d','e'},
-    {5,'a','c','t','o','r'},
-    {11,'t','r','a','n','s','l','a','t','i','o','n'},
-    {8,'o','b','i','t','u','a','r','y'},
+int keyWords[FIELD_MAX][20] = {
+    {8, '#','i','n','c','l','u','d','e'},
+    {5, 'a','c','t','o','r'},
     {6, 's','t','a','t','e','s'},
+    {11,'t','r','a','n','s','l','a','t','i','o','n'},
+    {8, 'o','b','i','t','u','a','r','y'},
+    {4, 'g','a','m','e'},
 };
 
 function bool checkKey(int st, int len, int key)
@@ -443,7 +443,7 @@ script "bigdata" OPEN CLIENTSIDE BUSY
                         if(f[start] == '}')
                             break;
 
-                        if(checkKey(start, length, KEY_STATES)) {
+                        if(checkKey(start, length, FIELD_STATES)) {
                             // Log(s:"FLOW CONTROL: SEARCHING STATES");
                             while(f[start] != '{') { next(); } // no safety rails cuz the engine does it for me 🥳
 
@@ -454,7 +454,7 @@ script "bigdata" OPEN CLIENTSIDE BUSY
                             }
                         }
 
-                        if(checkKey(start, length, KEY_OBITUARY)) {
+                        if(checkKey(start, length, FIELD_OBITUARY)) {
                             next();
                             fieldStart = start;
                             fieldEnd = end;
@@ -464,7 +464,7 @@ script "bigdata" OPEN CLIENTSIDE BUSY
                                 break;
                         }
 
-                        if(checkKey(start, length, KEY_TRANSLATION)) {
+                        if(checkKey(start, length, FIELD_TRANSLATION)) {
                             next();
                             fieldStart = start;
                             fieldEnd = end;
@@ -475,6 +475,17 @@ script "bigdata" OPEN CLIENTSIDE BUSY
                                 fieldEnd = end;
                             }
                             tempActors[currIdx][FIELD_TRANSLATION] = StrParam(a:(f, fieldStart, fieldEnd-fieldStart+1));
+
+                            if(f[start] == '}')
+                                break;
+                        }
+
+                        if(checkKey(start, length, FIELD_GAME)) {
+                            next();
+                            fieldStart = start;
+                            fieldEnd = end;
+                            tempActors[currIdx][FIELD_GAME] = StrParam(a:(f, fieldStart, fieldEnd-fieldStart+1));
+                            Log(s:"parser: game is ", s:tempActors[currIdx][FIELD_GAME], s:" for actor " , s:tempActors[currIdx][FIELD_NAME]);
 
                             if(f[start] == '}')
                                 break;
@@ -537,6 +548,11 @@ script "bigdata" OPEN CLIENTSIDE BUSY
         }
         actorIdx[i] = 0;
     }
+}
+
+script "satanium_actorinit" (void)
+{
+    SetResultValue(actors[0] != 0);
 }
 
 script "satanium_getactorfield" (int act, int field)
