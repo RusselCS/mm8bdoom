@@ -468,6 +468,9 @@ script "satanium_colorfix" (int e, int a, int b) EVENT CLIENTSIDE BUSY
     CallACS("satanium_setbasetranslation");
 }
 
+int colorCount = 0;
+str colorCvars[65535-CLR_SATANIUM_START];
+
 script "satanium_setbasetranslation" (void)
 {
     str act = GetActorClass(0);
@@ -642,6 +645,15 @@ script "satanium_setbasetranslation" (void)
     createFullTranslation(finalVal);
     Thing_SetTranslation(0, finalVal);
     ConsoleCommand(StrParam(s:"set ", s:cv, s:" ", i:finalVal));
+    colorCvars[colorCount++] = cv;
+}
+
+script "satanium_clearbasetranslations" UNLOADING
+{
+    for(int i = 0; i < colorCount; i++)
+    {
+        ConsoleCommand(StrParam(s:"set ", s:colorCvars[i], s:" ", i:0));
+    }
 }
 
 function int isNumber(int ch) { return ch >= '0' && ch <= '9'; }
