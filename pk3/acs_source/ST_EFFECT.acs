@@ -148,7 +148,7 @@ script "satanium_fx_monsterblood" (int ev, int dmg, int type)
     if(!CheckFlag(0,"ISMONSTER"))
         terminate;
 
-    if(CheckFlag(0,"NOBLOOD"))
+    if(CheckFlag(0,"NOBLOOD") && CheckInventory("Satanium_IsBleeding")==0)
         terminate;
 
     if(!DamageHook_SetActivator(0, AAPTR_DAMAGE_SOURCE))

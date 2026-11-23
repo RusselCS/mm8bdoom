@@ -60,8 +60,11 @@ actor Satanium_Blood_Reverse_Green : Satanium_Blood_Reverse { translation "192:1
 actor Satanium_JustBled : Powerup { powerup.duration 4 }
 actor Satanium_HitFlash : Powerup { powerup.duration 7 }
 actor Satanium_HitDim : Powerup { powerup.duration 4 }
+actor Satanium_IsBleeding : Powerup { powerup.duration 2 }
 
 // Drives conditional monster effects
+// Boss monsters should only be immune to their own explosions, not to every explosion.
+actor Satanium_NoSelfDmg : Once {}
 
 // Archvile -- Some VFX trigger when an archvile is active and wandering around.
 // Also when a monster is revived.
