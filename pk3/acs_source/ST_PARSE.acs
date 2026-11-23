@@ -3,11 +3,12 @@
 #include "zcommon.acs"
 
 #include "ST_COMM.acs"
+#include "ST_CONST.acs"
 
 #define MAX_INT 2147483647
 
-world int 22: f[];
-world str 22: actors[];
+world int GLB_DECORATE: f[];
+world str GLB_DECORATE: actors[];
 
 #define DEF_INIT 0
 #define DEF_COUNT 1
