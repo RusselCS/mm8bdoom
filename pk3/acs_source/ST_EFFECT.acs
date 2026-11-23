@@ -21,11 +21,19 @@ int vileCount = 0;
 
 script "satanium_effect_open" OPEN
 {
-    DefineHookFunction(DTADD_HF_PROJ, "satanium_projectileflags", 0.0);
-    DefineHookFunction(DTADD_HF_ACTOR_DAMAGED, "satanium_monsterdamage", 0.0);
+    DefineHookFunction(DTADD_HF_PROJ, "satanium_fx_projectileflags", 0.0);
+    DefineHookFunction(DTADD_HF_ACTOR_DAMAGED, "satanium_fx_monsterblood", 0.0);
 }
 
-script "satanium_registermonster" (int e, int a, int b) EVENT
+// SPLATTERING --------------------------------------------------------------------------------------------------------
+
+script "satanium_fx_projectileflags" (void)
+{
+    ACS_NamedExecuteWithResult("core_changeactorflag", "BLOODSPLATTER", false);
+    ACS_NamedExecuteWithResult("core_changeactorflag", "BLOODLESSIMPACT", true);
+}
+
+script "satanium_fx_registermonster" (int e, int a, int b) EVENT
 {
     if(e != GAMEEVENT_ACTOR_SPAWNED)
         terminate;
@@ -135,7 +143,7 @@ str bloodSplatters[4][2] = {
     {"Satanium_Blood_Reverse", "Satanium_Blood_Reverse_Green"},
 };
 
-script "satanium_monsterdamage" (int ev, int dmg, int type)
+script "satanium_fx_monsterblood" (int ev, int dmg, int type)
 {
     if(!CheckFlag(0,"ISMONSTER"))
         terminate;
@@ -284,12 +292,6 @@ function bool checkForViles(void)
     return false;
 }
 
-script "satanium_projectileflags" (void)
-{
-    ACS_NamedExecuteWithResult("core_changeactorflag", "BLOODSPLATTER", false);
-    ACS_NamedExecuteWithResult("core_changeactorflag", "BLOODLESSIMPACT", true);
-}
-
 #define STR_CONT_LIMIT 300
 int contText[STR_CONT_LIMIT];
 int contKey[STR_CONT_LIMIT];
@@ -336,6 +338,8 @@ function int charToLower(int ch)
         return (ch+32);
     return ch;
 }
+
+// FAKE FLATSPRITES ---------------------------------------------------------------------------------------------------
 
 int px, py, pz;
 int ppitch, pyaw;
