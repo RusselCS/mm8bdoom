@@ -486,7 +486,6 @@ script "bigdata" OPEN CLIENTSIDE BUSY
                             fieldStart = start;
                             fieldEnd = end;
                             tempActors[currIdx][FIELD_GAME] = StrParam(a:(f, fieldStart, fieldEnd-fieldStart+1));
-                            Log(s:"parser: game is ", s:tempActors[currIdx][FIELD_GAME], s:" for actor " , s:tempActors[currIdx][FIELD_NAME]);
 
                             if(f[start] == '}')
                                 break;
