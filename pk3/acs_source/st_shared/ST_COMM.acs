@@ -1,9 +1,12 @@
 
-#define FIELD_MAX 3
 #define FIELD_NAME 0
 #define FIELD_PARENT 1
-#define FIELD_TRANSLATION 2
-#define FIELD_OBITUARY 3
+#define FIELD_STATES 2
+#define FIELD_TRANSLATION 3
+#define FIELD_OBITUARY 4
+#define FIELD_GAME 5
+
+#define FIELD_MAX 6
 
 function bool canISeeItXYZH(int tid, int x, int y, int z, int h)
 {

@@ -40,6 +40,8 @@ script "satanium_fx_registermonster" (int e, int a, int b) EVENT
     if(!CheckFlag(0, "ISMONSTER"))
         terminate;
 
+    while(!CallACS("satanium_actorinit")) delay(1);
+
     checkFlemoid();
 
     if(checkArchvile()) {
@@ -109,11 +111,8 @@ function bool checkFlemoid(void)
         }
     }
 
-    if(ret == -1) if(strFind(cls, "Flem") > -1) ret = true;
-    if(ret == -1) if(strFind(cls, "Larva") > -1) ret = true;
-    if(ret == -1) if(strFind(cls, "Quadrumpus") > -1) ret = true;
-    if(ret == -1) if(strFind(cls, "SuperCycloptis") > -1) ret = true;
-    if(ret == -1) if(strFind(cls, "Snotfolus") > -1) ret = true;
+    str game = CallACS("satanium_getactorfield", cls, FIELD_GAME);
+    ret = (StrICmp(game, "Chex") == 0);
 
     if(ret > 0)
     {
