@@ -131,6 +131,7 @@ actor SataniumJewelParticle : BasicGraphicEffect
     +FORCEXYBILLBOARD
     +BRIGHT
     Scale 2.0
+    var int user_nativeTranslation;
     States
     {
     Spawn:

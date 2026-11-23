@@ -21,7 +21,7 @@ SpawnLoop:
 STRM ABCD 5
 loop
 Pickup:
-TNT1 A 0 ACS_NamedExecuteWithResult("satanium_handleshield_pickup", 1)
+TNT1 A 0 ACS_NamedExecuteWithResult("satanium_handleshield_pickup", 2)
 }
 }
 
@@ -37,7 +37,7 @@ actor SataniumBigArmor : BaseMM8BDMItem
 var int user_RemoveAsArmor;
 inventory.pickupmessage "$PU_BIGARMOR"
 +COUNTITEM
-inventory.pickupsound "item/energyup/large"
+inventory.pickupsound "item/energyup"
 Scale 2.0
 States
 {
@@ -45,6 +45,56 @@ SpawnLoop:
 STRM EFGH 5
 loop
 Pickup:
-TNT1 A 0 ACS_NamedExecuteWithResult("satanium_handleshield_pickup", 55)
+TNT1 A 0 A_JumpIf(ACS_NamedExecuteWithResult("satanium_handleshield_pickup", 100), "Succeed")
+fail
+Succeed:
+TNT1 A 0 A_PlaySoundEx("item/armorup", "voice")
+stop
+}
+}
+
+actor SataniumBiggerHealth : BaseMM8BDMItem
+{
+var int user_RemoveAsHealth;
+inventory.pickupmessage "$PU_BIGGERHEALTH"
++COUNTITEM
+inventory.pickupsound "item/energyup/large"
+Scale 2.0
+States
+{
+SpawnLoop:
+STRM LMNO 5
+loop
+Pickup:
+TNT1 A 0 A_JumpIf(ACS_NamedExecuteWithResult("satanium_handleshield_pickup_healfirst", 120), "Succeed")
+fail
+Succeed:
+TNT1 A 0 A_PlaySoundEx("item/armorup", "voice")
+stop
+}
+}
+
+actor SataniumBiggestHealth : BaseMM8BDMItem
+{
+var int user_RemoveAsHealth;
+inventory.pickupmessage "$PU_BIGGESTHEALTH"
++COUNTITEM
+inventory.pickupsound "item/energyup/large"
+Scale 2.0
+Translation "192:192=4:4", "198:198=41:41"
+States
+{
+SpawnLoop:
+STRM P 0 Thing_ChangeTID(0,999)
+STRM P 5
+STRM Q 5 BRIGHT
+STRM Q 0 A_SpawnItemEx("SataniumJewelParticle", random(-18, 18), random(-18, 18), random(-2, 34), 0, 0, 0, 0, SXF_TRANSFERTRANSLATION)
+goto SpawnLoop+1
+Pickup:
+TNT1 A 0 A_JumpIf(ACS_NamedExecuteWithResult("satanium_handleheartpart"), "Succeed")
+fail
+Succeed:
+TNT1 A 0 A_PlaySoundEx("item/bigitem", "voice")
+stop
 }
 }

@@ -3,6 +3,9 @@
 PU_SMALLERARMOR = "Picked up a small shield capsule.";
 PU_BIGARMOR = "Picked up a large shield capsule.";
 
+PU_BIGGERHEALTH = "Picked up bonus health! (+120 HP)";
+PU_BIGGESTHEALTH = "Picked up bonus health! (FULL RESTORE)";
+
 KEY_BLUECODE = "Scanned \c[KeyBlue]blue\c--level key codes.";
 KEY_REDCODE = "Scanned \c[KeyRed]red\c--level key codes.";
 KEY_YELLOWCODE = "Scanned \c[KeyYellow]yellow\c--level key codes.";
