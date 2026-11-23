@@ -282,3 +282,7 @@ actor satanium_setbasetranslation_ci : CustomInventory
         stop
     }
 }
+
+// Pointer timers
+actor Satanium_PointerStart : Powerup { powerup.duration 0x7FFFFFFD }
+actor Satanium_PointerEnd : Powerup { powerup.duration 4 }

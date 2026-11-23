@@ -1,0 +1,28 @@
+ST_POINT
+{
+	A ST_PT01
+	B ST_PT02
+	C ST_PT03
+	D ST_PT04
+	E ST_PT05
+	F ST_PT06
+	G ST_PT07
+	H ST_PT08
+	I ST_PT09
+	J ST_PT10
+	K ST_PT11
+	L ST_PT12
+	M ST_PT13
+	N ST_PT14
+	O ST_PT15
+	P ST_PT16
+	Q ST_PT17
+	R ST_PT18
+	S ST_PT19
+	T ST_PT20
+	U ST_PT21
+
+	// Since all the above graphics are monotone, need a shade of black
+	// Without it, the above graphics always draw as black
+	Z BLACK
+}
