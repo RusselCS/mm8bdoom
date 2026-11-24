@@ -550,6 +550,18 @@ script "bigdata" OPEN CLIENTSIDE BUSY
     }
 }
 
+script "satanium_dumpactors" (void) NET BUSY
+{
+    int count = getActorField(-1, DEF_COUNT);
+    for(int i = 0; i < count; i++) {
+        str out = "";
+        for(int ii = 0; ii < FIELD_MAX; ii++) {
+            out = StrParam(s:out, s:getActorField(i, ii), s:", ");
+        }
+        Log(s:out);
+    }
+}
+
 script "satanium_actorinit" (void)
 {
     SetResultValue(actors[0] != 0);
