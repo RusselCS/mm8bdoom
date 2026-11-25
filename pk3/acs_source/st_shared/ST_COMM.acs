@@ -50,3 +50,10 @@ function bool checkClassFlag(str cls, str flag)
     Thing_Remove(u);
     return ret;
 }
+
+function bool MM8BDMPlayer(void)
+{
+    if(PlayerNumber() < 0) return false;
+    if(CheckInventory("MM8BDMPlayer") == 0) return false;
+    return true;
+}

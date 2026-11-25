@@ -153,7 +153,7 @@ script "satanium_fx_monsterblood" (int ev, int dmg, int type)
     if(!DamageHook_SetActivator(0, AAPTR_DAMAGE_SOURCE))
         terminate;
 
-    if(!CheckInventory("MM8BDMPlayer"))
+    if(!MM8BDMPlayer())
         terminate;
     dmg = DamageHook_GetEventResult();
 
