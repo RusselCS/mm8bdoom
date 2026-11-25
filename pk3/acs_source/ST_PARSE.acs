@@ -598,7 +598,7 @@ script "bigdata" OPEN BUSY
                                     stParameters = -1;
                                     stNext = 0;
 
-                                    if(f[pStart] == '}')
+                                    if(f[start] == '}')
                                         break;
                                     if(resolved)
                                         continue;
@@ -715,7 +715,7 @@ script "satanium_dumpactors" (void) NET BUSY
         for(int ii = 0; ii < FIELD_MAX; ii++) {
             out = StrParam(s:out, s:getActorField(i, ii), s:", ");
         }
-        // Log(s:out);
+        Log(s:out);
     }
 }
 
@@ -732,7 +732,7 @@ script "satanium_dumpstates" (void) NET BUSY
                 out = StrParam(s:out, s:getStateProp(i, ii), s:", ");
             }
         }
-        // Log(s:out);
+        Log(s:out);
     }
 }
 
