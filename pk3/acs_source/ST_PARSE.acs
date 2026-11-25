@@ -719,6 +719,7 @@ script "satanium_dumpactors" (void) NET BUSY
     }
 }
 
+#include "STP_DICT.acs"
 script "satanium_dumpstates" (void) NET BUSY
 {
     Log(s:"Dumping states ===================================");
@@ -726,10 +727,15 @@ script "satanium_dumpstates" (void) NET BUSY
     for(int i = 0; i < count; i++) {
         str out = StrParam(i:i, s:"[");
         for(int ii = 0; ii < 9; ii++) {
+
+            int v = getStateProp(i, ii);
+            if(ii == STATE_FUNCTION)
+                v = StrParam(s:func_str[v], s:" (", i:v, s:")");
+
             if(ii+1 == 9) {
-                out = StrParam(s:out, s:getStateProp(i, ii), s:"]");
+                out = StrParam(s:out, s:v, s:"]");
             } else {
-                out = StrParam(s:out, s:getStateProp(i, ii), s:", ");
+                out = StrParam(s:out, s:v, s:", ");
             }
         }
         Log(s:out);
@@ -773,7 +779,6 @@ function int CheckHeritage(str act, str ancestor)
     return CheckHeritage(parent, ancestor);
 }
 
-#include "STP_DICT.acs"
 script "satanium_resolveState" (int act, int lbl) { SetResultValue(resolveState(act, lbl)); }
 
 function int resolveState(str act, str lbl)
@@ -903,7 +908,6 @@ function void parameterize(int s, int e)
         params[params_count++] = out;
         return;
     }
-
 
     out = StrParam(a:(params_char, s, e-s+1));
     params[params_count++] = p_parseInt(out);
