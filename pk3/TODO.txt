@@ -1,8 +1,23 @@
+LIST OF REALLY DUMB HACKS:
+- NOBLOOD is flipped ON when a monster is damaged by from players who have "MM8BDMPlayer". Another actor is given temporarily to mark that they are supposed to bleed. This is so Crash states trigger on weapon hit.
+- There's a script that makes it so projectiles fired by players who have "MM8BDMPlayer" pass through solid props. This is to make levels built around hitscan more sane.
+- BRIGHT is briefly toggled on monsters who take damage from players who have "MM8BDMPlayer."
+- Monsters have a status script that gives some "what's going on right now" stats to monsters, such as "IsGrounded" and "IsAirborne".
+- Monsters are given "MM8BDMPlayer" to lockpick some specific weapons effects (such as ODOS Bit Cannon).
+
+This mod comes with a partial DECORATE parser! It does all the following:
+- Makes loading into the first map take a really long time!
+- Ensures parity of colors when running MM8BDM with any doom wad for all actors that use the "translation" keyword.
+- Takes all the pain states from the class base and wires into the damage script so that code can run on monsters.
+
+TO DO:
 - Passive buster scripts break between maps?
 - Give an infinite use exit unit on spawn.
 - Voodoo dolls are not given a new baseflagpack on new map. This is a major problem.
 - Figure out how to color the floor splatters the same in software and opengl
 - Figure out a better way to handle assigning unique translation IDs to actors that need them.
+- Blood splatters do not follow lifts.
+- Scythe 2 map10 is really fucking hard.
 
 Fodder Enemies:
 - ZombieMan:

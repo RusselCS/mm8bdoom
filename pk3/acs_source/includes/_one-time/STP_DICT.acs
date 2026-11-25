@@ -1,0 +1,1683 @@
+// recreating binary search with a bunch of outside data
+// also needing to recreate strparam in there because otherwise
+// need to compile a new string every time i want to do this
+
+#define FNC_A_GIVEINVENTORY 230
+#define FNC_A_SPAWNITEMEX 497
+#define FNC_ACS_NAMEDEXECUTEWITHRESULT 595
+#define FNC_THRUSTTHINGZ 973
+
+#define FUNC_MAX 796
+str func_str[FUNC_MAX] = {
+"a_accteleglitter",
+"a_acolytebits",
+"a_acolytedie",
+"a_activeandunblock",
+"a_activesound",
+"a_addplayerrain",
+"a_alertmonsters",
+"a_alienspectredeath",
+"a_babymetal",
+"a_bang4cloud",
+"a_barreldestroy",
+"a_basicattack",
+"a_batmove",
+"a_batspawn",
+"a_batspawninit",
+"a_beacon",
+"a_beakattackpl1",
+"a_beakattackpl2",
+"a_beakraise",
+"a_bellreset1",
+"a_bellreset2",
+"a_beshadowyfoe",
+"a_betaskullattack",
+"a_bfgsound",
+"a_bfgspray",
+"a_bishopattack",
+"a_bishopattack2",
+"a_bishopchase",
+"a_bishopdecide",
+"a_bishopdoblur",
+"a_bishopmissileweave",
+"a_bishoppainblur",
+"a_bishoppuff",
+"a_bishopspawnblur",
+"a_bluespark",
+"a_bossdeath",
+"a_bouncecheck",
+"a_brainawake",
+"a_braindie",
+"a_brainexplode",
+"a_brainpain",
+"a_brainscream",
+"a_brainspit",
+"a_bridgeinit",
+"a_bridgeorbit",
+"a_bruisattack",
+"a_bspiattack",
+"a_bulletattack",
+"a_burnarea",
+"a_burnination",
+"a_burst",
+"a_callspecial",
+"a_centaurdefend",
+"a_cflameattack",
+"a_cflamemissile",
+"a_cflamepuff",
+"a_cflamerotate",
+"a_changeflag",
+"a_changevelocity",
+"a_chase",
+"a_checkceiling",
+"a_checkflag",
+"a_checkfloor",
+"a_checkforreload",
+"a_checklof",
+"a_checkplayerdone",
+"a_checkrailreload",
+"a_checkrange",
+"a_checkreload",
+"a_checksight",
+"a_checksightorrange",
+"a_checktelering",
+"a_checkterrain",
+"a_checkthrowbomb",
+"a_checkthrowbomb2",
+"a_chicattack",
+"a_cholyattack",
+"a_cholyattack2",
+"a_cholycheckscream",
+"a_cholypalette",
+"a_cholyseek",
+"a_cholytail",
+"a_classbosshealth",
+"a_clearflash",
+"a_clearlastheard",
+"a_clearrefire",
+"a_clearshadow",
+"a_clearsoundtarget",
+"a_cleartarget",
+"a_clericattack",
+"a_clientsideacsexecute",
+"a_closeshotgun2",
+"a_cmaceattack",
+"a_comboattack",
+"a_copyfriendliness",
+"a_corpseblooddrip",
+"a_corpseexplode",
+"a_countdown",
+"a_countdownarg",
+"a_cposattack",
+"a_cposrefire",
+"a_crispyplayer",
+"a_crusaderchoose",
+"a_crusaderdeath",
+"a_crusaderrefire",
+"a_crusadersweepleft",
+"a_crusadersweepright",
+"a_cstaffattack",
+"a_cstaffcheck",
+"a_cstaffcheckblink",
+"a_cstaffinitblink",
+"a_cstaffmissileslither",
+"a_custombulletattack",
+"a_customcomboattack",
+"a_custommeleeattack",
+"a_custommissile",
+"a_custompunch",
+"a_customrailgun",
+"a_cyberattack",
+"a_damagechildren",
+"a_damagemaster",
+"a_damagesiblings",
+"a_deathballimpact",
+"a_delaygib",
+"a_dequeuecorpse",
+"a_detonate",
+"5a_die",
+"a_dragonattack",
+"a_dragoncheckcrash",
+"a_dragonflap",
+"a_dragonflight",
+"a_dragonfx2",
+"a_dragoninitflight",
+"a_dragonpain",
+"a_dripblood",
+"a_dropfire",
+"a_dropinventory",
+"a_dropitem",
+"a_dropweaponpieces",
+"a_dualpainattack",
+"a_entityattack",
+"a_entitydeath",
+"a_explode",
+"a_explode512",
+"a_extchase",
+"a_extralightoff",
+"a_facemaster",
+"a_facetarget",
+"a_facetracer",
+"a_fadein",
+"a_fadeout",
+"a_fadeto",
+"a_fall",
+"a_fastchase",
+"a_fatattack1",
+"a_fatattack2",
+"a_fatattack3",
+"a_fatraise",
+"a_faxeattack",
+"a_faxecheckatk",
+"a_faxecheckready",
+"a_faxecheckreadyg",
+"a_faxecheckup",
+"a_faxecheckupg",
+"a_feathers",
+"a_fhammerattack",
+"a_fhammerthrow",
+"a_fighterattack",
+"a_fire",
+"a_firearrow",
+"a_fireassaultgun",
+"a_firebfg",
+"a_fireblasterpl1",
+"a_firebullets",
+"a_firecgun",
+"a_fireconepl1",
+"a_firecrackle",
+"a_firecrossbowpl1",
+"a_firecrossbowpl2",
+"a_firecustommissile",
+"a_firedattack",
+"a_firedchase",
+"a_firedrocks",
+"a_firedsplotch",
+"a_fireflamer",
+"a_firegoldwandpl1",
+"a_firegoldwandpl2",
+"a_firegrenade",
+"a_firemacepl1",
+"a_firemacepl2",
+"a_firemauler1",
+"a_firemauler2",
+"a_firemauler2pre",
+"a_fireminimissile",
+"a_firemissile",
+"a_fireoldbfg",
+"a_firephoenixpl1",
+"a_firephoenixpl2",
+"a_firepistol",
+"a_fireplasma",
+"a_firerailgun",
+"a_firerailgunleft",
+"a_firerailgunright",
+"a_fireshotgun",
+"a_fireshotgun2",
+"a_firesigil1",
+"a_firesigil2",
+"a_firesigil3",
+"a_firesigil4",
+"a_firesigil5",
+"a_fireskullrodpl1",
+"a_fireskullrodpl2",
+"a_firestgrenade",
+"a_flamedie",
+"a_flameend",
+"a_floatgib",
+"a_floatpuff",
+"a_floopactivesound",
+"a_fogmove",
+"a_fogspawn",
+"a_fpunchattack",
+"a_freezedeath",
+"a_freezedeathchunks",
+"a_fswordattack",
+"a_fswordflames",
+"a_gauntletattack",
+"a_genericfreezedeath",
+"a_genwizard",
+"a_gethurt",
+"a_ghostoff",
+"a_giveinventory",
+"a_giveplayermedal",
+"a_givequestitem",
+"a_givetochildren",
+"a_givetosiblings",
+"a_givetotarget",
+"a_gravity",
+"a_gunflash",
+"a_handlower",
+"a_headattack",
+"a_hidedecepticon",
+"a_hideinceiling",
+"a_hidething",
+"a_hoof",
+"a_iceguyattack",
+"a_iceguychase",
+"a_iceguydie",
+"a_iceguylook",
+"a_iceguymissileexplode",
+"a_icesettics",
+"a_impdeath",
+"a_impexplode",
+"a_impmsattack",
+"a_impxdeath1",
+"a_initphoenixpl2",
+"a_inquisitorattack",
+"a_inquisitorcheckland",
+"a_inquisitordecide",
+"a_inquisitorjump",
+"a_inquisitorwalk",
+"a_itburnsitburns",
+"a_jabdagger",
+"a_jump",
+"a_jumpif",
+"a_jumpifarmortype",
+"a_jumpifcloser",
+"a_jumpifhealthlower",
+"a_jumpifintargetinventory",
+"a_jumpifintargetlos",
+"a_jumpifinventory",
+"a_jumpifmastercloser",
+"a_jumpifnoammo",
+"a_jumpiftargetinlos",
+"a_jumpiftargetinsidemeleerange",
+"a_jumpiftargetoutsidemeleerange",
+"a_jumpiftracercloser",
+"a_kbolt",
+"a_kboltraise",
+"a_keendie",
+"a_killchildren",
+"a_killmaster",
+"a_killsiblings",
+"a_klaxonblare",
+"a_knightattack",
+"a_koraxbonepop",
+"a_koraxchase",
+"a_koraxcommand",
+"a_koraxdecide",
+"a_koraxmissile",
+"a_kspiritroam",
+"a_lastzap",
+"a_leafcheck",
+"a_leafspawn",
+"a_leafthrust",
+"a_lichattack",
+"a_lichfiregrow",
+"a_lichiceimpact",
+"a_light",
+"a_light0",
+"a_light1",
+"a_light2",
+"a_lightgoesout",
+"a_lightinverse",
+"a_lightningclip",
+"a_lightningready",
+"a_lightningremove",
+"a_lightningzap",
+"a_lineeffect",
+"a_loadshotgun2",
+"a_log",
+"a_logint",
+"a_look",
+"a_look2",
+"a_lookex",
+"a_loopactivesound",
+"a_loremasterchain",
+"a_lower",
+"a_lowgravity",
+"a_m_bfgsound",
+"a_m_checkattack",
+"a_m_firebfg",
+"a_m_firecgun",
+"a_m_firemissile",
+"a_m_firepistol",
+"a_m_fireplasma",
+"a_m_firerailgun",
+"a_m_fireshotgun",
+"a_m_fireshotgun2",
+"a_m_punch",
+"a_m_refire",
+"a_m_saw",
+"a_m_sawrefire",
+"a_maceballimpact",
+"a_maceballimpact2",
+"a_macepl1check",
+"a_mageattack",
+"9a_makepod",
+"a_marinechase",
+"a_marinelook",
+"a_marinenoise",
+"a_maulertorpedowave",
+"a_meleeattack",
+"a_metal",
+"a_minotauratk1",
+"a_minotauratk2",
+"a_minotauratk3",
+"a_minotaurcharge",
+"a_minotaurchase",
+"a_minotaurdeath",
+"a_minotaurdecide",
+"a_minotaurlook",
+"a_minotaurroam",
+"a_missileattack",
+"a_mlightningattack",
+"a_mntrfloorfire",
+"a_monsterrail",
+"a_monsterrefire",
+"a_mstaffattack",
+"a_mstaffpalette",
+"a_mstafftrack",
+"a_mushroom",
+"a_noblocking",
+"a_nogravity",
+"a_openshotgun2",
+"a_pain",
+"a_painattack",
+"a_paindie",
+"a_phoenixpuff",
+"a_pigpain",
+"a_playerscream",
+"a_playerskincheck",
+"a_playsound",
+"a_playsoundex",
+"a_playweaponsound",
+"a_podpain",
+"a_poisonbagcheck",
+"a_poisonbagdamage",
+"a_poisonbaginit",
+"a_poisonshroom",
+"a_posattack",
+"a_potterycheck",
+"a_potterychoosebit",
+"a_potteryexplode",
+"a_print",
+"a_printbold",
+"a_programmerdeath",
+"a_programmermelee",
+"a_punch",
+"a_quake",
+"a_queuecorpse",
+"a_radiusgive",
+"a_radiusthrust",
+"a_railattack",
+"a_railwait",
+"a_rainimpact",
+"a_raise",
+"a_raisechildren",
+"a_raisemaster",
+"a_raisesiblings",
+"a_randompowerupframe",
+"a_rearrangepointers",
+"a_reaverranged",
+"a_recoil",
+"a_refire",
+"a_removechildren",
+"a_removeforcefield",
+"a_removemaster",
+"a_removepod",
+"a_removesiblings",
+"a_resetreloadcounter",
+"a_respawn",
+"a_restorespecialdoomthing",
+"a_restorespecialposition",
+"a_restorespecialthing1",
+"a_restorespecialthing2",
+"a_rocketinflight",
+"a_sargattack",
+"a_saw",
+"a_scalevelocity",
+"a_scream",
+"a_screamandunblock",
+"a_seekermissile",
+"a_selectpiece",
+"a_selectsigilattack",
+"a_selectsigildown",
+"a_selectsigilview",
+"a_selectweapon",
+"a_sentinelattack",
+"a_sentinelbob",
+"a_sentinelrefire",
+"a_serpentcheckforattack",
+"a_serpentchooseattack",
+"a_serpentheadcheck",
+"a_serpenthide",
+"a_serpenthumpdecide",
+"a_serpentlowerhump",
+"a_serpentmeleeattack",
+"a_serpentraisehump",
+"a_serpentspawngibs",
+"a_serpentunhide",
+"a_setangle",
+"a_setarg",
+"a_setblend",
+"a_setcrosshair",
+"a_setdamagetype",
+"a_setfloat",
+"a_setfloorclip",
+"a_setgravity",
+"a_setinvulnerable",
+"a_setmass",
+"a_setpitch",
+"a_setreflective",
+"a_setreflectiveinvulnerable",
+"a_setscale",
+"a_setshadow",
+"a_setshootable",
+"a_setsolid",
+"a_setspecial",
+"a_settics",
+"a_settranslucent",
+"a_setuserarray",
+"a_setuservar",
+"a_shedshard",
+"a_shootgun",
+"a_showelectricflash",
+"a_shutdownphoenixpl2",
+"a_sigilcharge",
+"a_sinkgib",
+"a_skelfist",
+"a_skelmissile",
+"a_skelwhoosh",
+"a_skullattack",
+"a_skullpop",
+"a_skullrodstorm",
+"a_smbounce",
+"a_snoutattack",
+"a_soaexplode",
+"a_sor1chase",
+"a_sor1pain",
+"a_sor2dthinit",
+"a_sor2dthloop",
+"a_sorcballorbit",
+"a_sorcballpop",
+"a_sorcbossattack",
+"a_sorcererbishopentry",
+"a_sorcererrise",
+"a_sorcfx1seek",
+"a_sorcfx2orbit",
+"a_sorcfx2split",
+"a_sorcfx4check",
+"a_sorcspinballs",
+"a_spawnbishop",
+"a_spawndebris",
+"a_spawnentity",
+"a_spawnfizzle",
+"a_spawnfly",
+"a_spawnitem",
+"a_spawnitemex",
+"a_spawnprogrammerbase",
+"a_spawnrippers",
+"a_spawnsingleitem",
+"a_spawnsound",
+"a_spectralbigballlightning",
+"a_spectrallightning",
+"a_spectrallightningtail",
+"a_spectre3attack",
+"a_spectrechunklarge",
+"a_spectrechunksmall",
+"a_speedballs",
+"a_spidrefire",
+"a_sposattack",
+"a_sposattackuseatksound",
+"a_spotlightning",
+"a_srcr1attack",
+"a_srcr2attack",
+"a_srcr2decide",
+"a_staffattack",
+"a_stalkerattack",
+"a_stalkerchasedecide",
+"a_stalkerdrop",
+"a_stalkerlookinit",
+"a_stalkerwalk",
+"a_startfire",
+"a_stop",
+"a_stopsound",
+"a_stopsoundex",
+"a_subentitydeath",
+"a_summon",
+"a_takefromchildren",
+"a_takefromsiblings",
+"a_takefromtarget",
+"a_takeinventory",
+"a_teleport",
+"a_telospawna",
+"a_telospawnb",
+"a_telospawnc",
+"a_telospawnd",
+"a_templarattack",
+"a_throwgrenade",
+"a_thrustimpale",
+"a_thrustinitdn",
+"a_thrustinitup",
+"a_thrustlower",
+"a_thrustraise",
+"a_timebomb",
+"a_tossarm",
+"a_tossgib",
+"a_tracer",
+"a_tracer2",
+"a_transferpointer",
+"a_troopattack",
+"a_turn",
+"a_turretlook",
+"a_unhidething",
+"a_unsetfloat",
+"a_unsetfloorclip",
+"a_unsetinvulnerable",
+"a_unsetreflective",
+"a_unsetreflectiveinvulnerable",
+"a_unsetshootable",
+"a_unsetsolid",
+"a_vileattack",
+"a_vilechase",
+"a_vilestart",
+"a_viletarget",
+"a_volcanoblast",
+"a_volcanoset",
+"a_volcballimpact",
+"a_wakeoraclespectre",
+"a_wander",
+"a_warp",
+"a_weaponready",
+"a_weave",
+"a_whirlwindseek",
+"a_wizatk1",
+"a_wizatk2",
+"a_wizatk3",
+"a_wolfattack",
+"a_wraithchase",
+"a_wraithfx2",
+"a_wraithfx3",
+"a_wraithinit",
+"a_wraithmelee",
+"a_wraithraise",
+"a_wraithraiseinit",
+"a_xscream",
+"a_zapmimic",
+"a_zoomfactor",
+"acs_execute",
+"acs_executealways",
+"acs_executewithresult",
+"acs_lockedexecute",
+"acs_lockedexecutedoor",
+"acs_namedexecute",
+"acs_namedexecutealways",
+"acs_namedexecutewithresult",
+"acs_namedlockedexecute",
+"acs_namedlockedexecutedoor",
+"acs_namedsuspend",
+"acs_namedterminate",
+"acs_suspend",
+"acs_terminate",
+"ceiling_crushandraise",
+"ceiling_crushandraisea",
+"ceiling_crushandraisedist",
+"ceiling_crushandraisesilenta",
+"ceiling_crushraiseandstay",
+"ceiling_crushraiseandstaya",
+"ceiling_crushraiseandstaysila",
+"ceiling_crushstop",
+"ceiling_lowerandcrush",
+"ceiling_lowerandcrushdist",
+"ceiling_lowerbyvalue",
+"ceiling_lowerbyvaluetimes8",
+"ceiling_lowerinstant",
+"ceiling_lowertofloor",
+"ceiling_lowertohighestfloor",
+"ceiling_lowertolowest",
+"ceiling_movetovalue",
+"ceiling_movetovaluetimes8",
+"ceiling_raisebyvalue",
+"ceiling_raisebyvaluetimes8",
+"ceiling_raiseinstant",
+"ceiling_raisetonearest",
+"ceiling_waggle",
+"changecamera",
+"changeskill",
+"clearforcefield",
+"damagething",
+"door_animated",
+"door_close",
+"door_closewaitopen",
+"door_lockedraise",
+"door_open",
+"door_raise",
+"elevator_lowertonearest",
+"elevator_movetofloor",
+"elevator_raisetonearest",
+"exit_normal",
+"exit_secret",
+"floor_crushstop",
+"floor_donut",
+"floor_lowerbyvalue",
+"floor_lowerbyvaluetimes8",
+"floor_lowerinstant",
+"floor_lowertohighest",
+"floor_lowertolowest",
+"floor_lowertolowesttxty",
+"floor_lowertonearest",
+"floor_movetovalue",
+"floor_movetovaluetimes8",
+"floor_raiseandcrush",
+"floor_raiseandcrushdoom",
+"floor_raisebytexture",
+"floor_raisebyvalue",
+"floor_raisebyvaluetimes8",
+"floor_raisebyvaluetxty",
+"floor_raiseinstant",
+"floor_raisetohighest",
+"floor_raisetolowestceiling",
+"floor_raisetonearest",
+"floor_transfernumeric",
+"floor_transfertrigger",
+"floor_waggle",
+"floorandceiling_lowerbyvalue",
+"floorandceiling_lowerraise",
+"floorandceiling_raisebyvalue",
+"forcefield",
+"generic_ceiling",
+"generic_crusher",
+"generic_crusher2",
+"generic_door",
+"generic_floor",
+"generic_lift",
+"generic_stairs",
+"glassbreak",
+"healthing",
+"light_changetovalue",
+"light_fade",
+"light_flicker",
+"light_forcelightning",
+"light_glow",
+"light_lowerbyvalue",
+"light_maxneighbor",
+"light_minneighbor",
+"light_raisebyvalue",
+"light_stop",
+"light_strobe",
+"light_strobedoom",
+"line_alignceiling",
+"line_alignfloor",
+"line_setblocking",
+"line_settextureoffset",
+"line_settexturescale",
+"noisealert",
+"pillar_build",
+"pillar_buildandcrush",
+"pillar_open",
+"plat_downbyvalue",
+"plat_downwaitupstay",
+"plat_downwaitupstaylip",
+"plat_perpetualraise",
+"plat_perpetualraiselip",
+"plat_raiseandstaytx0",
+"plat_stop",
+"plat_toggleceiling",
+"plat_upbyvalue",
+"plat_upbyvaluestaytx",
+"plat_upnearestwaitdownstay",
+"plat_upwaitdownstay",
+"player_setteam",
+"pointpush_setforce",
+"polyobj_doorslide",
+"polyobj_doorswing",
+"polyobj_move",
+"polyobj_movetimes8",
+"polyobj_moveto",
+"polyobj_movetospot",
+"polyobj_or_move",
+"polyobj_or_movetimes8",
+"polyobj_or_moveto",
+"polyobj_or_movetospot",
+"polyobj_or_rotateleft",
+"polyobj_or_rotateright",
+"polyobj_rotateleft",
+"polyobj_rotateright",
+"polyobj_stop",
+"radius_quake",
+"scroll_ceiling",
+"scroll_floor",
+"scroll_texture_both",
+"scroll_wall",
+"sector_changeflags",
+"sector_changesound",
+"sector_setceilingpanning",
+"sector_setceilingscale",
+"sector_setceilingscale2",
+"sector_setcolor",
+"sector_setcurrent",
+"sector_setdamage",
+"sector_setfade",
+"sector_setfloorpanning",
+"sector_setfloorscale",
+"sector_setfloorscale2",
+"sector_setfriction",
+"sector_setgravity",
+"sector_setlink",
+"sector_setplanereflection",
+"sector_setrotation",
+"sector_settranslucent",
+"sector_setwind",
+"sendtocommunicator",
+"setplayerproperty",
+"stairs_builddown",
+"stairs_builddownsync",
+"stairs_buildup",
+"stairs_buildupdoom",
+"stairs_buildupsync",
+"startconversation",
+"team_givepoints",
+"team_score",
+"teleport",
+"teleport_endgame",
+"teleport_line",
+"teleport_newmap",
+"teleport_nofog",
+"teleport_nostop",
+"teleport_zombiechanger",
+"teleportgroup",
+"teleportinsector",
+"teleportother",
+"thing_activate",
+"thing_changetid",
+"thing_damage",
+"thing_deactivate",
+"thing_destroy",
+"thing_hate",
+"thing_move",
+"thing_projectile",
+"thing_projectileaimed",
+"thing_projectilegravity",
+"thing_projectileintercept",
+"thing_raise",
+"thing_remove",
+"thing_setconversation",
+"thing_setgoal",
+"thing_setspecial",
+"thing_settranslation",
+"thing_spawn",
+"thing_spawnfacing",
+"thing_spawnnofog",
+"thing_stop",
+"thrustthing",
+"thrustthingz",
+"translucentline",
+"usepuzzleitem",
+};
+
+int func_dict[FUNC_MAX][40] = {
+    {16,'a','_','a','c','c','t','e','l','e','g','l','i','t','t','e','r'}, // a_accteleglitter
+    {13,'a','_','a','c','o','l','y','t','e','b','i','t','s'}, // a_acolytebits
+    {12,'a','_','a','c','o','l','y','t','e','d','i','e'}, // a_acolytedie
+    {18,'a','_','a','c','t','i','v','e','a','n','d','u','n','b','l','o','c','k'}, // a_activeandunblock
+    {13,'a','_','a','c','t','i','v','e','s','o','u','n','d'}, // a_activesound
+    {15,'a','_','a','d','d','p','l','a','y','e','r','r','a','i','n'}, // a_addplayerrain
+    {15,'a','_','a','l','e','r','t','m','o','n','s','t','e','r','s'}, // a_alertmonsters
+    {19,'a','_','a','l','i','e','n','s','p','e','c','t','r','e','d','e','a','t','h'}, // a_alienspectredeath
+    {11,'a','_','b','a','b','y','m','e','t','a','l'}, // a_babymetal
+    {12,'a','_','b','a','n','g','4','c','l','o','u','d'}, // a_bang4cloud
+    {15,'a','_','b','a','r','r','e','l','d','e','s','t','r','o','y'}, // a_barreldestroy
+    {13,'a','_','b','a','s','i','c','a','t','t','a','c','k'}, // a_basicattack
+    {9,'a','_','b','a','t','m','o','v','e'}, // a_batmove
+    {10,'a','_','b','a','t','s','p','a','w','n'}, // a_batspawn
+    {14,'a','_','b','a','t','s','p','a','w','n','i','n','i','t'}, // a_batspawninit
+    {8,'a','_','b','e','a','c','o','n'}, // a_beacon
+    {15,'a','_','b','e','a','k','a','t','t','a','c','k','p','l','1'}, // a_beakattackpl1
+    {15,'a','_','b','e','a','k','a','t','t','a','c','k','p','l','2'}, // a_beakattackpl2
+    {11,'a','_','b','e','a','k','r','a','i','s','e'}, // a_beakraise
+    {12,'a','_','b','e','l','l','r','e','s','e','t','1'}, // a_bellreset1
+    {12,'a','_','b','e','l','l','r','e','s','e','t','2'}, // a_bellreset2
+    {14,'a','_','b','e','s','h','a','d','o','w','y','f','o','e'}, // a_beshadowyfoe
+    {17,'a','_','b','e','t','a','s','k','u','l','l','a','t','t','a','c','k'}, // a_betaskullattack
+    {10,'a','_','b','f','g','s','o','u','n','d'}, // a_bfgsound
+    {10,'a','_','b','f','g','s','p','r','a','y'}, // a_bfgspray
+    {14,'a','_','b','i','s','h','o','p','a','t','t','a','c','k'}, // a_bishopattack
+    {15,'a','_','b','i','s','h','o','p','a','t','t','a','c','k','2'}, // a_bishopattack2
+    {13,'a','_','b','i','s','h','o','p','c','h','a','s','e'}, // a_bishopchase
+    {14,'a','_','b','i','s','h','o','p','d','e','c','i','d','e'}, // a_bishopdecide
+    {14,'a','_','b','i','s','h','o','p','d','o','b','l','u','r'}, // a_bishopdoblur
+    {20,'a','_','b','i','s','h','o','p','m','i','s','s','i','l','e','w','e','a','v','e'}, // a_bishopmissileweave
+    {16,'a','_','b','i','s','h','o','p','p','a','i','n','b','l','u','r'}, // a_bishoppainblur
+    {12,'a','_','b','i','s','h','o','p','p','u','f','f'}, // a_bishoppuff
+    {17,'a','_','b','i','s','h','o','p','s','p','a','w','n','b','l','u','r'}, // a_bishopspawnblur
+    {11,'a','_','b','l','u','e','s','p','a','r','k'}, // a_bluespark
+    {11,'a','_','b','o','s','s','d','e','a','t','h'}, // a_bossdeath
+    {13,'a','_','b','o','u','n','c','e','c','h','e','c','k'}, // a_bouncecheck
+    {12,'a','_','b','r','a','i','n','a','w','a','k','e'}, // a_brainawake
+    {10,'a','_','b','r','a','i','n','d','i','e'}, // a_braindie
+    {14,'a','_','b','r','a','i','n','e','x','p','l','o','d','e'}, // a_brainexplode
+    {11,'a','_','b','r','a','i','n','p','a','i','n'}, // a_brainpain
+    {13,'a','_','b','r','a','i','n','s','c','r','e','a','m'}, // a_brainscream
+    {11,'a','_','b','r','a','i','n','s','p','i','t'}, // a_brainspit
+    {12,'a','_','b','r','i','d','g','e','i','n','i','t'}, // a_bridgeinit
+    {13,'a','_','b','r','i','d','g','e','o','r','b','i','t'}, // a_bridgeorbit
+    {13,'a','_','b','r','u','i','s','a','t','t','a','c','k'}, // a_bruisattack
+    {12,'a','_','b','s','p','i','a','t','t','a','c','k'}, // a_bspiattack
+    {14,'a','_','b','u','l','l','e','t','a','t','t','a','c','k'}, // a_bulletattack
+    {10,'a','_','b','u','r','n','a','r','e','a'}, // a_burnarea
+    {13,'a','_','b','u','r','n','i','n','a','t','i','o','n'}, // a_burnination
+    {7,'a','_','b','u','r','s','t'}, // a_burst
+    {13,'a','_','c','a','l','l','s','p','e','c','i','a','l'}, // a_callspecial
+    {15,'a','_','c','e','n','t','a','u','r','d','e','f','e','n','d'}, // a_centaurdefend
+    {14,'a','_','c','f','l','a','m','e','a','t','t','a','c','k'}, // a_cflameattack
+    {15,'a','_','c','f','l','a','m','e','m','i','s','s','i','l','e'}, // a_cflamemissile
+    {12,'a','_','c','f','l','a','m','e','p','u','f','f'}, // a_cflamepuff
+    {14,'a','_','c','f','l','a','m','e','r','o','t','a','t','e'}, // a_cflamerotate
+    {12,'a','_','c','h','a','n','g','e','f','l','a','g'}, // a_changeflag
+    {16,'a','_','c','h','a','n','g','e','v','e','l','o','c','i','t','y'}, // a_changevelocity
+    {7,'a','_','c','h','a','s','e'}, // a_chase
+    {14,'a','_','c','h','e','c','k','c','e','i','l','i','n','g'}, // a_checkceiling
+    {11,'a','_','c','h','e','c','k','f','l','a','g'}, // a_checkflag
+    {12,'a','_','c','h','e','c','k','f','l','o','o','r'}, // a_checkfloor
+    {16,'a','_','c','h','e','c','k','f','o','r','r','e','l','o','a','d'}, // a_checkforreload
+    {10,'a','_','c','h','e','c','k','l','o','f'}, // a_checklof
+    {17,'a','_','c','h','e','c','k','p','l','a','y','e','r','d','o','n','e'}, // a_checkplayerdone
+    {17,'a','_','c','h','e','c','k','r','a','i','l','r','e','l','o','a','d'}, // a_checkrailreload
+    {12,'a','_','c','h','e','c','k','r','a','n','g','e'}, // a_checkrange
+    {13,'a','_','c','h','e','c','k','r','e','l','o','a','d'}, // a_checkreload
+    {12,'a','_','c','h','e','c','k','s','i','g','h','t'}, // a_checksight
+    {19,'a','_','c','h','e','c','k','s','i','g','h','t','o','r','r','a','n','g','e'}, // a_checksightorrange
+    {15,'a','_','c','h','e','c','k','t','e','l','e','r','i','n','g'}, // a_checktelering
+    {14,'a','_','c','h','e','c','k','t','e','r','r','a','i','n'}, // a_checkterrain
+    {16,'a','_','c','h','e','c','k','t','h','r','o','w','b','o','m','b'}, // a_checkthrowbomb
+    {17,'a','_','c','h','e','c','k','t','h','r','o','w','b','o','m','b','2'}, // a_checkthrowbomb2
+    {12,'a','_','c','h','i','c','a','t','t','a','c','k'}, // a_chicattack
+    {13,'a','_','c','h','o','l','y','a','t','t','a','c','k'}, // a_cholyattack
+    {14,'a','_','c','h','o','l','y','a','t','t','a','c','k','2'}, // a_cholyattack2
+    {18,'a','_','c','h','o','l','y','c','h','e','c','k','s','c','r','e','a','m'}, // a_cholycheckscream
+    {14,'a','_','c','h','o','l','y','p','a','l','e','t','t','e'}, // a_cholypalette
+    {11,'a','_','c','h','o','l','y','s','e','e','k'}, // a_cholyseek
+    {11,'a','_','c','h','o','l','y','t','a','i','l'}, // a_cholytail
+    {17,'a','_','c','l','a','s','s','b','o','s','s','h','e','a','l','t','h'}, // a_classbosshealth
+    {12,'a','_','c','l','e','a','r','f','l','a','s','h'}, // a_clearflash
+    {16,'a','_','c','l','e','a','r','l','a','s','t','h','e','a','r','d'}, // a_clearlastheard
+    {13,'a','_','c','l','e','a','r','r','e','f','i','r','e'}, // a_clearrefire
+    {13,'a','_','c','l','e','a','r','s','h','a','d','o','w'}, // a_clearshadow
+    {18,'a','_','c','l','e','a','r','s','o','u','n','d','t','a','r','g','e','t'}, // a_clearsoundtarget
+    {13,'a','_','c','l','e','a','r','t','a','r','g','e','t'}, // a_cleartarget
+    {14,'a','_','c','l','e','r','i','c','a','t','t','a','c','k'}, // a_clericattack
+    {22,'a','_','c','l','i','e','n','t','s','i','d','e','a','c','s','e','x','e','c','u','t','e'}, // a_clientsideacsexecute
+    {15,'a','_','c','l','o','s','e','s','h','o','t','g','u','n','2'}, // a_closeshotgun2
+    {13,'a','_','c','m','a','c','e','a','t','t','a','c','k'}, // a_cmaceattack
+    {13,'a','_','c','o','m','b','o','a','t','t','a','c','k'}, // a_comboattack
+    {18,'a','_','c','o','p','y','f','r','i','e','n','d','l','i','n','e','s','s'}, // a_copyfriendliness
+    {17,'a','_','c','o','r','p','s','e','b','l','o','o','d','d','r','i','p'}, // a_corpseblooddrip
+    {15,'a','_','c','o','r','p','s','e','e','x','p','l','o','d','e'}, // a_corpseexplode
+    {11,'a','_','c','o','u','n','t','d','o','w','n'}, // a_countdown
+    {14,'a','_','c','o','u','n','t','d','o','w','n','a','r','g'}, // a_countdownarg
+    {12,'a','_','c','p','o','s','a','t','t','a','c','k'}, // a_cposattack
+    {12,'a','_','c','p','o','s','r','e','f','i','r','e'}, // a_cposrefire
+    {14,'a','_','c','r','i','s','p','y','p','l','a','y','e','r'}, // a_crispyplayer
+    {16,'a','_','c','r','u','s','a','d','e','r','c','h','o','o','s','e'}, // a_crusaderchoose
+    {15,'a','_','c','r','u','s','a','d','e','r','d','e','a','t','h'}, // a_crusaderdeath
+    {16,'a','_','c','r','u','s','a','d','e','r','r','e','f','i','r','e'}, // a_crusaderrefire
+    {19,'a','_','c','r','u','s','a','d','e','r','s','w','e','e','p','l','e','f','t'}, // a_crusadersweepleft
+    {20,'a','_','c','r','u','s','a','d','e','r','s','w','e','e','p','r','i','g','h','t'}, // a_crusadersweepright
+    {14,'a','_','c','s','t','a','f','f','a','t','t','a','c','k'}, // a_cstaffattack
+    {13,'a','_','c','s','t','a','f','f','c','h','e','c','k'}, // a_cstaffcheck
+    {18,'a','_','c','s','t','a','f','f','c','h','e','c','k','b','l','i','n','k'}, // a_cstaffcheckblink
+    {17,'a','_','c','s','t','a','f','f','i','n','i','t','b','l','i','n','k'}, // a_cstaffinitblink
+    {22,'a','_','c','s','t','a','f','f','m','i','s','s','i','l','e','s','l','i','t','h','e','r'}, // a_cstaffmissileslither
+    {20,'a','_','c','u','s','t','o','m','b','u','l','l','e','t','a','t','t','a','c','k'}, // a_custombulletattack
+    {19,'a','_','c','u','s','t','o','m','c','o','m','b','o','a','t','t','a','c','k'}, // a_customcomboattack
+    {19,'a','_','c','u','s','t','o','m','m','e','l','e','e','a','t','t','a','c','k'}, // a_custommeleeattack
+    {15,'a','_','c','u','s','t','o','m','m','i','s','s','i','l','e'}, // a_custommissile
+    {13,'a','_','c','u','s','t','o','m','p','u','n','c','h'}, // a_custompunch
+    {15,'a','_','c','u','s','t','o','m','r','a','i','l','g','u','n'}, // a_customrailgun
+    {13,'a','_','c','y','b','e','r','a','t','t','a','c','k'}, // a_cyberattack
+    {16,'a','_','d','a','m','a','g','e','c','h','i','l','d','r','e','n'}, // a_damagechildren
+    {14,'a','_','d','a','m','a','g','e','m','a','s','t','e','r'}, // a_damagemaster
+    {16,'a','_','d','a','m','a','g','e','s','i','b','l','i','n','g','s'}, // a_damagesiblings
+    {17,'a','_','d','e','a','t','h','b','a','l','l','i','m','p','a','c','t'}, // a_deathballimpact
+    {10,'a','_','d','e','l','a','y','g','i','b'}, // a_delaygib
+    {15,'a','_','d','e','q','u','e','u','e','c','o','r','p','s','e'}, // a_dequeuecorpse
+    {10,'a','_','d','e','t','o','n','a','t','e'}, // a_detonate
+    {5,'a','_','d','i','e'}, // 5a_die
+    {14,'a','_','d','r','a','g','o','n','a','t','t','a','c','k'}, // a_dragonattack
+    {18,'a','_','d','r','a','g','o','n','c','h','e','c','k','c','r','a','s','h'}, // a_dragoncheckcrash
+    {12,'a','_','d','r','a','g','o','n','f','l','a','p'}, // a_dragonflap
+    {14,'a','_','d','r','a','g','o','n','f','l','i','g','h','t'}, // a_dragonflight
+    {11,'a','_','d','r','a','g','o','n','f','x','2'}, // a_dragonfx2
+    {18,'a','_','d','r','a','g','o','n','i','n','i','t','f','l','i','g','h','t'}, // a_dragoninitflight
+    {12,'a','_','d','r','a','g','o','n','p','a','i','n'}, // a_dragonpain
+    {11,'a','_','d','r','i','p','b','l','o','o','d'}, // a_dripblood
+    {10,'a','_','d','r','o','p','f','i','r','e'}, // a_dropfire
+    {15,'a','_','d','r','o','p','i','n','v','e','n','t','o','r','y'}, // a_dropinventory
+    {10,'a','_','d','r','o','p','i','t','e','m'}, // a_dropitem
+    {18,'a','_','d','r','o','p','w','e','a','p','o','n','p','i','e','c','e','s'}, // a_dropweaponpieces
+    {16,'a','_','d','u','a','l','p','a','i','n','a','t','t','a','c','k'}, // a_dualpainattack
+    {14,'a','_','e','n','t','i','t','y','a','t','t','a','c','k'}, // a_entityattack
+    {13,'a','_','e','n','t','i','t','y','d','e','a','t','h'}, // a_entitydeath
+    {9,'a','_','e','x','p','l','o','d','e'}, // a_explode
+    {12,'a','_','e','x','p','l','o','d','e','5','1','2'}, // a_explode512
+    {10,'a','_','e','x','t','c','h','a','s','e'}, // a_extchase
+    {15,'a','_','e','x','t','r','a','l','i','g','h','t','o','f','f'}, // a_extralightoff
+    {12,'a','_','f','a','c','e','m','a','s','t','e','r'}, // a_facemaster
+    {12,'a','_','f','a','c','e','t','a','r','g','e','t'}, // a_facetarget
+    {12,'a','_','f','a','c','e','t','r','a','c','e','r'}, // a_facetracer
+    {8,'a','_','f','a','d','e','i','n'}, // a_fadein
+    {9,'a','_','f','a','d','e','o','u','t'}, // a_fadeout
+    {8,'a','_','f','a','d','e','t','o'}, // a_fadeto
+    {6,'a','_','f','a','l','l'}, // a_fall
+    {11,'a','_','f','a','s','t','c','h','a','s','e'}, // a_fastchase
+    {12,'a','_','f','a','t','a','t','t','a','c','k','1'}, // a_fatattack1
+    {12,'a','_','f','a','t','a','t','t','a','c','k','2'}, // a_fatattack2
+    {12,'a','_','f','a','t','a','t','t','a','c','k','3'}, // a_fatattack3
+    {10,'a','_','f','a','t','r','a','i','s','e'}, // a_fatraise
+    {12,'a','_','f','a','x','e','a','t','t','a','c','k'}, // a_faxeattack
+    {14,'a','_','f','a','x','e','c','h','e','c','k','a','t','k'}, // a_faxecheckatk
+    {16,'a','_','f','a','x','e','c','h','e','c','k','r','e','a','d','y'}, // a_faxecheckready
+    {17,'a','_','f','a','x','e','c','h','e','c','k','r','e','a','d','y','g'}, // a_faxecheckreadyg
+    {13,'a','_','f','a','x','e','c','h','e','c','k','u','p'}, // a_faxecheckup
+    {14,'a','_','f','a','x','e','c','h','e','c','k','u','p','g'}, // a_faxecheckupg
+    {10,'a','_','f','e','a','t','h','e','r','s'}, // a_feathers
+    {15,'a','_','f','h','a','m','m','e','r','a','t','t','a','c','k'}, // a_fhammerattack
+    {14,'a','_','f','h','a','m','m','e','r','t','h','r','o','w'}, // a_fhammerthrow
+    {15,'a','_','f','i','g','h','t','e','r','a','t','t','a','c','k'}, // a_fighterattack
+    {6,'a','_','f','i','r','e'}, // a_fire
+    {11,'a','_','f','i','r','e','a','r','r','o','w'}, // a_firearrow
+    {16,'a','_','f','i','r','e','a','s','s','a','u','l','t','g','u','n'}, // a_fireassaultgun
+    {9,'a','_','f','i','r','e','b','f','g'}, // a_firebfg
+    {16,'a','_','f','i','r','e','b','l','a','s','t','e','r','p','l','1'}, // a_fireblasterpl1
+    {13,'a','_','f','i','r','e','b','u','l','l','e','t','s'}, // a_firebullets
+    {10,'a','_','f','i','r','e','c','g','u','n'}, // a_firecgun
+    {13,'a','_','f','i','r','e','c','o','n','e','p','l','1'}, // a_fireconepl1
+    {13,'a','_','f','i','r','e','c','r','a','c','k','l','e'}, // a_firecrackle
+    {17,'a','_','f','i','r','e','c','r','o','s','s','b','o','w','p','l','1'}, // a_firecrossbowpl1
+    {17,'a','_','f','i','r','e','c','r','o','s','s','b','o','w','p','l','2'}, // a_firecrossbowpl2
+    {19,'a','_','f','i','r','e','c','u','s','t','o','m','m','i','s','s','i','l','e'}, // a_firecustommissile
+    {13,'a','_','f','i','r','e','d','a','t','t','a','c','k'}, // a_firedattack
+    {12,'a','_','f','i','r','e','d','c','h','a','s','e'}, // a_firedchase
+    {12,'a','_','f','i','r','e','d','r','o','c','k','s'}, // a_firedrocks
+    {14,'a','_','f','i','r','e','d','s','p','l','o','t','c','h'}, // a_firedsplotch
+    {12,'a','_','f','i','r','e','f','l','a','m','e','r'}, // a_fireflamer
+    {17,'a','_','f','i','r','e','g','o','l','d','w','a','n','d','p','l','1'}, // a_firegoldwandpl1
+    {17,'a','_','f','i','r','e','g','o','l','d','w','a','n','d','p','l','2'}, // a_firegoldwandpl2
+    {13,'a','_','f','i','r','e','g','r','e','n','a','d','e'}, // a_firegrenade
+    {13,'a','_','f','i','r','e','m','a','c','e','p','l','1'}, // a_firemacepl1
+    {13,'a','_','f','i','r','e','m','a','c','e','p','l','2'}, // a_firemacepl2
+    {13,'a','_','f','i','r','e','m','a','u','l','e','r','1'}, // a_firemauler1
+    {13,'a','_','f','i','r','e','m','a','u','l','e','r','2'}, // a_firemauler2
+    {16,'a','_','f','i','r','e','m','a','u','l','e','r','2','p','r','e'}, // a_firemauler2pre
+    {17,'a','_','f','i','r','e','m','i','n','i','m','i','s','s','i','l','e'}, // a_fireminimissile
+    {13,'a','_','f','i','r','e','m','i','s','s','i','l','e'}, // a_firemissile
+    {12,'a','_','f','i','r','e','o','l','d','b','f','g'}, // a_fireoldbfg
+    {16,'a','_','f','i','r','e','p','h','o','e','n','i','x','p','l','1'}, // a_firephoenixpl1
+    {16,'a','_','f','i','r','e','p','h','o','e','n','i','x','p','l','2'}, // a_firephoenixpl2
+    {12,'a','_','f','i','r','e','p','i','s','t','o','l'}, // a_firepistol
+    {12,'a','_','f','i','r','e','p','l','a','s','m','a'}, // a_fireplasma
+    {13,'a','_','f','i','r','e','r','a','i','l','g','u','n'}, // a_firerailgun
+    {17,'a','_','f','i','r','e','r','a','i','l','g','u','n','l','e','f','t'}, // a_firerailgunleft
+    {18,'a','_','f','i','r','e','r','a','i','l','g','u','n','r','i','g','h','t'}, // a_firerailgunright
+    {13,'a','_','f','i','r','e','s','h','o','t','g','u','n'}, // a_fireshotgun
+    {14,'a','_','f','i','r','e','s','h','o','t','g','u','n','2'}, // a_fireshotgun2
+    {12,'a','_','f','i','r','e','s','i','g','i','l','1'}, // a_firesigil1
+    {12,'a','_','f','i','r','e','s','i','g','i','l','2'}, // a_firesigil2
+    {12,'a','_','f','i','r','e','s','i','g','i','l','3'}, // a_firesigil3
+    {12,'a','_','f','i','r','e','s','i','g','i','l','4'}, // a_firesigil4
+    {12,'a','_','f','i','r','e','s','i','g','i','l','5'}, // a_firesigil5
+    {17,'a','_','f','i','r','e','s','k','u','l','l','r','o','d','p','l','1'}, // a_fireskullrodpl1
+    {17,'a','_','f','i','r','e','s','k','u','l','l','r','o','d','p','l','2'}, // a_fireskullrodpl2
+    {15,'a','_','f','i','r','e','s','t','g','r','e','n','a','d','e'}, // a_firestgrenade
+    {10,'a','_','f','l','a','m','e','d','i','e'}, // a_flamedie
+    {10,'a','_','f','l','a','m','e','e','n','d'}, // a_flameend
+    {10,'a','_','f','l','o','a','t','g','i','b'}, // a_floatgib
+    {11,'a','_','f','l','o','a','t','p','u','f','f'}, // a_floatpuff
+    {18,'a','_','f','l','o','o','p','a','c','t','i','v','e','s','o','u','n','d'}, // a_floopactivesound
+    {9,'a','_','f','o','g','m','o','v','e'}, // a_fogmove
+    {10,'a','_','f','o','g','s','p','a','w','n'}, // a_fogspawn
+    {14,'a','_','f','p','u','n','c','h','a','t','t','a','c','k'}, // a_fpunchattack
+    {13,'a','_','f','r','e','e','z','e','d','e','a','t','h'}, // a_freezedeath
+    {19,'a','_','f','r','e','e','z','e','d','e','a','t','h','c','h','u','n','k','s'}, // a_freezedeathchunks
+    {14,'a','_','f','s','w','o','r','d','a','t','t','a','c','k'}, // a_fswordattack
+    {14,'a','_','f','s','w','o','r','d','f','l','a','m','e','s'}, // a_fswordflames
+    {16,'a','_','g','a','u','n','t','l','e','t','a','t','t','a','c','k'}, // a_gauntletattack
+    {20,'a','_','g','e','n','e','r','i','c','f','r','e','e','z','e','d','e','a','t','h'}, // a_genericfreezedeath
+    {11,'a','_','g','e','n','w','i','z','a','r','d'}, // a_genwizard
+    {9,'a','_','g','e','t','h','u','r','t'}, // a_gethurt
+    {10,'a','_','g','h','o','s','t','o','f','f'}, // a_ghostoff
+    {15,'a','_','g','i','v','e','i','n','v','e','n','t','o','r','y'}, // a_giveinventory
+    {17,'a','_','g','i','v','e','p','l','a','y','e','r','m','e','d','a','l'}, // a_giveplayermedal
+    {15,'a','_','g','i','v','e','q','u','e','s','t','i','t','e','m'}, // a_givequestitem
+    {16,'a','_','g','i','v','e','t','o','c','h','i','l','d','r','e','n'}, // a_givetochildren
+    {16,'a','_','g','i','v','e','t','o','s','i','b','l','i','n','g','s'}, // a_givetosiblings
+    {14,'a','_','g','i','v','e','t','o','t','a','r','g','e','t'}, // a_givetotarget
+    {9,'a','_','g','r','a','v','i','t','y'}, // a_gravity
+    {10,'a','_','g','u','n','f','l','a','s','h'}, // a_gunflash
+    {11,'a','_','h','a','n','d','l','o','w','e','r'}, // a_handlower
+    {12,'a','_','h','e','a','d','a','t','t','a','c','k'}, // a_headattack
+    {16,'a','_','h','i','d','e','d','e','c','e','p','t','i','c','o','n'}, // a_hidedecepticon
+    {15,'a','_','h','i','d','e','i','n','c','e','i','l','i','n','g'}, // a_hideinceiling
+    {11,'a','_','h','i','d','e','t','h','i','n','g'}, // a_hidething
+    {6,'a','_','h','o','o','f'}, // a_hoof
+    {14,'a','_','i','c','e','g','u','y','a','t','t','a','c','k'}, // a_iceguyattack
+    {13,'a','_','i','c','e','g','u','y','c','h','a','s','e'}, // a_iceguychase
+    {11,'a','_','i','c','e','g','u','y','d','i','e'}, // a_iceguydie
+    {12,'a','_','i','c','e','g','u','y','l','o','o','k'}, // a_iceguylook
+    {22,'a','_','i','c','e','g','u','y','m','i','s','s','i','l','e','e','x','p','l','o','d','e'}, // a_iceguymissileexplode
+    {12,'a','_','i','c','e','s','e','t','t','i','c','s'}, // a_icesettics
+    {10,'a','_','i','m','p','d','e','a','t','h'}, // a_impdeath
+    {12,'a','_','i','m','p','e','x','p','l','o','d','e'}, // a_impexplode
+    {13,'a','_','i','m','p','m','s','a','t','t','a','c','k'}, // a_impmsattack
+    {12,'a','_','i','m','p','x','d','e','a','t','h','1'}, // a_impxdeath1
+    {16,'a','_','i','n','i','t','p','h','o','e','n','i','x','p','l','2'}, // a_initphoenixpl2
+    {18,'a','_','i','n','q','u','i','s','i','t','o','r','a','t','t','a','c','k'}, // a_inquisitorattack
+    {21,'a','_','i','n','q','u','i','s','i','t','o','r','c','h','e','c','k','l','a','n','d'}, // a_inquisitorcheckland
+    {18,'a','_','i','n','q','u','i','s','i','t','o','r','d','e','c','i','d','e'}, // a_inquisitordecide
+    {16,'a','_','i','n','q','u','i','s','i','t','o','r','j','u','m','p'}, // a_inquisitorjump
+    {16,'a','_','i','n','q','u','i','s','i','t','o','r','w','a','l','k'}, // a_inquisitorwalk
+    {16,'a','_','i','t','b','u','r','n','s','i','t','b','u','r','n','s'}, // a_itburnsitburns
+    {11,'a','_','j','a','b','d','a','g','g','e','r'}, // a_jabdagger
+    {6,'a','_','j','u','m','p'}, // a_jump
+    {8,'a','_','j','u','m','p','i','f'}, // a_jumpif
+    {17,'a','_','j','u','m','p','i','f','a','r','m','o','r','t','y','p','e'}, // a_jumpifarmortype
+    {14,'a','_','j','u','m','p','i','f','c','l','o','s','e','r'}, // a_jumpifcloser
+    {19,'a','_','j','u','m','p','i','f','h','e','a','l','t','h','l','o','w','e','r'}, // a_jumpifhealthlower
+    {25,'a','_','j','u','m','p','i','f','i','n','t','a','r','g','e','t','i','n','v','e','n','t','o','r','y'}, // a_jumpifintargetinventory
+    {19,'a','_','j','u','m','p','i','f','i','n','t','a','r','g','e','t','l','o','s'}, // a_jumpifintargetlos
+    {17,'a','_','j','u','m','p','i','f','i','n','v','e','n','t','o','r','y'}, // a_jumpifinventory
+    {20,'a','_','j','u','m','p','i','f','m','a','s','t','e','r','c','l','o','s','e','r'}, // a_jumpifmastercloser
+    {14,'a','_','j','u','m','p','i','f','n','o','a','m','m','o'}, // a_jumpifnoammo
+    {19,'a','_','j','u','m','p','i','f','t','a','r','g','e','t','i','n','l','o','s'}, // a_jumpiftargetinlos
+    {30,'a','_','j','u','m','p','i','f','t','a','r','g','e','t','i','n','s','i','d','e','m','e','l','e','e','r','a','n','g','e'}, // a_jumpiftargetinsidemeleerange
+    {31,'a','_','j','u','m','p','i','f','t','a','r','g','e','t','o','u','t','s','i','d','e','m','e','l','e','e','r','a','n','g','e'}, // a_jumpiftargetoutsidemeleerange
+    {20,'a','_','j','u','m','p','i','f','t','r','a','c','e','r','c','l','o','s','e','r'}, // a_jumpiftracercloser
+    {7,'a','_','k','b','o','l','t'}, // a_kbolt
+    {12,'a','_','k','b','o','l','t','r','a','i','s','e'}, // a_kboltraise
+    {9,'a','_','k','e','e','n','d','i','e'}, // a_keendie
+    {14,'a','_','k','i','l','l','c','h','i','l','d','r','e','n'}, // a_killchildren
+    {12,'a','_','k','i','l','l','m','a','s','t','e','r'}, // a_killmaster
+    {14,'a','_','k','i','l','l','s','i','b','l','i','n','g','s'}, // a_killsiblings
+    {13,'a','_','k','l','a','x','o','n','b','l','a','r','e'}, // a_klaxonblare
+    {14,'a','_','k','n','i','g','h','t','a','t','t','a','c','k'}, // a_knightattack
+    {14,'a','_','k','o','r','a','x','b','o','n','e','p','o','p'}, // a_koraxbonepop
+    {12,'a','_','k','o','r','a','x','c','h','a','s','e'}, // a_koraxchase
+    {14,'a','_','k','o','r','a','x','c','o','m','m','a','n','d'}, // a_koraxcommand
+    {13,'a','_','k','o','r','a','x','d','e','c','i','d','e'}, // a_koraxdecide
+    {14,'a','_','k','o','r','a','x','m','i','s','s','i','l','e'}, // a_koraxmissile
+    {13,'a','_','k','s','p','i','r','i','t','r','o','a','m'}, // a_kspiritroam
+    {9,'a','_','l','a','s','t','z','a','p'}, // a_lastzap
+    {11,'a','_','l','e','a','f','c','h','e','c','k'}, // a_leafcheck
+    {11,'a','_','l','e','a','f','s','p','a','w','n'}, // a_leafspawn
+    {12,'a','_','l','e','a','f','t','h','r','u','s','t'}, // a_leafthrust
+    {12,'a','_','l','i','c','h','a','t','t','a','c','k'}, // a_lichattack
+    {14,'a','_','l','i','c','h','f','i','r','e','g','r','o','w'}, // a_lichfiregrow
+    {15,'a','_','l','i','c','h','i','c','e','i','m','p','a','c','t'}, // a_lichiceimpact
+    {7,'a','_','l','i','g','h','t'}, // a_light
+    {8,'a','_','l','i','g','h','t','0'}, // a_light0
+    {8,'a','_','l','i','g','h','t','1'}, // a_light1
+    {8,'a','_','l','i','g','h','t','2'}, // a_light2
+    {14,'a','_','l','i','g','h','t','g','o','e','s','o','u','t'}, // a_lightgoesout
+    {14,'a','_','l','i','g','h','t','i','n','v','e','r','s','e'}, // a_lightinverse
+    {15,'a','_','l','i','g','h','t','n','i','n','g','c','l','i','p'}, // a_lightningclip
+    {16,'a','_','l','i','g','h','t','n','i','n','g','r','e','a','d','y'}, // a_lightningready
+    {17,'a','_','l','i','g','h','t','n','i','n','g','r','e','m','o','v','e'}, // a_lightningremove
+    {14,'a','_','l','i','g','h','t','n','i','n','g','z','a','p'}, // a_lightningzap
+    {12,'a','_','l','i','n','e','e','f','f','e','c','t'}, // a_lineeffect
+    {14,'a','_','l','o','a','d','s','h','o','t','g','u','n','2'}, // a_loadshotgun2
+    {5,'a','_','l','o','g'}, // a_log
+    {8,'a','_','l','o','g','i','n','t'}, // a_logint
+    {6,'a','_','l','o','o','k'}, // a_look
+    {7,'a','_','l','o','o','k','2'}, // a_look2
+    {8,'a','_','l','o','o','k','e','x'}, // a_lookex
+    {17,'a','_','l','o','o','p','a','c','t','i','v','e','s','o','u','n','d'}, // a_loopactivesound
+    {17,'a','_','l','o','r','e','m','a','s','t','e','r','c','h','a','i','n'}, // a_loremasterchain
+    {7,'a','_','l','o','w','e','r'}, // a_lower
+    {12,'a','_','l','o','w','g','r','a','v','i','t','y'}, // a_lowgravity
+    {12,'a','_','m','_','b','f','g','s','o','u','n','d'}, // a_m_bfgsound
+    {15,'a','_','m','_','c','h','e','c','k','a','t','t','a','c','k'}, // a_m_checkattack
+    {11,'a','_','m','_','f','i','r','e','b','f','g'}, // a_m_firebfg
+    {12,'a','_','m','_','f','i','r','e','c','g','u','n'}, // a_m_firecgun
+    {15,'a','_','m','_','f','i','r','e','m','i','s','s','i','l','e'}, // a_m_firemissile
+    {14,'a','_','m','_','f','i','r','e','p','i','s','t','o','l'}, // a_m_firepistol
+    {14,'a','_','m','_','f','i','r','e','p','l','a','s','m','a'}, // a_m_fireplasma
+    {15,'a','_','m','_','f','i','r','e','r','a','i','l','g','u','n'}, // a_m_firerailgun
+    {15,'a','_','m','_','f','i','r','e','s','h','o','t','g','u','n'}, // a_m_fireshotgun
+    {16,'a','_','m','_','f','i','r','e','s','h','o','t','g','u','n','2'}, // a_m_fireshotgun2
+    {9,'a','_','m','_','p','u','n','c','h'}, // a_m_punch
+    {10,'a','_','m','_','r','e','f','i','r','e'}, // a_m_refire
+    {7,'a','_','m','_','s','a','w'}, // a_m_saw
+    {13,'a','_','m','_','s','a','w','r','e','f','i','r','e'}, // a_m_sawrefire
+    {16,'a','_','m','a','c','e','b','a','l','l','i','m','p','a','c','t'}, // a_maceballimpact
+    {17,'a','_','m','a','c','e','b','a','l','l','i','m','p','a','c','t','2'}, // a_maceballimpact2
+    {14,'a','_','m','a','c','e','p','l','1','c','h','e','c','k'}, // a_macepl1check
+    {12,'a','_','m','a','g','e','a','t','t','a','c','k'}, // a_mageattack
+    {9,'a','_','m','a','k','e','p','o','d'}, // 9a_makepod
+    {13,'a','_','m','a','r','i','n','e','c','h','a','s','e'}, // a_marinechase
+    {12,'a','_','m','a','r','i','n','e','l','o','o','k'}, // a_marinelook
+    {13,'a','_','m','a','r','i','n','e','n','o','i','s','e'}, // a_marinenoise
+    {19,'a','_','m','a','u','l','e','r','t','o','r','p','e','d','o','w','a','v','e'}, // a_maulertorpedowave
+    {13,'a','_','m','e','l','e','e','a','t','t','a','c','k'}, // a_meleeattack
+    {7,'a','_','m','e','t','a','l'}, // a_metal
+    {14,'a','_','m','i','n','o','t','a','u','r','a','t','k','1'}, // a_minotauratk1
+    {14,'a','_','m','i','n','o','t','a','u','r','a','t','k','2'}, // a_minotauratk2
+    {14,'a','_','m','i','n','o','t','a','u','r','a','t','k','3'}, // a_minotauratk3
+    {16,'a','_','m','i','n','o','t','a','u','r','c','h','a','r','g','e'}, // a_minotaurcharge
+    {15,'a','_','m','i','n','o','t','a','u','r','c','h','a','s','e'}, // a_minotaurchase
+    {15,'a','_','m','i','n','o','t','a','u','r','d','e','a','t','h'}, // a_minotaurdeath
+    {16,'a','_','m','i','n','o','t','a','u','r','d','e','c','i','d','e'}, // a_minotaurdecide
+    {14,'a','_','m','i','n','o','t','a','u','r','l','o','o','k'}, // a_minotaurlook
+    {14,'a','_','m','i','n','o','t','a','u','r','r','o','a','m'}, // a_minotaurroam
+    {15,'a','_','m','i','s','s','i','l','e','a','t','t','a','c','k'}, // a_missileattack
+    {18,'a','_','m','l','i','g','h','t','n','i','n','g','a','t','t','a','c','k'}, // a_mlightningattack
+    {15,'a','_','m','n','t','r','f','l','o','o','r','f','i','r','e'}, // a_mntrfloorfire
+    {13,'a','_','m','o','n','s','t','e','r','r','a','i','l'}, // a_monsterrail
+    {15,'a','_','m','o','n','s','t','e','r','r','e','f','i','r','e'}, // a_monsterrefire
+    {14,'a','_','m','s','t','a','f','f','a','t','t','a','c','k'}, // a_mstaffattack
+    {15,'a','_','m','s','t','a','f','f','p','a','l','e','t','t','e'}, // a_mstaffpalette
+    {13,'a','_','m','s','t','a','f','f','t','r','a','c','k'}, // a_mstafftrack
+    {10,'a','_','m','u','s','h','r','o','o','m'}, // a_mushroom
+    {12,'a','_','n','o','b','l','o','c','k','i','n','g'}, // a_noblocking
+    {11,'a','_','n','o','g','r','a','v','i','t','y'}, // a_nogravity
+    {14,'a','_','o','p','e','n','s','h','o','t','g','u','n','2'}, // a_openshotgun2
+    {6,'a','_','p','a','i','n'}, // a_pain
+    {12,'a','_','p','a','i','n','a','t','t','a','c','k'}, // a_painattack
+    {9,'a','_','p','a','i','n','d','i','e'}, // a_paindie
+    {13,'a','_','p','h','o','e','n','i','x','p','u','f','f'}, // a_phoenixpuff
+    {9,'a','_','p','i','g','p','a','i','n'}, // a_pigpain
+    {14,'a','_','p','l','a','y','e','r','s','c','r','e','a','m'}, // a_playerscream
+    {17,'a','_','p','l','a','y','e','r','s','k','i','n','c','h','e','c','k'}, // a_playerskincheck
+    {11,'a','_','p','l','a','y','s','o','u','n','d'}, // a_playsound
+    {13,'a','_','p','l','a','y','s','o','u','n','d','e','x'}, // a_playsoundex
+    {17,'a','_','p','l','a','y','w','e','a','p','o','n','s','o','u','n','d'}, // a_playweaponsound
+    {9,'a','_','p','o','d','p','a','i','n'}, // a_podpain
+    {16,'a','_','p','o','i','s','o','n','b','a','g','c','h','e','c','k'}, // a_poisonbagcheck
+    {17,'a','_','p','o','i','s','o','n','b','a','g','d','a','m','a','g','e'}, // a_poisonbagdamage
+    {15,'a','_','p','o','i','s','o','n','b','a','g','i','n','i','t'}, // a_poisonbaginit
+    {14,'a','_','p','o','i','s','o','n','s','h','r','o','o','m'}, // a_poisonshroom
+    {11,'a','_','p','o','s','a','t','t','a','c','k'}, // a_posattack
+    {14,'a','_','p','o','t','t','e','r','y','c','h','e','c','k'}, // a_potterycheck
+    {18,'a','_','p','o','t','t','e','r','y','c','h','o','o','s','e','b','i','t'}, // a_potterychoosebit
+    {16,'a','_','p','o','t','t','e','r','y','e','x','p','l','o','d','e'}, // a_potteryexplode
+    {7,'a','_','p','r','i','n','t'}, // a_print
+    {11,'a','_','p','r','i','n','t','b','o','l','d'}, // a_printbold
+    {17,'a','_','p','r','o','g','r','a','m','m','e','r','d','e','a','t','h'}, // a_programmerdeath
+    {17,'a','_','p','r','o','g','r','a','m','m','e','r','m','e','l','e','e'}, // a_programmermelee
+    {7,'a','_','p','u','n','c','h'}, // a_punch
+    {7,'a','_','q','u','a','k','e'}, // a_quake
+    {13,'a','_','q','u','e','u','e','c','o','r','p','s','e'}, // a_queuecorpse
+    {12,'a','_','r','a','d','i','u','s','g','i','v','e'}, // a_radiusgive
+    {14,'a','_','r','a','d','i','u','s','t','h','r','u','s','t'}, // a_radiusthrust
+    {12,'a','_','r','a','i','l','a','t','t','a','c','k'}, // a_railattack
+    {10,'a','_','r','a','i','l','w','a','i','t'}, // a_railwait
+    {12,'a','_','r','a','i','n','i','m','p','a','c','t'}, // a_rainimpact
+    {7,'a','_','r','a','i','s','e'}, // a_raise
+    {15,'a','_','r','a','i','s','e','c','h','i','l','d','r','e','n'}, // a_raisechildren
+    {13,'a','_','r','a','i','s','e','m','a','s','t','e','r'}, // a_raisemaster
+    {15,'a','_','r','a','i','s','e','s','i','b','l','i','n','g','s'}, // a_raisesiblings
+    {20,'a','_','r','a','n','d','o','m','p','o','w','e','r','u','p','f','r','a','m','e'}, // a_randompowerupframe
+    {19,'a','_','r','e','a','r','r','a','n','g','e','p','o','i','n','t','e','r','s'}, // a_rearrangepointers
+    {14,'a','_','r','e','a','v','e','r','r','a','n','g','e','d'}, // a_reaverranged
+    {8,'a','_','r','e','c','o','i','l'}, // a_recoil
+    {8,'a','_','r','e','f','i','r','e'}, // a_refire
+    {16,'a','_','r','e','m','o','v','e','c','h','i','l','d','r','e','n'}, // a_removechildren
+    {18,'a','_','r','e','m','o','v','e','f','o','r','c','e','f','i','e','l','d'}, // a_removeforcefield
+    {14,'a','_','r','e','m','o','v','e','m','a','s','t','e','r'}, // a_removemaster
+    {11,'a','_','r','e','m','o','v','e','p','o','d'}, // a_removepod
+    {16,'a','_','r','e','m','o','v','e','s','i','b','l','i','n','g','s'}, // a_removesiblings
+    {20,'a','_','r','e','s','e','t','r','e','l','o','a','d','c','o','u','n','t','e','r'}, // a_resetreloadcounter
+    {9,'a','_','r','e','s','p','a','w','n'}, // a_respawn
+    {25,'a','_','r','e','s','t','o','r','e','s','p','e','c','i','a','l','d','o','o','m','t','h','i','n','g'}, // a_restorespecialdoomthing
+    {24,'a','_','r','e','s','t','o','r','e','s','p','e','c','i','a','l','p','o','s','i','t','i','o','n'}, // a_restorespecialposition
+    {22,'a','_','r','e','s','t','o','r','e','s','p','e','c','i','a','l','t','h','i','n','g','1'}, // a_restorespecialthing1
+    {22,'a','_','r','e','s','t','o','r','e','s','p','e','c','i','a','l','t','h','i','n','g','2'}, // a_restorespecialthing2
+    {16,'a','_','r','o','c','k','e','t','i','n','f','l','i','g','h','t'}, // a_rocketinflight
+    {12,'a','_','s','a','r','g','a','t','t','a','c','k'}, // a_sargattack
+    {5,'a','_','s','a','w'}, // a_saw
+    {15,'a','_','s','c','a','l','e','v','e','l','o','c','i','t','y'}, // a_scalevelocity
+    {8,'a','_','s','c','r','e','a','m'}, // a_scream
+    {18,'a','_','s','c','r','e','a','m','a','n','d','u','n','b','l','o','c','k'}, // a_screamandunblock
+    {15,'a','_','s','e','e','k','e','r','m','i','s','s','i','l','e'}, // a_seekermissile
+    {13,'a','_','s','e','l','e','c','t','p','i','e','c','e'}, // a_selectpiece
+    {19,'a','_','s','e','l','e','c','t','s','i','g','i','l','a','t','t','a','c','k'}, // a_selectsigilattack
+    {17,'a','_','s','e','l','e','c','t','s','i','g','i','l','d','o','w','n'}, // a_selectsigildown
+    {17,'a','_','s','e','l','e','c','t','s','i','g','i','l','v','i','e','w'}, // a_selectsigilview
+    {14,'a','_','s','e','l','e','c','t','w','e','a','p','o','n'}, // a_selectweapon
+    {16,'a','_','s','e','n','t','i','n','e','l','a','t','t','a','c','k'}, // a_sentinelattack
+    {13,'a','_','s','e','n','t','i','n','e','l','b','o','b'}, // a_sentinelbob
+    {16,'a','_','s','e','n','t','i','n','e','l','r','e','f','i','r','e'}, // a_sentinelrefire
+    {23,'a','_','s','e','r','p','e','n','t','c','h','e','c','k','f','o','r','a','t','t','a','c','k'}, // a_serpentcheckforattack
+    {21,'a','_','s','e','r','p','e','n','t','c','h','o','o','s','e','a','t','t','a','c','k'}, // a_serpentchooseattack
+    {18,'a','_','s','e','r','p','e','n','t','h','e','a','d','c','h','e','c','k'}, // a_serpentheadcheck
+    {13,'a','_','s','e','r','p','e','n','t','h','i','d','e'}, // a_serpenthide
+    {19,'a','_','s','e','r','p','e','n','t','h','u','m','p','d','e','c','i','d','e'}, // a_serpenthumpdecide
+    {18,'a','_','s','e','r','p','e','n','t','l','o','w','e','r','h','u','m','p'}, // a_serpentlowerhump
+    {20,'a','_','s','e','r','p','e','n','t','m','e','l','e','e','a','t','t','a','c','k'}, // a_serpentmeleeattack
+    {18,'a','_','s','e','r','p','e','n','t','r','a','i','s','e','h','u','m','p'}, // a_serpentraisehump
+    {18,'a','_','s','e','r','p','e','n','t','s','p','a','w','n','g','i','b','s'}, // a_serpentspawngibs
+    {15,'a','_','s','e','r','p','e','n','t','u','n','h','i','d','e'}, // a_serpentunhide
+    {10,'a','_','s','e','t','a','n','g','l','e'}, // a_setangle
+    {8,'a','_','s','e','t','a','r','g'}, // a_setarg
+    {10,'a','_','s','e','t','b','l','e','n','d'}, // a_setblend
+    {14,'a','_','s','e','t','c','r','o','s','s','h','a','i','r'}, // a_setcrosshair
+    {15,'a','_','s','e','t','d','a','m','a','g','e','t','y','p','e'}, // a_setdamagetype
+    {10,'a','_','s','e','t','f','l','o','a','t'}, // a_setfloat
+    {14,'a','_','s','e','t','f','l','o','o','r','c','l','i','p'}, // a_setfloorclip
+    {12,'a','_','s','e','t','g','r','a','v','i','t','y'}, // a_setgravity
+    {17,'a','_','s','e','t','i','n','v','u','l','n','e','r','a','b','l','e'}, // a_setinvulnerable
+    {9,'a','_','s','e','t','m','a','s','s'}, // a_setmass
+    {10,'a','_','s','e','t','p','i','t','c','h'}, // a_setpitch
+    {15,'a','_','s','e','t','r','e','f','l','e','c','t','i','v','e'}, // a_setreflective
+    {27,'a','_','s','e','t','r','e','f','l','e','c','t','i','v','e','i','n','v','u','l','n','e','r','a','b','l','e'}, // a_setreflectiveinvulnerable
+    {10,'a','_','s','e','t','s','c','a','l','e'}, // a_setscale
+    {11,'a','_','s','e','t','s','h','a','d','o','w'}, // a_setshadow
+    {14,'a','_','s','e','t','s','h','o','o','t','a','b','l','e'}, // a_setshootable
+    {10,'a','_','s','e','t','s','o','l','i','d'}, // a_setsolid
+    {12,'a','_','s','e','t','s','p','e','c','i','a','l'}, // a_setspecial
+    {9,'a','_','s','e','t','t','i','c','s'}, // a_settics
+    {16,'a','_','s','e','t','t','r','a','n','s','l','u','c','e','n','t'}, // a_settranslucent
+    {14,'a','_','s','e','t','u','s','e','r','a','r','r','a','y'}, // a_setuserarray
+    {12,'a','_','s','e','t','u','s','e','r','v','a','r'}, // a_setuservar
+    {11,'a','_','s','h','e','d','s','h','a','r','d'}, // a_shedshard
+    {10,'a','_','s','h','o','o','t','g','u','n'}, // a_shootgun
+    {19,'a','_','s','h','o','w','e','l','e','c','t','r','i','c','f','l','a','s','h'}, // a_showelectricflash
+    {20,'a','_','s','h','u','t','d','o','w','n','p','h','o','e','n','i','x','p','l','2'}, // a_shutdownphoenixpl2
+    {13,'a','_','s','i','g','i','l','c','h','a','r','g','e'}, // a_sigilcharge
+    {9,'a','_','s','i','n','k','g','i','b'}, // a_sinkgib
+    {10,'a','_','s','k','e','l','f','i','s','t'}, // a_skelfist
+    {13,'a','_','s','k','e','l','m','i','s','s','i','l','e'}, // a_skelmissile
+    {12,'a','_','s','k','e','l','w','h','o','o','s','h'}, // a_skelwhoosh
+    {13,'a','_','s','k','u','l','l','a','t','t','a','c','k'}, // a_skullattack
+    {10,'a','_','s','k','u','l','l','p','o','p'}, // a_skullpop
+    {15,'a','_','s','k','u','l','l','r','o','d','s','t','o','r','m'}, // a_skullrodstorm
+    {10,'a','_','s','m','b','o','u','n','c','e'}, // a_smbounce
+    {13,'a','_','s','n','o','u','t','a','t','t','a','c','k'}, // a_snoutattack
+    {12,'a','_','s','o','a','e','x','p','l','o','d','e'}, // a_soaexplode
+    {11,'a','_','s','o','r','1','c','h','a','s','e'}, // a_sor1chase
+    {10,'a','_','s','o','r','1','p','a','i','n'}, // a_sor1pain
+    {13,'a','_','s','o','r','2','d','t','h','i','n','i','t'}, // a_sor2dthinit
+    {13,'a','_','s','o','r','2','d','t','h','l','o','o','p'}, // a_sor2dthloop
+    {15,'a','_','s','o','r','c','b','a','l','l','o','r','b','i','t'}, // a_sorcballorbit
+    {13,'a','_','s','o','r','c','b','a','l','l','p','o','p'}, // a_sorcballpop
+    {16,'a','_','s','o','r','c','b','o','s','s','a','t','t','a','c','k'}, // a_sorcbossattack
+    {21,'a','_','s','o','r','c','e','r','e','r','b','i','s','h','o','p','e','n','t','r','y'}, // a_sorcererbishopentry
+    {14,'a','_','s','o','r','c','e','r','e','r','r','i','s','e'}, // a_sorcererrise
+    {13,'a','_','s','o','r','c','f','x','1','s','e','e','k'}, // a_sorcfx1seek
+    {14,'a','_','s','o','r','c','f','x','2','o','r','b','i','t'}, // a_sorcfx2orbit
+    {14,'a','_','s','o','r','c','f','x','2','s','p','l','i','t'}, // a_sorcfx2split
+    {14,'a','_','s','o','r','c','f','x','4','c','h','e','c','k'}, // a_sorcfx4check
+    {15,'a','_','s','o','r','c','s','p','i','n','b','a','l','l','s'}, // a_sorcspinballs
+    {13,'a','_','s','p','a','w','n','b','i','s','h','o','p'}, // a_spawnbishop
+    {13,'a','_','s','p','a','w','n','d','e','b','r','i','s'}, // a_spawndebris
+    {13,'a','_','s','p','a','w','n','e','n','t','i','t','y'}, // a_spawnentity
+    {13,'a','_','s','p','a','w','n','f','i','z','z','l','e'}, // a_spawnfizzle
+    {10,'a','_','s','p','a','w','n','f','l','y'}, // a_spawnfly
+    {11,'a','_','s','p','a','w','n','i','t','e','m'}, // a_spawnitem
+    {13,'a','_','s','p','a','w','n','i','t','e','m','e','x'}, // a_spawnitemex
+    {21,'a','_','s','p','a','w','n','p','r','o','g','r','a','m','m','e','r','b','a','s','e'}, // a_spawnprogrammerbase
+    {14,'a','_','s','p','a','w','n','r','i','p','p','e','r','s'}, // a_spawnrippers
+    {17,'a','_','s','p','a','w','n','s','i','n','g','l','e','i','t','e','m'}, // a_spawnsingleitem
+    {12,'a','_','s','p','a','w','n','s','o','u','n','d'}, // a_spawnsound
+    {26,'a','_','s','p','e','c','t','r','a','l','b','i','g','b','a','l','l','l','i','g','h','t','n','i','n','g'}, // a_spectralbigballlightning
+    {19,'a','_','s','p','e','c','t','r','a','l','l','i','g','h','t','n','i','n','g'}, // a_spectrallightning
+    {23,'a','_','s','p','e','c','t','r','a','l','l','i','g','h','t','n','i','n','g','t','a','i','l'}, // a_spectrallightningtail
+    {16,'a','_','s','p','e','c','t','r','e','3','a','t','t','a','c','k'}, // a_spectre3attack
+    {19,'a','_','s','p','e','c','t','r','e','c','h','u','n','k','l','a','r','g','e'}, // a_spectrechunklarge
+    {19,'a','_','s','p','e','c','t','r','e','c','h','u','n','k','s','m','a','l','l'}, // a_spectrechunksmall
+    {12,'a','_','s','p','e','e','d','b','a','l','l','s'}, // a_speedballs
+    {12,'a','_','s','p','i','d','r','e','f','i','r','e'}, // a_spidrefire
+    {12,'a','_','s','p','o','s','a','t','t','a','c','k'}, // a_sposattack
+    {23,'a','_','s','p','o','s','a','t','t','a','c','k','u','s','e','a','t','k','s','o','u','n','d'}, // a_sposattackuseatksound
+    {15,'a','_','s','p','o','t','l','i','g','h','t','n','i','n','g'}, // a_spotlightning
+    {13,'a','_','s','r','c','r','1','a','t','t','a','c','k'}, // a_srcr1attack
+    {13,'a','_','s','r','c','r','2','a','t','t','a','c','k'}, // a_srcr2attack
+    {13,'a','_','s','r','c','r','2','d','e','c','i','d','e'}, // a_srcr2decide
+    {13,'a','_','s','t','a','f','f','a','t','t','a','c','k'}, // a_staffattack
+    {15,'a','_','s','t','a','l','k','e','r','a','t','t','a','c','k'}, // a_stalkerattack
+    {20,'a','_','s','t','a','l','k','e','r','c','h','a','s','e','d','e','c','i','d','e'}, // a_stalkerchasedecide
+    {13,'a','_','s','t','a','l','k','e','r','d','r','o','p'}, // a_stalkerdrop
+    {17,'a','_','s','t','a','l','k','e','r','l','o','o','k','i','n','i','t'}, // a_stalkerlookinit
+    {13,'a','_','s','t','a','l','k','e','r','w','a','l','k'}, // a_stalkerwalk
+    {11,'a','_','s','t','a','r','t','f','i','r','e'}, // a_startfire
+    {6,'a','_','s','t','o','p'}, // a_stop
+    {11,'a','_','s','t','o','p','s','o','u','n','d'}, // a_stopsound
+    {13,'a','_','s','t','o','p','s','o','u','n','d','e','x'}, // a_stopsoundex
+    {16,'a','_','s','u','b','e','n','t','i','t','y','d','e','a','t','h'}, // a_subentitydeath
+    {8,'a','_','s','u','m','m','o','n'}, // a_summon
+    {18,'a','_','t','a','k','e','f','r','o','m','c','h','i','l','d','r','e','n'}, // a_takefromchildren
+    {18,'a','_','t','a','k','e','f','r','o','m','s','i','b','l','i','n','g','s'}, // a_takefromsiblings
+    {16,'a','_','t','a','k','e','f','r','o','m','t','a','r','g','e','t'}, // a_takefromtarget
+    {15,'a','_','t','a','k','e','i','n','v','e','n','t','o','r','y'}, // a_takeinventory
+    {10,'a','_','t','e','l','e','p','o','r','t'}, // a_teleport
+    {12,'a','_','t','e','l','o','s','p','a','w','n','a'}, // a_telospawna
+    {12,'a','_','t','e','l','o','s','p','a','w','n','b'}, // a_telospawnb
+    {12,'a','_','t','e','l','o','s','p','a','w','n','c'}, // a_telospawnc
+    {12,'a','_','t','e','l','o','s','p','a','w','n','d'}, // a_telospawnd
+    {15,'a','_','t','e','m','p','l','a','r','a','t','t','a','c','k'}, // a_templarattack
+    {14,'a','_','t','h','r','o','w','g','r','e','n','a','d','e'}, // a_throwgrenade
+    {14,'a','_','t','h','r','u','s','t','i','m','p','a','l','e'}, // a_thrustimpale
+    {14,'a','_','t','h','r','u','s','t','i','n','i','t','d','n'}, // a_thrustinitdn
+    {14,'a','_','t','h','r','u','s','t','i','n','i','t','u','p'}, // a_thrustinitup
+    {13,'a','_','t','h','r','u','s','t','l','o','w','e','r'}, // a_thrustlower
+    {13,'a','_','t','h','r','u','s','t','r','a','i','s','e'}, // a_thrustraise
+    {10,'a','_','t','i','m','e','b','o','m','b'}, // a_timebomb
+    {9,'a','_','t','o','s','s','a','r','m'}, // a_tossarm
+    {9,'a','_','t','o','s','s','g','i','b'}, // a_tossgib
+    {8,'a','_','t','r','a','c','e','r'}, // a_tracer
+    {9,'a','_','t','r','a','c','e','r','2'}, // a_tracer2
+    {17,'a','_','t','r','a','n','s','f','e','r','p','o','i','n','t','e','r'}, // a_transferpointer
+    {13,'a','_','t','r','o','o','p','a','t','t','a','c','k'}, // a_troopattack
+    {6,'a','_','t','u','r','n'}, // a_turn
+    {12,'a','_','t','u','r','r','e','t','l','o','o','k'}, // a_turretlook
+    {13,'a','_','u','n','h','i','d','e','t','h','i','n','g'}, // a_unhidething
+    {12,'a','_','u','n','s','e','t','f','l','o','a','t'}, // a_unsetfloat
+    {16,'a','_','u','n','s','e','t','f','l','o','o','r','c','l','i','p'}, // a_unsetfloorclip
+    {19,'a','_','u','n','s','e','t','i','n','v','u','l','n','e','r','a','b','l','e'}, // a_unsetinvulnerable
+    {17,'a','_','u','n','s','e','t','r','e','f','l','e','c','t','i','v','e'}, // a_unsetreflective
+    {29,'a','_','u','n','s','e','t','r','e','f','l','e','c','t','i','v','e','i','n','v','u','l','n','e','r','a','b','l','e'}, // a_unsetreflectiveinvulnerable
+    {16,'a','_','u','n','s','e','t','s','h','o','o','t','a','b','l','e'}, // a_unsetshootable
+    {12,'a','_','u','n','s','e','t','s','o','l','i','d'}, // a_unsetsolid
+    {12,'a','_','v','i','l','e','a','t','t','a','c','k'}, // a_vileattack
+    {11,'a','_','v','i','l','e','c','h','a','s','e'}, // a_vilechase
+    {11,'a','_','v','i','l','e','s','t','a','r','t'}, // a_vilestart
+    {12,'a','_','v','i','l','e','t','a','r','g','e','t'}, // a_viletarget
+    {14,'a','_','v','o','l','c','a','n','o','b','l','a','s','t'}, // a_volcanoblast
+    {12,'a','_','v','o','l','c','a','n','o','s','e','t'}, // a_volcanoset
+    {16,'a','_','v','o','l','c','b','a','l','l','i','m','p','a','c','t'}, // a_volcballimpact
+    {19,'a','_','w','a','k','e','o','r','a','c','l','e','s','p','e','c','t','r','e'}, // a_wakeoraclespectre
+    {8,'a','_','w','a','n','d','e','r'}, // a_wander
+    {6,'a','_','w','a','r','p'}, // a_warp
+    {13,'a','_','w','e','a','p','o','n','r','e','a','d','y'}, // a_weaponready
+    {7,'a','_','w','e','a','v','e'}, // a_weave
+    {15,'a','_','w','h','i','r','l','w','i','n','d','s','e','e','k'}, // a_whirlwindseek
+    {9,'a','_','w','i','z','a','t','k','1'}, // a_wizatk1
+    {9,'a','_','w','i','z','a','t','k','2'}, // a_wizatk2
+    {9,'a','_','w','i','z','a','t','k','3'}, // a_wizatk3
+    {12,'a','_','w','o','l','f','a','t','t','a','c','k'}, // a_wolfattack
+    {13,'a','_','w','r','a','i','t','h','c','h','a','s','e'}, // a_wraithchase
+    {11,'a','_','w','r','a','i','t','h','f','x','2'}, // a_wraithfx2
+    {11,'a','_','w','r','a','i','t','h','f','x','3'}, // a_wraithfx3
+    {12,'a','_','w','r','a','i','t','h','i','n','i','t'}, // a_wraithinit
+    {13,'a','_','w','r','a','i','t','h','m','e','l','e','e'}, // a_wraithmelee
+    {13,'a','_','w','r','a','i','t','h','r','a','i','s','e'}, // a_wraithraise
+    {17,'a','_','w','r','a','i','t','h','r','a','i','s','e','i','n','i','t'}, // a_wraithraiseinit
+    {9,'a','_','x','s','c','r','e','a','m'}, // a_xscream
+    {10,'a','_','z','a','p','m','i','m','i','c'}, // a_zapmimic
+    {12,'a','_','z','o','o','m','f','a','c','t','o','r'}, // a_zoomfactor
+    {11,'a','c','s','_','e','x','e','c','u','t','e'}, // acs_execute
+    {17,'a','c','s','_','e','x','e','c','u','t','e','a','l','w','a','y','s'}, // acs_executealways
+    {21,'a','c','s','_','e','x','e','c','u','t','e','w','i','t','h','r','e','s','u','l','t'}, // acs_executewithresult
+    {17,'a','c','s','_','l','o','c','k','e','d','e','x','e','c','u','t','e'}, // acs_lockedexecute
+    {21,'a','c','s','_','l','o','c','k','e','d','e','x','e','c','u','t','e','d','o','o','r'}, // acs_lockedexecutedoor
+    {16,'a','c','s','_','n','a','m','e','d','e','x','e','c','u','t','e'}, // acs_namedexecute
+    {22,'a','c','s','_','n','a','m','e','d','e','x','e','c','u','t','e','a','l','w','a','y','s'}, // acs_namedexecutealways
+    {26,'a','c','s','_','n','a','m','e','d','e','x','e','c','u','t','e','w','i','t','h','r','e','s','u','l','t'}, // acs_namedexecutewithresult
+    {22,'a','c','s','_','n','a','m','e','d','l','o','c','k','e','d','e','x','e','c','u','t','e'}, // acs_namedlockedexecute
+    {26,'a','c','s','_','n','a','m','e','d','l','o','c','k','e','d','e','x','e','c','u','t','e','d','o','o','r'}, // acs_namedlockedexecutedoor
+    {16,'a','c','s','_','n','a','m','e','d','s','u','s','p','e','n','d'}, // acs_namedsuspend
+    {18,'a','c','s','_','n','a','m','e','d','t','e','r','m','i','n','a','t','e'}, // acs_namedterminate
+    {11,'a','c','s','_','s','u','s','p','e','n','d'}, // acs_suspend
+    {13,'a','c','s','_','t','e','r','m','i','n','a','t','e'}, // acs_terminate
+    {21,'c','e','i','l','i','n','g','_','c','r','u','s','h','a','n','d','r','a','i','s','e'}, // ceiling_crushandraise
+    {22,'c','e','i','l','i','n','g','_','c','r','u','s','h','a','n','d','r','a','i','s','e','a'}, // ceiling_crushandraisea
+    {25,'c','e','i','l','i','n','g','_','c','r','u','s','h','a','n','d','r','a','i','s','e','d','i','s','t'}, // ceiling_crushandraisedist
+    {28,'c','e','i','l','i','n','g','_','c','r','u','s','h','a','n','d','r','a','i','s','e','s','i','l','e','n','t','a'}, // ceiling_crushandraisesilenta
+    {25,'c','e','i','l','i','n','g','_','c','r','u','s','h','r','a','i','s','e','a','n','d','s','t','a','y'}, // ceiling_crushraiseandstay
+    {26,'c','e','i','l','i','n','g','_','c','r','u','s','h','r','a','i','s','e','a','n','d','s','t','a','y','a'}, // ceiling_crushraiseandstaya
+    {29,'c','e','i','l','i','n','g','_','c','r','u','s','h','r','a','i','s','e','a','n','d','s','t','a','y','s','i','l','a'}, // ceiling_crushraiseandstaysila
+    {17,'c','e','i','l','i','n','g','_','c','r','u','s','h','s','t','o','p'}, // ceiling_crushstop
+    {21,'c','e','i','l','i','n','g','_','l','o','w','e','r','a','n','d','c','r','u','s','h'}, // ceiling_lowerandcrush
+    {25,'c','e','i','l','i','n','g','_','l','o','w','e','r','a','n','d','c','r','u','s','h','d','i','s','t'}, // ceiling_lowerandcrushdist
+    {20,'c','e','i','l','i','n','g','_','l','o','w','e','r','b','y','v','a','l','u','e'}, // ceiling_lowerbyvalue
+    {26,'c','e','i','l','i','n','g','_','l','o','w','e','r','b','y','v','a','l','u','e','t','i','m','e','s','8'}, // ceiling_lowerbyvaluetimes8
+    {20,'c','e','i','l','i','n','g','_','l','o','w','e','r','i','n','s','t','a','n','t'}, // ceiling_lowerinstant
+    {20,'c','e','i','l','i','n','g','_','l','o','w','e','r','t','o','f','l','o','o','r'}, // ceiling_lowertofloor
+    {27,'c','e','i','l','i','n','g','_','l','o','w','e','r','t','o','h','i','g','h','e','s','t','f','l','o','o','r'}, // ceiling_lowertohighestfloor
+    {21,'c','e','i','l','i','n','g','_','l','o','w','e','r','t','o','l','o','w','e','s','t'}, // ceiling_lowertolowest
+    {19,'c','e','i','l','i','n','g','_','m','o','v','e','t','o','v','a','l','u','e'}, // ceiling_movetovalue
+    {25,'c','e','i','l','i','n','g','_','m','o','v','e','t','o','v','a','l','u','e','t','i','m','e','s','8'}, // ceiling_movetovaluetimes8
+    {20,'c','e','i','l','i','n','g','_','r','a','i','s','e','b','y','v','a','l','u','e'}, // ceiling_raisebyvalue
+    {26,'c','e','i','l','i','n','g','_','r','a','i','s','e','b','y','v','a','l','u','e','t','i','m','e','s','8'}, // ceiling_raisebyvaluetimes8
+    {20,'c','e','i','l','i','n','g','_','r','a','i','s','e','i','n','s','t','a','n','t'}, // ceiling_raiseinstant
+    {22,'c','e','i','l','i','n','g','_','r','a','i','s','e','t','o','n','e','a','r','e','s','t'}, // ceiling_raisetonearest
+    {14,'c','e','i','l','i','n','g','_','w','a','g','g','l','e'}, // ceiling_waggle
+    {12,'c','h','a','n','g','e','c','a','m','e','r','a'}, // changecamera
+    {11,'c','h','a','n','g','e','s','k','i','l','l'}, // changeskill
+    {15,'c','l','e','a','r','f','o','r','c','e','f','i','e','l','d'}, // clearforcefield
+    {11,'d','a','m','a','g','e','t','h','i','n','g'}, // damagething
+    {13,'d','o','o','r','_','a','n','i','m','a','t','e','d'}, // door_animated
+    {10,'d','o','o','r','_','c','l','o','s','e'}, // door_close
+    {18,'d','o','o','r','_','c','l','o','s','e','w','a','i','t','o','p','e','n'}, // door_closewaitopen
+    {16,'d','o','o','r','_','l','o','c','k','e','d','r','a','i','s','e'}, // door_lockedraise
+    {9,'d','o','o','r','_','o','p','e','n'}, // door_open
+    {10,'d','o','o','r','_','r','a','i','s','e'}, // door_raise
+    {23,'e','l','e','v','a','t','o','r','_','l','o','w','e','r','t','o','n','e','a','r','e','s','t'}, // elevator_lowertonearest
+    {20,'e','l','e','v','a','t','o','r','_','m','o','v','e','t','o','f','l','o','o','r'}, // elevator_movetofloor
+    {23,'e','l','e','v','a','t','o','r','_','r','a','i','s','e','t','o','n','e','a','r','e','s','t'}, // elevator_raisetonearest
+    {11,'e','x','i','t','_','n','o','r','m','a','l'}, // exit_normal
+    {11,'e','x','i','t','_','s','e','c','r','e','t'}, // exit_secret
+    {15,'f','l','o','o','r','_','c','r','u','s','h','s','t','o','p'}, // floor_crushstop
+    {11,'f','l','o','o','r','_','d','o','n','u','t'}, // floor_donut
+    {18,'f','l','o','o','r','_','l','o','w','e','r','b','y','v','a','l','u','e'}, // floor_lowerbyvalue
+    {24,'f','l','o','o','r','_','l','o','w','e','r','b','y','v','a','l','u','e','t','i','m','e','s','8'}, // floor_lowerbyvaluetimes8
+    {18,'f','l','o','o','r','_','l','o','w','e','r','i','n','s','t','a','n','t'}, // floor_lowerinstant
+    {20,'f','l','o','o','r','_','l','o','w','e','r','t','o','h','i','g','h','e','s','t'}, // floor_lowertohighest
+    {19,'f','l','o','o','r','_','l','o','w','e','r','t','o','l','o','w','e','s','t'}, // floor_lowertolowest
+    {23,'f','l','o','o','r','_','l','o','w','e','r','t','o','l','o','w','e','s','t','t','x','t','y'}, // floor_lowertolowesttxty
+    {20,'f','l','o','o','r','_','l','o','w','e','r','t','o','n','e','a','r','e','s','t'}, // floor_lowertonearest
+    {17,'f','l','o','o','r','_','m','o','v','e','t','o','v','a','l','u','e'}, // floor_movetovalue
+    {23,'f','l','o','o','r','_','m','o','v','e','t','o','v','a','l','u','e','t','i','m','e','s','8'}, // floor_movetovaluetimes8
+    {19,'f','l','o','o','r','_','r','a','i','s','e','a','n','d','c','r','u','s','h'}, // floor_raiseandcrush
+    {23,'f','l','o','o','r','_','r','a','i','s','e','a','n','d','c','r','u','s','h','d','o','o','m'}, // floor_raiseandcrushdoom
+    {20,'f','l','o','o','r','_','r','a','i','s','e','b','y','t','e','x','t','u','r','e'}, // floor_raisebytexture
+    {18,'f','l','o','o','r','_','r','a','i','s','e','b','y','v','a','l','u','e'}, // floor_raisebyvalue
+    {24,'f','l','o','o','r','_','r','a','i','s','e','b','y','v','a','l','u','e','t','i','m','e','s','8'}, // floor_raisebyvaluetimes8
+    {22,'f','l','o','o','r','_','r','a','i','s','e','b','y','v','a','l','u','e','t','x','t','y'}, // floor_raisebyvaluetxty
+    {18,'f','l','o','o','r','_','r','a','i','s','e','i','n','s','t','a','n','t'}, // floor_raiseinstant
+    {20,'f','l','o','o','r','_','r','a','i','s','e','t','o','h','i','g','h','e','s','t'}, // floor_raisetohighest
+    {26,'f','l','o','o','r','_','r','a','i','s','e','t','o','l','o','w','e','s','t','c','e','i','l','i','n','g'}, // floor_raisetolowestceiling
+    {20,'f','l','o','o','r','_','r','a','i','s','e','t','o','n','e','a','r','e','s','t'}, // floor_raisetonearest
+    {21,'f','l','o','o','r','_','t','r','a','n','s','f','e','r','n','u','m','e','r','i','c'}, // floor_transfernumeric
+    {21,'f','l','o','o','r','_','t','r','a','n','s','f','e','r','t','r','i','g','g','e','r'}, // floor_transfertrigger
+    {12,'f','l','o','o','r','_','w','a','g','g','l','e'}, // floor_waggle
+    {28,'f','l','o','o','r','a','n','d','c','e','i','l','i','n','g','_','l','o','w','e','r','b','y','v','a','l','u','e'}, // floorandceiling_lowerbyvalue
+    {26,'f','l','o','o','r','a','n','d','c','e','i','l','i','n','g','_','l','o','w','e','r','r','a','i','s','e'}, // floorandceiling_lowerraise
+    {28,'f','l','o','o','r','a','n','d','c','e','i','l','i','n','g','_','r','a','i','s','e','b','y','v','a','l','u','e'}, // floorandceiling_raisebyvalue
+    {10,'f','o','r','c','e','f','i','e','l','d'}, // forcefield
+    {15,'g','e','n','e','r','i','c','_','c','e','i','l','i','n','g'}, // generic_ceiling
+    {15,'g','e','n','e','r','i','c','_','c','r','u','s','h','e','r'}, // generic_crusher
+    {16,'g','e','n','e','r','i','c','_','c','r','u','s','h','e','r','2'}, // generic_crusher2
+    {12,'g','e','n','e','r','i','c','_','d','o','o','r'}, // generic_door
+    {13,'g','e','n','e','r','i','c','_','f','l','o','o','r'}, // generic_floor
+    {12,'g','e','n','e','r','i','c','_','l','i','f','t'}, // generic_lift
+    {14,'g','e','n','e','r','i','c','_','s','t','a','i','r','s'}, // generic_stairs
+    {10,'g','l','a','s','s','b','r','e','a','k'}, // glassbreak
+    {9,'h','e','a','l','t','h','i','n','g'}, // healthing
+    {19,'l','i','g','h','t','_','c','h','a','n','g','e','t','o','v','a','l','u','e'}, // light_changetovalue
+    {10,'l','i','g','h','t','_','f','a','d','e'}, // light_fade
+    {13,'l','i','g','h','t','_','f','l','i','c','k','e','r'}, // light_flicker
+    {20,'l','i','g','h','t','_','f','o','r','c','e','l','i','g','h','t','n','i','n','g'}, // light_forcelightning
+    {10,'l','i','g','h','t','_','g','l','o','w'}, // light_glow
+    {18,'l','i','g','h','t','_','l','o','w','e','r','b','y','v','a','l','u','e'}, // light_lowerbyvalue
+    {17,'l','i','g','h','t','_','m','a','x','n','e','i','g','h','b','o','r'}, // light_maxneighbor
+    {17,'l','i','g','h','t','_','m','i','n','n','e','i','g','h','b','o','r'}, // light_minneighbor
+    {18,'l','i','g','h','t','_','r','a','i','s','e','b','y','v','a','l','u','e'}, // light_raisebyvalue
+    {10,'l','i','g','h','t','_','s','t','o','p'}, // light_stop
+    {12,'l','i','g','h','t','_','s','t','r','o','b','e'}, // light_strobe
+    {16,'l','i','g','h','t','_','s','t','r','o','b','e','d','o','o','m'}, // light_strobedoom
+    {17,'l','i','n','e','_','a','l','i','g','n','c','e','i','l','i','n','g'}, // line_alignceiling
+    {15,'l','i','n','e','_','a','l','i','g','n','f','l','o','o','r'}, // line_alignfloor
+    {16,'l','i','n','e','_','s','e','t','b','l','o','c','k','i','n','g'}, // line_setblocking
+    {21,'l','i','n','e','_','s','e','t','t','e','x','t','u','r','e','o','f','f','s','e','t'}, // line_settextureoffset
+    {20,'l','i','n','e','_','s','e','t','t','e','x','t','u','r','e','s','c','a','l','e'}, // line_settexturescale
+    {10,'n','o','i','s','e','a','l','e','r','t'}, // noisealert
+    {12,'p','i','l','l','a','r','_','b','u','i','l','d'}, // pillar_build
+    {20,'p','i','l','l','a','r','_','b','u','i','l','d','a','n','d','c','r','u','s','h'}, // pillar_buildandcrush
+    {11,'p','i','l','l','a','r','_','o','p','e','n'}, // pillar_open
+    {16,'p','l','a','t','_','d','o','w','n','b','y','v','a','l','u','e'}, // plat_downbyvalue
+    {19,'p','l','a','t','_','d','o','w','n','w','a','i','t','u','p','s','t','a','y'}, // plat_downwaitupstay
+    {22,'p','l','a','t','_','d','o','w','n','w','a','i','t','u','p','s','t','a','y','l','i','p'}, // plat_downwaitupstaylip
+    {19,'p','l','a','t','_','p','e','r','p','e','t','u','a','l','r','a','i','s','e'}, // plat_perpetualraise
+    {22,'p','l','a','t','_','p','e','r','p','e','t','u','a','l','r','a','i','s','e','l','i','p'}, // plat_perpetualraiselip
+    {20,'p','l','a','t','_','r','a','i','s','e','a','n','d','s','t','a','y','t','x','0'}, // plat_raiseandstaytx0
+    {9,'p','l','a','t','_','s','t','o','p'}, // plat_stop
+    {18,'p','l','a','t','_','t','o','g','g','l','e','c','e','i','l','i','n','g'}, // plat_toggleceiling
+    {14,'p','l','a','t','_','u','p','b','y','v','a','l','u','e'}, // plat_upbyvalue
+    {20,'p','l','a','t','_','u','p','b','y','v','a','l','u','e','s','t','a','y','t','x'}, // plat_upbyvaluestaytx
+    {26,'p','l','a','t','_','u','p','n','e','a','r','e','s','t','w','a','i','t','d','o','w','n','s','t','a','y'}, // plat_upnearestwaitdownstay
+    {19,'p','l','a','t','_','u','p','w','a','i','t','d','o','w','n','s','t','a','y'}, // plat_upwaitdownstay
+    {14,'p','l','a','y','e','r','_','s','e','t','t','e','a','m'}, // player_setteam
+    {18,'p','o','i','n','t','p','u','s','h','_','s','e','t','f','o','r','c','e'}, // pointpush_setforce
+    {17,'p','o','l','y','o','b','j','_','d','o','o','r','s','l','i','d','e'}, // polyobj_doorslide
+    {17,'p','o','l','y','o','b','j','_','d','o','o','r','s','w','i','n','g'}, // polyobj_doorswing
+    {12,'p','o','l','y','o','b','j','_','m','o','v','e'}, // polyobj_move
+    {18,'p','o','l','y','o','b','j','_','m','o','v','e','t','i','m','e','s','8'}, // polyobj_movetimes8
+    {14,'p','o','l','y','o','b','j','_','m','o','v','e','t','o'}, // polyobj_moveto
+    {18,'p','o','l','y','o','b','j','_','m','o','v','e','t','o','s','p','o','t'}, // polyobj_movetospot
+    {15,'p','o','l','y','o','b','j','_','o','r','_','m','o','v','e'}, // polyobj_or_move
+    {21,'p','o','l','y','o','b','j','_','o','r','_','m','o','v','e','t','i','m','e','s','8'}, // polyobj_or_movetimes8
+    {17,'p','o','l','y','o','b','j','_','o','r','_','m','o','v','e','t','o'}, // polyobj_or_moveto
+    {21,'p','o','l','y','o','b','j','_','o','r','_','m','o','v','e','t','o','s','p','o','t'}, // polyobj_or_movetospot
+    {21,'p','o','l','y','o','b','j','_','o','r','_','r','o','t','a','t','e','l','e','f','t'}, // polyobj_or_rotateleft
+    {22,'p','o','l','y','o','b','j','_','o','r','_','r','o','t','a','t','e','r','i','g','h','t'}, // polyobj_or_rotateright
+    {18,'p','o','l','y','o','b','j','_','r','o','t','a','t','e','l','e','f','t'}, // polyobj_rotateleft
+    {19,'p','o','l','y','o','b','j','_','r','o','t','a','t','e','r','i','g','h','t'}, // polyobj_rotateright
+    {12,'p','o','l','y','o','b','j','_','s','t','o','p'}, // polyobj_stop
+    {12,'r','a','d','i','u','s','_','q','u','a','k','e'}, // radius_quake
+    {14,'s','c','r','o','l','l','_','c','e','i','l','i','n','g'}, // scroll_ceiling
+    {12,'s','c','r','o','l','l','_','f','l','o','o','r'}, // scroll_floor
+    {19,'s','c','r','o','l','l','_','t','e','x','t','u','r','e','_','b','o','t','h'}, // scroll_texture_both
+    {11,'s','c','r','o','l','l','_','w','a','l','l'}, // scroll_wall
+    {18,'s','e','c','t','o','r','_','c','h','a','n','g','e','f','l','a','g','s'}, // sector_changeflags
+    {18,'s','e','c','t','o','r','_','c','h','a','n','g','e','s','o','u','n','d'}, // sector_changesound
+    {24,'s','e','c','t','o','r','_','s','e','t','c','e','i','l','i','n','g','p','a','n','n','i','n','g'}, // sector_setceilingpanning
+    {22,'s','e','c','t','o','r','_','s','e','t','c','e','i','l','i','n','g','s','c','a','l','e'}, // sector_setceilingscale
+    {23,'s','e','c','t','o','r','_','s','e','t','c','e','i','l','i','n','g','s','c','a','l','e','2'}, // sector_setceilingscale2
+    {15,'s','e','c','t','o','r','_','s','e','t','c','o','l','o','r'}, // sector_setcolor
+    {17,'s','e','c','t','o','r','_','s','e','t','c','u','r','r','e','n','t'}, // sector_setcurrent
+    {16,'s','e','c','t','o','r','_','s','e','t','d','a','m','a','g','e'}, // sector_setdamage
+    {14,'s','e','c','t','o','r','_','s','e','t','f','a','d','e'}, // sector_setfade
+    {22,'s','e','c','t','o','r','_','s','e','t','f','l','o','o','r','p','a','n','n','i','n','g'}, // sector_setfloorpanning
+    {20,'s','e','c','t','o','r','_','s','e','t','f','l','o','o','r','s','c','a','l','e'}, // sector_setfloorscale
+    {21,'s','e','c','t','o','r','_','s','e','t','f','l','o','o','r','s','c','a','l','e','2'}, // sector_setfloorscale2
+    {18,'s','e','c','t','o','r','_','s','e','t','f','r','i','c','t','i','o','n'}, // sector_setfriction
+    {17,'s','e','c','t','o','r','_','s','e','t','g','r','a','v','i','t','y'}, // sector_setgravity
+    {14,'s','e','c','t','o','r','_','s','e','t','l','i','n','k'}, // sector_setlink
+    {25,'s','e','c','t','o','r','_','s','e','t','p','l','a','n','e','r','e','f','l','e','c','t','i','o','n'}, // sector_setplanereflection
+    {18,'s','e','c','t','o','r','_','s','e','t','r','o','t','a','t','i','o','n'}, // sector_setrotation
+    {21,'s','e','c','t','o','r','_','s','e','t','t','r','a','n','s','l','u','c','e','n','t'}, // sector_settranslucent
+    {14,'s','e','c','t','o','r','_','s','e','t','w','i','n','d'}, // sector_setwind
+    {18,'s','e','n','d','t','o','c','o','m','m','u','n','i','c','a','t','o','r'}, // sendtocommunicator
+    {17,'s','e','t','p','l','a','y','e','r','p','r','o','p','e','r','t','y'}, // setplayerproperty
+    {16,'s','t','a','i','r','s','_','b','u','i','l','d','d','o','w','n'}, // stairs_builddown
+    {20,'s','t','a','i','r','s','_','b','u','i','l','d','d','o','w','n','s','y','n','c'}, // stairs_builddownsync
+    {14,'s','t','a','i','r','s','_','b','u','i','l','d','u','p'}, // stairs_buildup
+    {18,'s','t','a','i','r','s','_','b','u','i','l','d','u','p','d','o','o','m'}, // stairs_buildupdoom
+    {18,'s','t','a','i','r','s','_','b','u','i','l','d','u','p','s','y','n','c'}, // stairs_buildupsync
+    {17,'s','t','a','r','t','c','o','n','v','e','r','s','a','t','i','o','n'}, // startconversation
+    {15,'t','e','a','m','_','g','i','v','e','p','o','i','n','t','s'}, // team_givepoints
+    {10,'t','e','a','m','_','s','c','o','r','e'}, // team_score
+    {8,'t','e','l','e','p','o','r','t'}, // teleport
+    {16,'t','e','l','e','p','o','r','t','_','e','n','d','g','a','m','e'}, // teleport_endgame
+    {13,'t','e','l','e','p','o','r','t','_','l','i','n','e'}, // teleport_line
+    {15,'t','e','l','e','p','o','r','t','_','n','e','w','m','a','p'}, // teleport_newmap
+    {14,'t','e','l','e','p','o','r','t','_','n','o','f','o','g'}, // teleport_nofog
+    {15,'t','e','l','e','p','o','r','t','_','n','o','s','t','o','p'}, // teleport_nostop
+    {22,'t','e','l','e','p','o','r','t','_','z','o','m','b','i','e','c','h','a','n','g','e','r'}, // teleport_zombiechanger
+    {13,'t','e','l','e','p','o','r','t','g','r','o','u','p'}, // teleportgroup
+    {16,'t','e','l','e','p','o','r','t','i','n','s','e','c','t','o','r'}, // teleportinsector
+    {13,'t','e','l','e','p','o','r','t','o','t','h','e','r'}, // teleportother
+    {14,'t','h','i','n','g','_','a','c','t','i','v','a','t','e'}, // thing_activate
+    {15,'t','h','i','n','g','_','c','h','a','n','g','e','t','i','d'}, // thing_changetid
+    {12,'t','h','i','n','g','_','d','a','m','a','g','e'}, // thing_damage
+    {16,'t','h','i','n','g','_','d','e','a','c','t','i','v','a','t','e'}, // thing_deactivate
+    {13,'t','h','i','n','g','_','d','e','s','t','r','o','y'}, // thing_destroy
+    {10,'t','h','i','n','g','_','h','a','t','e'}, // thing_hate
+    {10,'t','h','i','n','g','_','m','o','v','e'}, // thing_move
+    {16,'t','h','i','n','g','_','p','r','o','j','e','c','t','i','l','e'}, // thing_projectile
+    {21,'t','h','i','n','g','_','p','r','o','j','e','c','t','i','l','e','a','i','m','e','d'}, // thing_projectileaimed
+    {23,'t','h','i','n','g','_','p','r','o','j','e','c','t','i','l','e','g','r','a','v','i','t','y'}, // thing_projectilegravity
+    {25,'t','h','i','n','g','_','p','r','o','j','e','c','t','i','l','e','i','n','t','e','r','c','e','p','t'}, // thing_projectileintercept
+    {11,'t','h','i','n','g','_','r','a','i','s','e'}, // thing_raise
+    {12,'t','h','i','n','g','_','r','e','m','o','v','e'}, // thing_remove
+    {21,'t','h','i','n','g','_','s','e','t','c','o','n','v','e','r','s','a','t','i','o','n'}, // thing_setconversation
+    {13,'t','h','i','n','g','_','s','e','t','g','o','a','l'}, // thing_setgoal
+    {16,'t','h','i','n','g','_','s','e','t','s','p','e','c','i','a','l'}, // thing_setspecial
+    {20,'t','h','i','n','g','_','s','e','t','t','r','a','n','s','l','a','t','i','o','n'}, // thing_settranslation
+    {11,'t','h','i','n','g','_','s','p','a','w','n'}, // thing_spawn
+    {17,'t','h','i','n','g','_','s','p','a','w','n','f','a','c','i','n','g'}, // thing_spawnfacing
+    {16,'t','h','i','n','g','_','s','p','a','w','n','n','o','f','o','g'}, // thing_spawnnofog
+    {10,'t','h','i','n','g','_','s','t','o','p'}, // thing_stop
+    {11,'t','h','r','u','s','t','t','h','i','n','g'}, // thrustthing
+    {12,'t','h','r','u','s','t','t','h','i','n','g','z'}, // thrustthingz
+    {15,'t','r','a','n','s','l','u','c','e','n','t','l','i','n','e'}, // translucentline
+    {13,'u','s','e','p','u','z','z','l','e','i','t','e','m'}, // usepuzzleitem
+
+};
+function int findFunction(int st, int len)
+{
+    int low = 0;
+    int high = FUNC_MAX;
+    int res;
+
+    // StrCmp is str2-str1.
+
+    while(low <= high) {
+        int mid = low + (high - low) / 2;
+
+        int tlen = func_dict[mid][0];
+        if(tlen < len) tlen = len;
+        res = 0;
+        for(int i = 0; res == 0 && i < tlen; i++) {
+            res = func_dict[mid][i+1]-d_lo(f[st+i]);
+        }
+
+        if(res == 0)
+            return mid;
+
+        if (res < 0)
+            low = mid+1;
+        else
+            high = mid-1;
+    }
+
+    return -1;
+}
+
+function int d_lo(int x)
+{
+    if(x < 'A') return x;
+    if(x > 'Z') return x;
+    return x + 32;
+}
+
+#define KEYWORD_MAX 7
+function int findKeyword(int st, int len)
+{
+    int low = 0;
+    int high = KEYWORD_MAX;
+    int res;
+
+    int dict[KEYWORD_MAX][10] = {
+        {6,'b','r','i','g','h','t'},
+        {8,'c','a','n','r','a','i','s','e'},
+        {4,'f','a','s','t'},
+        {5,'l','i','g','h','t'},
+        {7,'n','o','d','e','l','a','y'},
+        {6,'o','f','f','s','e','t'},
+        {4,'s','l','o','w'},
+    };
+
+    while(low <= high) {
+        int mid = low + (high - low) / 2;
+
+        int tlen = dict[mid][0];
+        if(tlen < len) tlen = len;
+        res = 0;
+        for(int i = 0; res == 0 && i < tlen; i++) {
+            res = dict[mid][i+1]-d_lo(f[st+i]);
+        }
+
+        if(res == 0)
+            return mid;
+
+        if (res < 0)
+            low = mid+1;
+        else
+            high = mid-1;
+    }
+
+    return -1;
+}

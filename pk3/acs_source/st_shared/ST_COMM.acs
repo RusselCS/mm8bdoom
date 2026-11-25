@@ -40,3 +40,13 @@ function void transferPointer(int src, int dest, int srcptr, int destptr)
 {
     ACS_NamedExecuteWithResult("satanium_transferpointers", src, dest, srcptr, destptr);
 }
+
+function bool checkClassFlag(str cls, str flag)
+{
+    int u = uniqueTID();
+    if(!Spawn(cls, 0, 0, 0, u, 0))
+        return false;
+    int ret = CheckFlag(u, flag);
+    Thing_Remove(u);
+    return ret;
+}

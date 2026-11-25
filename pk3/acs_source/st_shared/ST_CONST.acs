@@ -10,3 +10,4 @@
 
 #define GLB_PALETTE 21
 #define GLB_DECORATE 22
+#define GLB_STATES 23
