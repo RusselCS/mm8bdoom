@@ -1,0 +1,1 @@
+server noarchive float sv_satanium_damagemult = 3.0;
