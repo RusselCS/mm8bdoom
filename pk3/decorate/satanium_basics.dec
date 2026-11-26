@@ -36,6 +36,7 @@ actor SataniumSwitchHitter : BulletPuff
 {
     -ALLOWPARTICLES
     +MTHRUSPECIES
+    +BLOODLESSIMPACT
     vspeed 0
     renderstyle none
     States

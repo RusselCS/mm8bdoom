@@ -435,6 +435,9 @@ script "satanium_pointer_run" (int tid, int pln)
     int start = GetActorPowerupTics(tid, "Satanium_PointerStart");
     int end = GetActorPowerupTics(tid, "Satanium_PointerEnd");
 
+    if(GetPlayerChasecam(ConsolePlayerNumber()))
+        terminate;
+
     int frame = 'Z';
 
     if(end > 0) {
