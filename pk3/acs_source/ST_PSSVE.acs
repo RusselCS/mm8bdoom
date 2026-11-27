@@ -665,11 +665,13 @@ int lowerFrames[LOWER_TIME] = { 'D','E','F','G' };
 
 script "satanium_pointer_run" (int tid, int pln)
 {
-    int start = GetActorPowerupTics(tid, "Satanium_PointerStart");
-    int end = GetActorPowerupTics(tid, "Satanium_PointerEnd");
-
     if(GetPlayerChasecam(ConsolePlayerNumber()))
         terminate;
+    if(CheckAutomap() == AUTOMAP_FULLMAP)
+        terminate;
+
+    int start = GetActorPowerupTics(tid, "Satanium_PointerStart");
+    int end = GetActorPowerupTics(tid, "Satanium_PointerEnd");
 
     int frame = 'Z';
 
