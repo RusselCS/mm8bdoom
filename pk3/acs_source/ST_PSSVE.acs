@@ -4,6 +4,7 @@
 
 #include "DTADD.acs"
 #include "HOOKUTIL.acs"
+#include "HDMSGPOS.acs"
 
 #include "8BDMDEFS.acs"
 #include "8BDMMATH.acs"
@@ -11,12 +12,12 @@
 
 #import "8BDT.acs"
 
+#include "ST_CONST.acs"
 #include "ST_COMM.acs"
 
 script "satanium_passive_register" OPEN
 {
     DefineHookFunction(DTADD_HF_ACTOR_DAMAGED, "satanium_handleshield_damage", 0.0);
-    DefineHookFunction(DTADD_HF_ACTOR_DAMAGED, "satanium_handleexit_damage", -1.1);
 
     DefineHookFunction(DTADD_HF_ACTOR_DAMAGED, "satanium_handlemonster_damage", 1.0);
     DefineHookFunction(DTADD_HF_ACTOR_DAMAGED, "satanium_handlemonster_explosiondamage", 1.0);
@@ -162,40 +163,272 @@ function void updateArmor(int newArmor, int hp)
 
 // ESCAPE UNIT --------------------------------------------------------------------------------------------------------
 
-#define EXIT_SECONDS 3
-#define EXIT_TIME 35*EXIT_SECONDS
-script "satanium_handleexitunit" (void)
+script "satanium_checkpoint_script_register" OPEN
 {
-    int startTime = Timer();
-    int x = GetActorX(0);
-    int y = GetActorY(0);
-    int z = GetActorZ(0);
-    Print(s:"Calibrating Exit position, please remain still for ", i:EXIT_SECONDS, s:" seconds...");
-    while(true) {
-        if(CheckInventory("Satanium_Damaged")) break;
-        if(X != GetActorX(0)) break;
-        if(Y != GetActorY(0)) break;
-        if(Z != GetActorZ(0)) break;
-
-        int curTime = Timer()-startTime;
-        if(curTime >= EXIT_TIME) {
-            Print(s:"Exit succeeded.");
-            GiveInventory("Satanium_ExitUnitUse", 1);
-            terminate;
-        }
-
-        if((curTime % 35) == 0) {
-            Print(s:"Calibrating Exit position, please remain still for ", i:EXIT_SECONDS-(curTime/35), s:" seconds...");
-        }
-
-        delay(1);
-    }
-    Print(s:"Exit failed.");
+    DefineHookFunction(DTADD_HF_ACTOR_DAMAGED, "satanium_checkpoint_damage", -1.1);
+    DefineReservedTIDRange(TID_CHECKPOINTS, TID_CHECKPOINTS + TID_CHECKPOINT_COUNT-1);
 }
 
-script "satanium_handleexit_damage" (void)
+script "satanium_checkpoint_script_register_client" OPEN CLIENTSIDE
 {
-    GiveInventory("Satanium_Damaged", 1);
+    DefineHookFunction(DTADD_HF_UI_TICK_PLAYER, "satanium_exit_ui", 0.0);
+}
+
+bool spawnedFirstCheckpoint = false;
+script "satanium_checkpoint_startstrong" ENTER
+{
+    delay(1);
+    if(spawnedFirstCheckpoint) terminate;
+    spawnedFirstCheckpoint = true;
+    autosave();
+    CallACS("satanium_spawncheckpoint");
+}
+
+#define BT_ANYMOVEMENT BT_FORWARD | BT_BACK | BT_LEFT | BT_RIGHT | BT_JUMP | BT_MOVEUP | BT_MOVEDOWN | BT_ATTACK | BT_ALTATTACK | BT_RELOAD
+script "satanium_checkpoint_checkinput_respawn" RESPAWN { CallACS("satanium_checkpoint_checkinput"); }
+script "satanium_checkpoint_checkinput" ENTER
+{
+    int buttons = GetPlayerInput(PlayerNumber(), INPUT_BUTTONS);
+    GiveInventory("Satanium_DelayExit", 1);
+    while(true) {
+        delay(1);
+
+        if(GetActorProperty(0, AProp_Health) <= 0) terminate;
+        if(PlayerNumber() < 0) terminate;
+
+        if(!(buttons & BT_ANYMOVEMENT)) continue;
+        GiveInventory("Satanium_DelayExit", 1);
+    }
+}
+
+script "satanium_checkpoint_damage" (void)
+{
+    GiveInventory("Satanium_DelayExit", 1);
+}
+
+function int newCheckpointTID(void)
+{
+    for(int i = TID_CHECKPOINTS; i < TID_CHECKPOINTS+TID_CHECKPOINT_COUNT; i++)
+    {
+        if(ThingCount(T_NONE, i) == 0)
+            return i;
+    }
+    return 0;
+}
+
+script "satanium_spawncheckpoint" (int msg)
+{
+    int tid = newCheckpointTID();
+    SpawnForced("Satanium_checkpoint", GetActorX(0), GetActorY(0), GetActorZ(0), tid, 0);
+}
+
+script "satanium_teleportto" (int tid) NET
+{
+    if(CheckInventory("Satanium_ExitDelay") > 0) terminate;
+    if(tid == 0) terminate;
+    if(ThingCount(T_NONE, tid) == 0) terminate;
+    if(tid < TID_CHECKPOINTS || tid > TID_CHECKPOINTS + TID_CHECKPOINT_COUNT)
+        if(!CallACS("satanium_isthisaplayer", tid)) terminate;
+
+    int u = UniqueTID();
+    if(!SpawnSpotForced("TeleportDest2", tid, u, GetActorAngle(tid) >> 8)) terminate;
+    CallACS("core_unsolidplayer",0,USP_TOGGLEON);
+    GiveInventory("Satanium_SpawnResolid", 1);
+    int res = Teleport(u, 0, false);
+    Thing_Remove(u);
+    if(!res) terminate;
+
+    TakeInventory("Satanium_ExitUnitToggle", 1);
+}
+
+script "satanium_isthisaplayer" (int tid)
+{
+    SetActivator(tid);
+    SetResultValue(PlayerNumber() >= 0);
+}
+
+script "satanium_exit_toggle" (void)
+{
+    LocalAmbientSound("item/exittoggle", 128);
+
+    if(CheckInventory("Satanium_ExitUnitToggle") == 0) {
+        GiveInventory("Satanium_ExitUnitToggle", 1);
+    } else {
+        TakeInventory("Satanium_ExitUnitToggle", 1);
+    }
+}
+
+int escapeVisOldCameraInit = -1;
+int escapeVisOldCamera = 0;
+int escapeVisOldCameraX = 0;
+int escapeVisOldCameraY = 0;
+int escapeVisOldCameraZ = 0;
+int escapeVisOldCameraAngle = 0;
+int escapeVisOldCameraPitch = 0;
+
+int selectedCheckpoint = 0;
+int selectedCheckpointTime = -1;
+
+#define EXIT_SIZE_LIMIT MAX_PLAYERS+TID_CHECKPOINT_COUNT
+
+script "satanium_exit_ui" (int ptid, int pln)
+{
+    if(
+        GetPlayerChasecam(ConsolePlayerNumber()) ||
+        CheckAutomap() == AUTOMAP_FULLMAP ||
+        CheckActorInventory(ptid, "Satanium_ExitUnitToggle") == 0
+    ) {
+        selectedCheckpoint = 0;
+        terminate;
+    }
+
+    int i;
+
+    // Build the list of TIDs to scan under.
+    int scanTIDs[EXIT_SIZE_LIMIT];
+    int scanIcons[EXIT_SIZE_LIMIT];
+    int scanActives[EXIT_SIZE_LIMIT];
+    int scanOffsX[EXIT_SIZE_LIMIT];
+    int scanOffsY[EXIT_SIZE_LIMIT];
+    int scanScale[EXIT_SIZE_LIMIT];
+    int scanCount = 0;
+
+    for(i = 0; i < MAX_PLAYERS; i++) {
+        if(i == pln) continue;
+        if(!PlayerInGame(i)) continue;
+        scanTIDs[scanCount] = i+PLN_TID;
+        scanIcons[scanCount] = CallACS("core_getmugshot", i+1);
+        scanActives[scanCount] = scanIcons[scanCount];
+        scanOffsX[scanCount] = -4.0;
+        scanOffsY[scanCount] = -8.0;
+        scanScale[scanCount] = 1.0;
+        scanCount++;
+    }
+
+    str sprites[8] = {"SPRBJ0","SPRBI0","SPRBK0","SPRBL0","SPRBN0","SPRBM0","SPRBO0","SPRBP0"};
+    for(i = TID_CHECKPOINTS; i < TID_CHECKPOINTS + TID_CHECKPOINT_COUNT; i++) {
+        if(ThingCount(T_NONE, i) == 0) break;
+        scanTIDs[scanCount] = i;
+        scanIcons[scanCount] = "SPRBA0";
+        scanActives[scanCount] = sprites[(Timer()/3)%8];
+        scanOffsX[scanCount] = 0.0;
+        scanOffsY[scanCount] = 0.0;
+        scanScale[scanCount] = 1.0;
+        scanCount++;
+    }
+
+    if(scanCount == 0)
+        terminate;
+
+    int px = GetActorX(ptid);
+    int py = GetActorY(ptid);
+    int pz = GetActorZ(ptid) + GetActorViewHeight(ptid);
+
+    int pyaw = GetActorAngle(ptid);
+    int camPitch = GetActorPitch(ptid);
+    int ppitch = normalize(camPitch);
+
+    int time = Timer();
+    if(escapeVisOldCameraInit < time - 1 || escapeVisOldCamera != ptid) {
+        escapeVisOldCameraInit = time;
+        escapeVisOldCamera = ptid;
+        escapeVisOldCameraX = pX;
+        escapeVisOldCameraY = pY;
+        escapeVisOldCameraZ = pZ;
+        escapeVisOldCameraAngle = pyaw;
+        escapeVisOldCameraPitch = camPitch;
+    }
+
+    int tid, x, y, z;
+    int yaw, xydist, pitch, alpha, icon, scale, active;
+    int res;
+
+    int lookRange = 0.01;
+
+    int fov = pln >= 0 ? GetPlayerInfo(pln, PLAYERINFO_FOV) : 90;
+    int selected = -1;
+
+    for(i = 0; i < scanCount; i++)
+    {
+        tid = scanTIDs[i];
+        x = GetActorX(tid);
+        y = GetActorY(tid);
+        z = GetActorZ(tid)+(GetActorProperty(tid,AProp_Health)>>1);
+
+        if(selected == -1)
+        {
+            yaw = VectorAngle(x-px, y-py);
+            xydist = VectorLength(x-px, y-py);
+            pitch = normalize(-VectorAngle(xydist, z-pz));
+
+            int ydiff = abs(yaw-pyaw);
+            if(ydiff > 0.5) {
+                if(yaw < pyaw) yaw+=1.0;
+                else pyaw+=1.0;
+                ydiff = abs(yaw-pyaw);
+            }
+            if(ydiff < lookRange && abs(pitch-ppitch) < lookRange) {
+                active = true;
+                selected = i;
+            } else {
+                active = false;
+            }
+        }
+
+        if(selected == i) {
+            alpha = 1.0;
+            icon = scanActives[i];
+            scale = 50 * scanScale[i];
+        } else {
+            alpha = 0.4;
+            icon = scanIcons[i];
+            scale = 40 * scanScale[i];
+        }
+
+        res = CalculateHudMessageOnPosition(x, y, z,
+                px, py, pz, pyaw, camPitch,
+                escapeVisOldCameraX, escapeVisOldCameraY, escapeVisOldCameraZ, escapeVisOldCameraAngle, escapeVisOldCameraPitch,
+                fov, 1.0,
+                80 * 20, 60 * 20,
+                scale, scale
+            );
+
+        if(res != HDMSGPOS_VALID) continue;
+
+        SetHudSize(
+            GetHudMessageOnPositionXSize(),
+            GetHudMessageOnPositionYSize(),
+            false
+        );
+
+        int hx = GetHudMessageOnPositionXPos(HDMSGPOS_ALIGN_LEFT, scanOffsX[i]);
+        int hy = GetHudMessageOnPositionYPos(HDMSGPOS_ALIGN_TOP, scanOffsY[i]);
+
+        SetFont(icon);
+        HudMessageBold(s:"A"; HUDMSG_ALPHA|HUDMSG_NOWRAP|HUDMSG_LAYER_UNDERHUD|HUDMSG_NOTWITHFULLMAP, 0, CR_UNTRANSLATED, hx, hy, HDMSGPOS_ONE_TIC, alpha);
+    }
+
+    if(
+        ConsolePlayerNumber() != pln ||
+        selected == -1
+    ) {
+        selectedCheckpoint = 0;
+        selectedCheckpointTime = -1;
+        terminate;
+    }
+
+    if(selectedCheckpoint != scanTIDs[selected]) {
+        AmbientSound("menu/itemwheel/select", 64);
+        selectedCheckpoint = scanTIDs[selected];
+        selectedCheckpointTime = Timer();
+        terminate;
+    }
+
+    if(Timer()-selectedCheckpointTime > 35) {
+        selectedCheckpointTime = Timer();
+        SetActivatorToPlayer(pln);
+        NamedRequestScriptPuke("satanium_teleportto", selectedCheckpoint);
+    }
 }
 
 // MONSTER HANDLERS ---------------------------------------------------------------------------------------------------

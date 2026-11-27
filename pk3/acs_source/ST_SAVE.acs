@@ -18,4 +18,5 @@ script "satanium_quicksave" (int msg)
 {
     Autosave();
     Log(s:"Autosave: ", s:msg);
+    CallACS("satanium_spawncheckpoint", msg);
 }

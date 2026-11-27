@@ -7,3 +7,5 @@ item/key CTFPCKUP
 
 item/bigitem COMBINE
 item/armorup METLSTAB
+
+item/exittoggle ST_EXOP
