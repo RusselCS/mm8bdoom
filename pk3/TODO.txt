@@ -12,6 +12,8 @@ This mod comes with a partial DECORATE parser! It does all the following:
 
 TO DO:
 - Passive buster scripts break between maps?
+- Add better feedback to the exit unit to show when it actually will teleport you.
+- Sort points on the exit unit by distance.
 - Voodoo dolls are not given a new baseflagpack on new map. This is a major problem.
 - Figure out how to color the floor splatters the same in software and opengl
 - Figure out a better way to handle assigning unique translation IDs to actors that need them.
